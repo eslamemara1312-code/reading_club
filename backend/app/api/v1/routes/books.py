@@ -1,0 +1,114 @@
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload
+from app.db.session import get_db
+from app.api.v1.deps import get_current_user
+from app.models.user import User
+from app.models.group import Group
+from app.models.group_member import GroupMember
+from app.models.book import Book, GroupBook
+from app.schemas.book import BookCreate, BookRead, GroupBookCreate, GroupBookRead
+from app.services.book_service import set_active_group_book
+
+router = APIRouter(tags=["Books"])
+
+
+@router.get("/books", response_model=List[BookRead])
+async def list_books(db: AsyncSession = Depends(get_db)):
+    res = await db.execute(select(Book).order_by(Book.created_at.desc()))
+    return [BookRead.model_validate(b) for b in res.scalars().all()]
+
+
+@router.post("/books", response_model=BookRead, status_code=status.HTTP_201_CREATED)
+async def create_book(
+    book_in: BookCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    book = Book(**book_in.model_dump())
+    db.add(book)
+    await db.commit()
+    await db.refresh(book)
+    return BookRead.model_validate(book)
+
+
+@router.get("/groups/{group_id}/books/active", response_model=Optional[GroupBookRead])
+async def get_active_group_book(
+    group_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    res = await db.execute(
+        select(GroupBook)
+        .options(joinedload(GroupBook.book))
+        .where(GroupBook.group_id == group_id, GroupBook.status == "active")
+    )
+    gb = res.scalar_one_or_none()
+    if not gb:
+        return None
+
+    return GroupBookRead(
+        id=gb.id,
+        group_id=gb.group_id,
+        book_id=gb.book_id,
+        start_date=gb.start_date,
+        target_end_date=gb.target_end_date,
+        daily_target_pages=gb.daily_target_pages,
+        status=gb.status,
+        created_at=gb.created_at,
+        book=BookRead.model_validate(gb.book)
+    )
+
+
+@router.post("/groups/{group_id}/books", response_model=GroupBookRead, status_code=status.HTTP_201_CREATED)
+async def set_group_book_plan(
+    group_id: str,
+    plan_in: GroupBookCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    # Verify owner
+    group_res = await db.execute(select(Group).where(Group.id == group_id))
+    group = group_res.scalar_one_or_none()
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+
+    mem_res = await db.execute(
+        select(GroupMember).where(
+            GroupMember.group_id == group_id,
+            GroupMember.user_id == current_user.id,
+            GroupMember.status == "active"
+        )
+    )
+    member = mem_res.scalar_one_or_none()
+    is_owner = (group.owner_id == current_user.id) or (member is not None and member.role == "owner")
+    if not is_owner:
+        raise HTTPException(status_code=403, detail="Only the group owner can set the active reading plan")
+
+    try:
+        gb = await set_active_group_book(
+            db, group_id, plan_in.book_id, plan_in.start_date, plan_in.target_end_date
+        )
+        await db.commit()
+
+        # Fetch joined book
+        res = await db.execute(
+            select(GroupBook).options(joinedload(GroupBook.book)).where(GroupBook.id == gb.id)
+        )
+        full_gb = res.scalar_one()
+
+        return GroupBookRead(
+            id=full_gb.id,
+            group_id=full_gb.group_id,
+            book_id=full_gb.book_id,
+            start_date=full_gb.start_date,
+            target_end_date=full_gb.target_end_date,
+            daily_target_pages=full_gb.daily_target_pages,
+            status=full_gb.status,
+            created_at=full_gb.created_at,
+            book=BookRead.model_validate(full_gb.book)
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

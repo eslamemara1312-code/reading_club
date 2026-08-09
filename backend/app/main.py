@@ -1,0 +1,54 @@
+import logging
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.core.config import settings
+
+logging.basicConfig(
+    level=logging.INFO if settings.ENVIRONMENT == "production" else logging.DEBUG,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger("reading_club")
+
+
+from app.core.scheduler import start_scheduler, stop_scheduler
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info(f"Starting {settings.PROJECT_NAME} in [{settings.ENVIRONMENT}] mode")
+    start_scheduler()
+    yield
+    stop_scheduler()
+    logger.info(f"Shutting down {settings.PROJECT_NAME}")
+
+
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    openapi_url="/api/v1/openapi.json" if settings.ENVIRONMENT != "production" else None,
+    docs_url="/docs" if settings.ENVIRONMENT != "production" else None,
+    redoc_url="/redoc" if settings.ENVIRONMENT != "production" else None,
+    lifespan=lifespan
+)
+
+from app.api.v1.routes import api_v1_router
+
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(api_v1_router)
+
+
+@app.get("/health", tags=["Health Check"])
+async def health_check():
+    return {
+        "status": "ok",
+        "project": settings.PROJECT_NAME,
+        "environment": settings.ENVIRONMENT
+    }
