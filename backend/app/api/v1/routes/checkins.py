@@ -40,34 +40,60 @@ async def log_checkin(
             detail="You must be an active member of the group to check in"
         )
     
+    now = datetime.now()
     today = date.today()
+    target_checkin_date = today
+    is_late = False
+
+    group_res = await db.execute(select(Group).where(Group.id == checkin_in.group_id))
+    group = group_res.scalar_one_or_none()
+    if group:
+        if hasattr(group.checkin_deadline_time, "hour"):
+            deadline_h = group.checkin_deadline_time.hour
+        elif isinstance(group.checkin_deadline_time, str):
+            deadline_h = int(group.checkin_deadline_time.split(":")[0])
+        else:
+            deadline_h = 0
+        grace_h = group.grace_period_hours if group.grace_period_hours is not None else 3
+        if deadline_h == 0 and now.hour < grace_h:
+            yesterday = today - timedelta(days=1)
+            yesterday_res = await db.execute(
+                select(Checkin).where(
+                    Checkin.user_id == current_user.id,
+                    Checkin.group_id == checkin_in.group_id,
+                    Checkin.checkin_date == yesterday
+                )
+            )
+            if not yesterday_res.scalar_one_or_none():
+                target_checkin_date = yesterday
+                is_late = True
     
     # Check duplicate
     existing_res = await db.execute(
         select(Checkin).where(
             Checkin.user_id == current_user.id,
             Checkin.group_id == checkin_in.group_id,
-            Checkin.checkin_date == today
+            Checkin.checkin_date == target_checkin_date
         )
     )
     if existing_res.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="You have already checked in today for this group"
+            detail="You have already checked in for this date"
         )
     
     checkin = Checkin(
         user_id=current_user.id,
         group_id=checkin_in.group_id,
-        checkin_date=today,
+        checkin_date=target_checkin_date,
         pages_read=checkin_in.pages_read,
         note=checkin_in.note,
-        is_late=False
+        is_late=is_late
     )
     db.add(checkin)
     
     # Update streak & evaluate badges
-    await bump_streak_on_checkin(db, current_user.id, checkin_in.group_id, today)
+    await bump_streak_on_checkin(db, current_user.id, checkin_in.group_id, target_checkin_date)
     await evaluate_and_award_badges(db, current_user.id, checkin_in.group_id, checkin)
 
     # Auto-update nudges: if someone nudged this user today, mark resulted_in_checkin = True

@@ -35,11 +35,26 @@ from app.api.v1.routes import api_v1_router
 
 # CORS configuration
 origins = settings.CORS_ORIGINS
+if isinstance(origins, str):
+    origins = [o.strip() for o in origins.split(",") if o.strip()]
+
+# Always include the known production frontend + local dev
+_always_allowed = [
+    "https://reading-club-mu.vercel.app",
+    "https://reading-club.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+]
+if isinstance(origins, list):
+    for o in _always_allowed:
+        if o not in origins:
+            origins.append(o)
+
 if isinstance(origins, list) and "*" in origins:
     cors_kwargs = {"allow_origins": ["*"], "allow_credentials": False}
 else:
     cors_kwargs = {
-        "allow_origins": origins,
+        "allow_origins": origins if isinstance(origins, list) else _always_allowed,
         "allow_origin_regex": r"https://.*\.vercel\.app|http://localhost:\d+",
         "allow_credentials": True,
     }
@@ -48,6 +63,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
     **cors_kwargs,
 )
 

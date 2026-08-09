@@ -7,6 +7,7 @@ from app.models.group import Group
 from app.models.group_member import GroupMember
 from app.models.checkin import Checkin
 from app.models.streak import Streak
+from app.models.fine import Fine
 from app.services.fine_service import create_fine_and_add_to_vault
 
 logger = logging.getLogger("reading_club.tasks")
@@ -40,6 +41,17 @@ async def run_daily_close_for_group(db: AsyncSession, group: Group, target_date:
         if checkin_res.scalar_one_or_none():
             continue  # Checked in successfully
 
+        # Check if fine was already issued for target_date
+        fine_res = await db.execute(
+            select(Fine).where(
+                Fine.group_id == group.id,
+                Fine.user_id == member.user_id,
+                Fine.fine_date == target_date
+            )
+        )
+        if fine_res.scalar_one_or_none():
+            continue  # Already fined for target_date
+
         # Get or create streak
         streak_res = await db.execute(
             select(Streak).where(
@@ -58,11 +70,17 @@ async def run_daily_close_for_group(db: AsyncSession, group: Group, target_date:
                 freezes_used_total=0
             )
             db.add(streak)
+            await db.flush()
+
+        # Check if streak/freeze was already processed for target_date
+        if streak.last_checkin_date and streak.last_checkin_date == target_date:
+            continue
 
         # Apply Freeze or Fine logic
         if streak.freezes_remaining > 0:
             streak.freezes_remaining -= 1
             streak.freezes_used_total += 1
+            streak.last_checkin_date = target_date
             logger.info(f"Consumed streak freeze for user {member.user_id} in group {group.id} for date {target_date}")
         else:
             streak.current_streak = 0

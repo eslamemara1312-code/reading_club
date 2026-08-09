@@ -61,3 +61,47 @@ async def test_daily_close_freeze_and_fine(db_session: AsyncSession):
     fines = fines_res2.scalars().all()
     assert len(fines) == 1
     assert float(fines[0].amount) == 20.0
+
+
+@pytest.mark.asyncio
+async def test_daily_close_idempotency(db_session: AsyncSession):
+    """Verify that running daily close twice for the same group and date is idempotent."""
+    user = User(name="Idempotent User", email="idempotent@example.com", password_hash="hash")
+    db_session.add(user)
+    await db_session.flush()
+
+    group = Group(name="Idempotent Group", invite_code="IDEMP1", owner_id=user.id, fine_amount=20.0)
+    db_session.add(group)
+    await db_session.flush()
+
+    five_days_ago = date.today() - timedelta(days=5)
+    member = GroupMember(
+        group_id=group.id, user_id=user.id, role="owner", status="active",
+        joined_at=five_days_ago
+    )
+    db_session.add(member)
+
+    streak = Streak(user_id=user.id, group_id=group.id, current_streak=1, freezes_remaining=0)
+    db_session.add(streak)
+    await db_session.commit()
+
+    target_d = date.today() - timedelta(days=2)
+
+    # First run -> creates fine
+    await run_daily_close_for_group(db_session, group, target_d)
+    await db_session.commit()
+
+    fines_res1 = await db_session.execute(
+        select(Fine).where(Fine.user_id == user.id, Fine.fine_date == target_d)
+    )
+    assert len(fines_res1.scalars().all()) == 1
+
+    # Second run for SAME target_d -> MUST NOT create duplicate fine
+    await run_daily_close_for_group(db_session, group, target_d)
+    await db_session.commit()
+
+    fines_res2 = await db_session.execute(
+        select(Fine).where(Fine.user_id == user.id, Fine.fine_date == target_d)
+    )
+    assert len(fines_res2.scalars().all()) == 1
+

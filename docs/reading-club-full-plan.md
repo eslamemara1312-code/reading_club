@@ -322,6 +322,27 @@ erDiagram
 | stats_json | JSONB | commitment rate, pages, books, longest streak |
 | generated_at | TIMESTAMPTZ | |
 
+#### `discussions` (group discussion threads)
+| Column | Type | Notes |
+|---|---|---|
+| id | UUID (PK) | |
+| group_id | UUID (FK) | |
+| user_id | UUID (FK) | |
+| group_book_id | UUID (FK) | nullable — linked book |
+| title | VARCHAR(200) | |
+| content | TEXT | |
+| discussion_date | DATE | default today |
+| created_at | TIMESTAMPTZ | |
+
+#### `discussion_replies` (discussion thread replies)
+| Column | Type | Notes |
+|---|---|---|
+| id | UUID (PK) | |
+| discussion_id | UUID (FK) | |
+| user_id | UUID (FK) | |
+| content | TEXT | |
+| created_at | TIMESTAMPTZ | |
+
 **Important indexes (to avoid N+1 and slow queries):**
 `checkins(user_id, group_id, checkin_date)`, `checkins(group_id, checkin_date)` for the group calendar, `fines(group_id, status)`, `streaks(group_id, current_streak DESC)` for the leaderboard.
 
@@ -364,6 +385,9 @@ erDiagram
 | GET | `/groups/{id}/bookshelf` | Group bookshelf | ✅ member |
 | GET | `/users/me/summary?month=` | Monthly "Wrapped" summary | ✅ member |
 | GET | `/groups/{id}/hall-of-fame` | Most committed / longest streak / most books | ✅ member |
+| GET | `/groups/{id}/discussions` | List group discussion threads | ✅ member |
+| POST | `/groups/{id}/discussions` | Create a new discussion thread | ✅ member |
+| POST | `/discussions/{id}/replies` | Reply to a discussion thread | ✅ member |
 
 ---
 
