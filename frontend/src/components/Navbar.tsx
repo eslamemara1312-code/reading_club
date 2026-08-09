@@ -54,30 +54,38 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
     navigate('/login');
   };
 
-  const navItems = [
+  const desktopNavItems = [
     { to: '/dashboard', label: 'الرئيسية', icon: BookOpen },
     { to: '/books', label: 'الكتاب', icon: BookOpen },
     { to: '/calendar', label: 'التقويم', icon: Calendar },
-    { to: '/vault', label: 'خزينة الغرامات', icon: ShieldAlert },
+    { to: '/vault', label: 'الخزينة', icon: ShieldAlert },
     { to: '/discussions', label: 'النقاشات', icon: MessageSquare },
   ];
 
+  const mobileNavItems = [
+    { to: '/dashboard', label: 'الرئيسية', icon: BookOpen },
+    { to: '/books', label: 'الكتاب', icon: BookOpen },
+    { to: '/calendar', label: 'التقويم', icon: Calendar },
+    { to: '/discussions', label: 'النقاشات', icon: MessageSquare },
+    { to: '/profile', label: 'حسابي', icon: UserIcon },
+  ];
+
   return (
-    <header className="sticky top-0 z-40 glass-header px-4 py-2.5 transition-all">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-40 glass-header px-2.5 sm:px-4 py-2 transition-all">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand & Group Selector */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           <NavLink to="/dashboard" className="flex items-center gap-2 group">
             <motion.div 
               whileHover={{ scale: 1.08, rotate: -5 }}
               whileTap={{ scale: 0.95 }}
-              className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 p-0.5 shadow-lg shadow-emerald-500/20"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 p-0.5 shadow-lg shadow-emerald-500/20"
             >
               <div className="w-full h-full bg-obsidian-900 rounded-[10px] flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-emerald-400 group-hover:text-emerald-300 transition-colors" />
+                <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 group-hover:text-emerald-300 transition-colors" />
               </div>
             </motion.div>
-            <span className="font-extrabold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-emerald-400 hidden sm:inline-block">
+            <span className="font-extrabold text-base sm:text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-emerald-400 hidden sm:inline-block">
               Reading Club
             </span>
           </NavLink>
@@ -87,11 +95,11 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={() => setGroupDropdownOpen(!groupDropdownOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-xs font-semibold text-slate-200 transition-colors"
+              className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-xs font-semibold text-slate-200 transition-colors"
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="max-w-[130px] truncate">{activeGroup?.name || 'اختر مجموعة'}</span>
-              <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${groupDropdownOpen ? 'rotate-180' : ''}`} />
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span className="max-w-[85px] sm:max-w-[130px] truncate text-[11px] sm:text-xs">{activeGroup?.name || 'اختر مجموعة'}</span>
+              <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform ${groupDropdownOpen ? 'rotate-180' : ''}`} />
             </motion.button>
 
             <AnimatePresence>
@@ -132,7 +140,7 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
 
         {/* Navigation Tabs (Desktop & Tablet) */}
         <nav className="hidden lg:flex items-center gap-1 bg-slate-900/60 p-1 rounded-xl border border-slate-800/80">
-          {navItems.map((item) => {
+          {desktopNavItems.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink
@@ -154,17 +162,17 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
         </nav>
 
         {/* Right Actions: Level, Badges, Notifications & Profile */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Level Pill */}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onOpenBadges}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold hover:bg-amber-500/20 transition-colors shadow-sm shadow-amber-500/10"
+            className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] sm:text-xs font-semibold hover:bg-amber-500/20 transition-colors shadow-sm"
           >
-            <Trophy className="w-3.5 h-3.5 text-amber-400" />
+            <Trophy className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span>مستوى {userLevel}</span>
-            <span className="text-[10px] text-amber-400/80 font-normal">({userXp} XP)</span>
+            <span className="text-[10px] text-amber-400/80 font-normal hidden sm:inline">({userXp} XP)</span>
           </motion.button>
 
           {/* Notifications Button */}
@@ -172,7 +180,7 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onOpenNotifications}
-            className="relative p-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-300 transition-colors"
+            className="relative p-1.5 sm:p-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-300 transition-colors"
           >
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
@@ -187,12 +195,16 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-              className="flex items-center gap-2 p-1 pl-2.5 rounded-full bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-200 transition-colors"
+              className="flex items-center gap-1.5 p-1 rounded-full bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-200 transition-colors"
             >
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-xs font-bold flex items-center justify-center shadow-md">
-                {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-xs font-black flex items-center justify-center shadow-md overflow-hidden shrink-0">
+                {user?.avatar_url ? (
+                  <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  user?.name ? user.name.charAt(0).toUpperCase() : 'U'
+                )}
               </div>
-              <span className="text-xs font-semibold max-w-[90px] truncate hidden md:inline-block">{user?.name}</span>
+              <span className="text-xs font-semibold max-w-[80px] truncate hidden md:inline-block pr-1">{user?.name}</span>
             </motion.button>
 
             <AnimatePresence>
@@ -248,15 +260,15 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
       </div>
 
       {/* Fixed Bottom Navigation Bar for Mobile App Feel */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-obsidian-900/90 backdrop-blur-xl border-t border-slate-800/90 py-2 px-3 flex lg:hidden items-center justify-around shadow-2xl safe-area-bottom">
-        {navItems.map((item) => {
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-obsidian-900/95 backdrop-blur-xl border-t border-slate-800/90 py-2 px-2 flex lg:hidden items-center justify-around shadow-2xl safe-area-bottom">
+        {mobileNavItems.map((item) => {
           const Icon = item.icon;
           return (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex flex-col items-center gap-1 text-[10px] font-bold py-1 px-2.5 rounded-xl transition-all ${
+                `flex flex-col items-center gap-1 text-[10px] font-bold py-1 px-2 rounded-xl transition-all ${
                   isActive
                     ? 'text-emerald-400 bg-emerald-500/15 border border-emerald-500/25 shadow-glow-emerald scale-105'
                     : 'text-slate-400 hover:text-slate-200'

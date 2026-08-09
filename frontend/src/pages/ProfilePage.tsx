@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Trophy, BookOpen, Award, Zap, Calendar, TrendingUp, Sparkles, LogOut } from 'lucide-react';
+import { Flame, Trophy, BookOpen, Award, Zap, Calendar, TrendingUp, Sparkles, LogOut, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { getAllBadges, getUserBadges } from '../api/gamification';
@@ -82,7 +82,18 @@ export default function ProfilePage() {
           animate={{ opacity: 1, y: 0 }}
           className="glass-card p-6 md:p-8 rounded-3xl border border-slate-800/90 shadow-2xl relative overflow-hidden text-center"
         >
-          <div className="absolute top-4 left-4">
+          <div className="absolute top-4 left-4 flex items-center gap-2">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/settings')}
+              className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-slate-700/80 text-slate-200 transition-all flex items-center gap-1.5 text-xs font-bold"
+              title="إعدادات المجموعة"
+            >
+              <Settings size={16} className="text-slate-400" />
+              <span className="hidden sm:inline">الإعدادات</span>
+            </motion.button>
+
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
