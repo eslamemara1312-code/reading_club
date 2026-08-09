@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Settings, Save, ShieldAlert, Clock, DollarSign, Sparkles, Target, CheckCircle2, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Settings, Save, ShieldAlert, Clock, DollarSign, Sparkles, Target, CheckCircle2, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { getGroupDetails } from '../api/groups';
 import { updateGroupSettings } from '../api/stats';
+import { Navbar } from '../components/Navbar';
 
 export function GroupSettingsPage() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
 
@@ -63,60 +63,70 @@ export function GroupSettingsPage() {
     });
   };
 
-  const isOwner = group?.owner_id === user?.id;
+  const isOwner = Boolean(
+    user?.id && (
+      (group?.owner_id && group.owner_id.toLowerCase() === user.id.toLowerCase()) ||
+      group?.members?.some((m) => m.user_id.toLowerCase() === user.id.toLowerCase() && m.role === 'owner')
+    )
+  );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 pb-20">
-      {/* Top Bar */}
-      <div className="sticky top-0 z-30 bg-slate-900/80 backdrop-blur border-b border-slate-800 px-4 py-3 flex items-center justify-between">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="p-2 bg-slate-800 hover:bg-slate-700 rounded-full text-slate-300 transition"
-        >
-          <ArrowLeft size={18} />
-        </button>
-        <div className="flex items-center gap-2">
-          <Settings className="text-emerald-400" size={20} />
-          <h1 className="font-bold text-base">إعدادات المجموعة</h1>
-        </div>
-        <div className="w-9" />
-      </div>
+    <div className="min-h-screen bg-obsidian-950 text-slate-100 pb-20 relative overflow-hidden">
+      {/* Background Glows */}
+      <div className="glow-orb w-96 h-96 bg-emerald-500/10 top-0 right-1/4 animate-pulse-subtle" />
 
-      <div className="max-w-xl mx-auto px-4 pt-6">
+      {/* Sticky Navbar */}
+      <Navbar />
+
+      <main className="max-w-xl mx-auto px-4 pt-6 space-y-6 relative z-10">
+        <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+          <Settings className="text-emerald-400" size={22} />
+          <h1 className="font-extrabold text-lg text-white">إعدادات وقواعد المجموعة</h1>
+        </div>
+
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-            <Loader2 className="animate-spin mb-2" size={32} />
-            <p>جاري تحميل البيانات...</p>
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400 text-xs">
+            <Loader2 className="animate-spin text-emerald-400 mb-2" size={32} />
+            <p>جاري تحميل الإعدادات...</p>
           </div>
         ) : !isOwner ? (
-          <div className="bg-amber-500/10 border border-amber-500/30 text-amber-400 p-4 rounded-xl text-center">
-            <ShieldAlert className="mx-auto mb-2" size={32} />
-            <p className="font-bold">تنبيه صلاحيات</p>
-            <p className="text-sm text-slate-300 mt-1">
-              مؤسس المجموعة فقط هو من يملك صلاحية تعديل هذه الإعدادات.
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-panel p-6 rounded-3xl border border-amber-500/30 text-amber-400 text-center space-y-2 shadow-xl"
+          >
+            <ShieldAlert className="mx-auto text-amber-400" size={36} />
+            <p className="font-extrabold text-base text-white">تنبيه الصلاحيات</p>
+            <p className="text-xs text-slate-300">
+              مؤسس وإداري المجموعة فقط هو من يحق له تعديل غرامات ومواعيد القراءة.
             </p>
-          </div>
+          </motion.div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <motion.form 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            onSubmit={handleSubmit} 
+            className="space-y-5"
+          >
             {successMsg && (
-              <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3 rounded-xl flex items-center gap-2 text-sm">
-                <CheckCircle2 size={18} />
+              <div className="bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 p-4 rounded-2xl flex items-center gap-2 text-xs font-bold shadow-md">
+                <CheckCircle2 size={18} className="text-emerald-400" />
                 <span>{successMsg}</span>
               </div>
             )}
 
             {errorMsg && (
-              <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl flex items-center gap-2 text-sm">
-                <ShieldAlert size={18} />
+              <div className="bg-rose-500/15 border border-rose-500/30 text-rose-300 p-4 rounded-2xl flex items-center gap-2 text-xs font-bold shadow-md">
+                <ShieldAlert size={18} className="text-rose-400" />
                 <span>{errorMsg}</span>
               </div>
             )}
 
             {/* Fine Amount */}
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 space-y-2">
-              <label className="flex items-center gap-2 font-semibold text-sm text-emerald-400">
+            <div className="glass-card p-5 rounded-3xl border border-slate-800/90 space-y-2.5">
+              <label className="flex items-center gap-2 font-extrabold text-xs text-emerald-400">
                 <DollarSign size={18} />
-                قيمة غرامة اليوم الغائب (جنيه)
+                قيمة غرامة اليوم الغائب (جنيه / EGP)
               </label>
               <input
                 type="number"
@@ -124,32 +134,32 @@ export function GroupSettingsPage() {
                 step="5"
                 value={fineAmount}
                 onChange={(e) => setFineAmount(Number(e.target.value))}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500"
+                className="w-full bg-obsidian-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-xs font-mono focus:border-emerald-500 outline-none"
               />
-              <p className="text-xs text-slate-400">
-                المبلغ الذي يدخل خزينة المجموعة عند تخطي مهلة القراءة اليومية.
+              <p className="text-[11px] text-slate-400">
+                المبلغ الذي يضاف لخزينة المجموعة فور تخطي اليوم المحدد بدون تسجيل قراءة.
               </p>
             </div>
 
             {/* Checkin Deadline & Grace Period */}
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 space-y-4">
+            <div className="glass-card p-5 rounded-3xl border border-slate-800/90 space-y-4">
               <div className="space-y-2">
-                <label className="flex items-center gap-2 font-semibold text-sm text-emerald-400">
+                <label className="flex items-center gap-2 font-extrabold text-xs text-emerald-400">
                   <Clock size={18} />
-                  موعد إغلاق اليوم (التوقيت)
+                  موعد إغلاق التقرير اليومي
                 </label>
                 <input
                   type="time"
                   value={deadlineTime}
                   onChange={(e) => setDeadlineTime(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-obsidian-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-xs font-mono focus:border-emerald-500 outline-none"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="flex items-center gap-2 font-semibold text-sm text-emerald-400">
+                <label className="flex items-center gap-2 font-extrabold text-xs text-emerald-400">
                   <Clock size={18} />
-                  ساعات السماح بعد منتصف الليل
+                  مهلة السماح الفجرية (بالساعات)
                 </label>
                 <input
                   type="number"
@@ -157,19 +167,19 @@ export function GroupSettingsPage() {
                   max="12"
                   value={graceHours}
                   onChange={(e) => setGraceHours(Number(e.target.value))}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-obsidian-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-xs font-mono focus:border-emerald-500 outline-none"
                 />
-                <p className="text-xs text-slate-400">
-                  ساعات إضافية لتسجيل القراءة كـ "متأخر" قبل احتساب الغياب رسمياً.
+                <p className="text-[11px] text-slate-400">
+                  ساعات إضافية لتسجيل القراءة كـ "متأخر" قبل احتساب الغياب رسمياً وتسجيل الغرامة.
                 </p>
               </div>
             </div>
 
             {/* Monthly Page Goal */}
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 space-y-2">
-              <label className="flex items-center gap-2 font-semibold text-sm text-emerald-400">
+            <div className="glass-card p-5 rounded-3xl border border-slate-800/90 space-y-2.5">
+              <label className="flex items-center gap-2 font-extrabold text-xs text-emerald-400">
                 <Target size={18} />
-                هدف الصفحات الشهرية للمجموعة
+                هدف الصفحات الشهرية الجماعية
               </label>
               <input
                 type="number"
@@ -177,22 +187,22 @@ export function GroupSettingsPage() {
                 step="50"
                 value={pageGoal}
                 onChange={(e) => setPageGoal(Number(e.target.value))}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500"
+                className="w-full bg-obsidian-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-xs font-mono focus:border-emerald-500 outline-none"
               />
-              <p className="text-xs text-slate-400">
-                مجموع الصفحات التي تسعى المجموعة ككل لقراءتها شهرياً.
+              <p className="text-[11px] text-slate-400">
+                مجموع الصفحات التي تسعى كافة أعضاء المجموعة لإنجازها شهرياً.
               </p>
             </div>
 
             {/* Fun Mode Toggle */}
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+            <div className="glass-card p-5 rounded-3xl border border-slate-800/90 flex items-center justify-between">
               <div>
-                <label className="flex items-center gap-2 font-semibold text-sm text-emerald-400">
+                <label className="flex items-center gap-2 font-extrabold text-xs text-emerald-400">
                   <Sparkles size={18} />
-                  تفعيل وضع الاحتفال (Fun Mode)
+                  وضع التنافس والاحتفالات (Fun Mode)
                 </label>
-                <p className="text-xs text-slate-400 mt-1">
-                  إظهار المؤثرات والألقاب الأسبوعية وألعاب الأوسمة.
+                <p className="text-[11px] text-slate-400 mt-1">
+                  إظهار ألعاب الألقاب الأسبوعية، احتفالات الكونفيتي وسجل الأوسمة.
                 </p>
               </div>
               <input
@@ -204,26 +214,29 @@ export function GroupSettingsPage() {
             </div>
 
             {/* Submit Button */}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={mutation.isPending}
-              className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-3 px-4 rounded-xl transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold py-3.5 px-4 rounded-2xl transition shadow-xl shadow-emerald-950/50 flex items-center justify-center gap-2 text-xs"
             >
               {mutation.isPending ? (
                 <>
                   <Loader2 size={18} className="animate-spin" />
-                  <span>جاري الحفظ...</span>
+                  <span>جاري حفظ الإعدادات...</span>
                 </>
               ) : (
                 <>
                   <Save size={18} />
-                  <span>حفظ التغييرات</span>
+                  <span>حفظ قواعد وإعدادات المجموعة</span>
                 </>
               )}
-            </button>
-          </form>
+            </motion.button>
+          </motion.form>
         )}
-      </div>
+      </main>
     </div>
   );
 }
+

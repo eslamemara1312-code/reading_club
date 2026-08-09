@@ -49,4 +49,8 @@ Thumbs.db
 
 # ECC / Agent artifacts
 .ecc/
+.agents
+.agent
+
+
 

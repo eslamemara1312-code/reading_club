@@ -164,9 +164,9 @@ async def mark_fine_paid(
 
     fine.status = "paid"
     fine.paid_at = datetime.now(timezone.utc)
+    user_read = UserRead.model_validate(fine.user)
 
     await db.commit()
-    await db.refresh(fine)
 
     return FineRead(
         id=fine.id,
@@ -176,5 +176,6 @@ async def mark_fine_paid(
         amount=float(fine.amount),
         status=fine.status,
         paid_at=fine.paid_at,
-        user=UserRead.model_validate(fine.user)
+        user=user_read
     )
+

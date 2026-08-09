@@ -29,6 +29,18 @@ async def run_evening_reminders_for_group(db: AsyncSession, group: Group, today:
 
     for member in members:
         if member.user_id not in checked_in_user_ids:
+            # Check if notification was already sent today
+            from sqlalchemy import func
+            existing_notif = await db.execute(
+                select(Notification).where(
+                    Notification.user_id == member.user_id,
+                    Notification.type == "reminder_warning",
+                    func.date(Notification.created_at) == today
+                )
+            )
+            if existing_notif.scalar_one_or_none():
+                continue
+
             # Create in-app notification
             title = f"تنبيه قراءة اليوم - {group.name}"
             msg = f"متبقي ساعتان فقط قبل انتهاء مهلة الورد اليومي لمجموعة {group.name} وتطبيق الغرامة ⚠️"
@@ -46,6 +58,7 @@ async def run_evening_reminders_for_group(db: AsyncSession, group: Group, today:
             user = u_res.scalar_one_or_none()
             if user and user.phone and user.whatsapp_enabled:
                 await send_whatsapp_message(user.phone, f"{title}\n{msg}")
+
 
 
 async def send_evening_reminders(db: AsyncSession = None):

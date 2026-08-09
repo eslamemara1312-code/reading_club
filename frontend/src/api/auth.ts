@@ -29,3 +29,9 @@ export const loginUser = async (data: { email: string; password: string }): Prom
   const response = await apiClient.post<TokenPair>('/auth/login', data);
   return response.data;
 };
+
+export const getCurrentUser = async (): Promise<User> => {
+  const response = await apiClient.get<User>('/auth/me');
+  return response.data;
+};
+

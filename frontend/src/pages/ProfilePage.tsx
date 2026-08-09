@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Flame, Trophy, BookOpen, Award, Zap, Calendar, TrendingUp, Sparkles, LogOut } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Flame, Trophy, BookOpen, Award, Zap, Calendar, TrendingUp, Sparkles, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { getAllBadges, getUserBadges } from '../api/gamification';
 import { getMonthlySummary } from '../api/stats';
+import { Navbar } from '../components/Navbar';
 
 const LEVEL_TITLES: Record<number, string> = {
   1: 'مبتدئ',
@@ -66,203 +68,227 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
-      {/* Header */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 to-transparent"></div>
-        <div className="relative px-4 pt-4 pb-6">
-          <div className="flex items-center justify-between mb-6">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="p-2 bg-slate-800/60 hover:bg-slate-700/60 rounded-full border border-slate-700/50 text-slate-300 transition-all"
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <h1 className="text-lg font-bold text-white">الملف الشخصي</h1>
-            <button
+    <div className="min-h-screen bg-obsidian-950 text-slate-100 pb-24 relative overflow-hidden">
+      {/* Dynamic Glows */}
+      <div className="glow-orb w-96 h-96 bg-emerald-500/10 top-0 left-1/2 -translate-x-1/2 animate-pulse-subtle" />
+
+      {/* Navbar Header */}
+      <Navbar />
+
+      <main className="max-w-4xl mx-auto px-4 pt-6 space-y-6 relative z-10">
+        {/* Profile Card Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-card p-6 md:p-8 rounded-3xl border border-slate-800/90 shadow-2xl relative overflow-hidden text-center"
+        >
+          <div className="absolute top-4 left-4">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={handleLogout}
-              className="p-2 bg-red-500/10 hover:bg-red-500/20 rounded-full border border-red-500/30 text-red-400 transition-all"
+              className="p-2.5 bg-rose-500/10 hover:bg-rose-500/20 rounded-2xl border border-rose-500/30 text-rose-400 transition-all flex items-center gap-1.5 text-xs font-bold"
+              title="تسجيل الخروج"
             >
-              <LogOut size={20} />
-            </button>
+              <LogOut size={16} />
+              <span>خروج</span>
+            </motion.button>
           </div>
 
-          {/* Avatar & Level Card */}
           <div className="flex flex-col items-center">
             <div className="relative mb-4">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-3xl font-bold text-white shadow-lg shadow-emerald-500/25 ring-4 ring-emerald-500/20">
+              <motion.div 
+                whileHover={{ scale: 1.05, rotate: 2 }}
+                className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-700 flex items-center justify-center text-3xl font-black text-white shadow-xl shadow-emerald-500/20 ring-4 ring-emerald-500/20"
+              >
                 {user.avatar_url ? (
                   <img src={user.avatar_url} alt={user.name} className="w-full h-full rounded-full object-cover" />
                 ) : (
                   user.name?.charAt(0)?.toUpperCase()
                 )}
-              </div>
-              <div className="absolute -bottom-1 -right-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full px-2.5 py-0.5 text-xs font-bold text-white shadow-lg">
+              </motion.div>
+              <div className="absolute -bottom-1 -right-1 bg-gradient-to-r from-amber-500 to-flame-500 rounded-full px-3 py-0.5 text-xs font-black text-white shadow-lg border border-amber-400/30">
                 Lv.{user.level}
               </div>
             </div>
-            <h2 className="text-xl font-bold text-white mb-0.5">{user.name}</h2>
-            <p className="text-emerald-400 text-sm font-medium mb-1">{levelTitle}</p>
-            <p className="text-slate-500 text-xs">{user.email}</p>
+
+            <h2 className="text-2xl font-black text-white mb-0.5">{user.name}</h2>
+            <p className="text-emerald-400 text-xs font-bold mb-1 tracking-wide">{levelTitle}</p>
+            <p className="text-slate-400 text-xs font-mono">{user.email}</p>
 
             {/* XP Progress Bar */}
-            <div className="w-full max-w-xs mt-4">
-              <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
-                <span className="flex items-center gap-1"><Zap size={12} className="text-amber-400" /> {user.xp_points} XP</span>
+            <div className="w-full max-w-xs mt-5">
+              <div className="flex items-center justify-between text-xs text-slate-400 font-bold mb-1.5">
+                <span className="flex items-center gap-1 text-amber-300">
+                  <Zap size={14} className="text-amber-400 fill-amber-400" /> {user.xp_points} XP
+                </span>
                 <span>{xpForNextLevel} XP</span>
               </div>
-              <div className="h-2.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
-                <div
-                  className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-700"
-                  style={{ width: `${xpProgress}%` }}
-                ></div>
+              <div className="h-3 bg-obsidian-950 rounded-full overflow-hidden border border-slate-700/60 p-0.5 shadow-inner">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${xpProgress}%` }}
+                  transition={{ duration: 1, ease: 'easeOut' }}
+                  className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-300 rounded-full shadow-glow-emerald"
+                />
               </div>
-              <p className="text-center text-xs text-slate-500 mt-1">
-                {Math.round(xpForNextLevel - user.xp_points)} XP للمستوى التالي
+              <p className="text-center text-[11px] text-slate-400 font-medium mt-1.5">
+                تبقي <span className="text-emerald-400 font-bold">{Math.round(xpForNextLevel - user.xp_points)} XP</span> للمستوى التالي 🎯
               </p>
             </div>
           </div>
-        </div>
-      </div>
+        </motion.div>
 
-      {/* Quick Stats Cards */}
-      <div className="px-4 -mt-2">
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-xl p-3 text-center">
-            <Flame size={20} className="text-orange-400 mx-auto mb-1" />
-            <p className="text-lg font-bold text-white">{monthlySummary?.stats?.longest_streak || 0}</p>
-            <p className="text-xs text-slate-400">أطول سلسلة</p>
+        {/* Quick Stats Grid */}
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-3 gap-3"
+        >
+          <div className="glass-card p-4 rounded-2xl border border-slate-800/90 text-center">
+            <Flame size={22} className="text-flame-400 mx-auto mb-1 animate-flame-bounce" />
+            <p className="text-xl font-black text-white font-mono">{monthlySummary?.stats?.longest_streak || 0}</p>
+            <p className="text-[11px] text-slate-400 font-bold">أطول سلسلة (أيام)</p>
           </div>
-          <div className="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-xl p-3 text-center">
-            <BookOpen size={20} className="text-blue-400 mx-auto mb-1" />
-            <p className="text-lg font-bold text-white">{monthlySummary?.stats?.total_pages || 0}</p>
-            <p className="text-xs text-slate-400">صفحة</p>
+          <div className="glass-card p-4 rounded-2xl border border-slate-800/90 text-center">
+            <BookOpen size={22} className="text-sky-400 mx-auto mb-1" />
+            <p className="text-xl font-black text-white font-mono">{monthlySummary?.stats?.total_pages || 0}</p>
+            <p className="text-[11px] text-slate-400 font-bold">صفحة مقروءة</p>
           </div>
-          <div className="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-xl p-3 text-center">
-            <Trophy size={20} className="text-amber-400 mx-auto mb-1" />
-            <p className="text-lg font-bold text-white">{userBadges?.length || 0}</p>
-            <p className="text-xs text-slate-400">وسام</p>
+          <div className="glass-card p-4 rounded-2xl border border-slate-800/90 text-center">
+            <Trophy size={22} className="text-amber-400 mx-auto mb-1" />
+            <p className="text-xl font-black text-white font-mono">{userBadges?.length || 0}</p>
+            <p className="text-[11px] text-slate-400 font-bold">وسام مكتسب</p>
           </div>
-        </div>
-      </div>
+        </motion.div>
 
-      {/* Tab Switcher */}
-      <div className="px-4 mb-4">
-        <div className="flex bg-slate-800/50 rounded-xl p-1 border border-slate-700/50">
+        {/* Segmented Tab Switcher */}
+        <div className="glass-panel p-1.5 rounded-2xl border border-slate-800 flex gap-2">
           <button
             onClick={() => setActiveTab('badges')}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
+            className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
               activeTab === 'badges'
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                : 'text-slate-400 hover:text-slate-300'
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-lg shadow-emerald-950/50'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Award size={16} className="inline mr-1.5" />
-            الأوسمة
+            <Award size={16} />
+            سجل الأوسمة الإنجازية
           </button>
           <button
             onClick={() => setActiveTab('stats')}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
+            className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
               activeTab === 'stats'
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                : 'text-slate-400 hover:text-slate-300'
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-lg shadow-emerald-950/50'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
-            <TrendingUp size={16} className="inline mr-1.5" />
-            إحصائياتي
+            <TrendingUp size={16} />
+            إحصائيات القراءة والالتزام
           </button>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="px-4 pb-24">
-        {activeTab === 'badges' && (
-          <div className="space-y-3">
-            {allBadges?.map(badge => {
-              const earned = earnedBadgeIds.has(badge.id);
-              const earnedInfo = userBadges?.find(ub => ub.badge_id === badge.id);
-              return (
-                <div
-                  key={badge.id}
-                  className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all ${
-                    earned
-                      ? 'bg-gradient-to-r from-amber-500/10 to-orange-500/5 border-amber-500/30'
-                      : 'bg-slate-800/30 border-slate-700/30 opacity-50'
-                  }`}
-                >
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
-                    earned ? 'bg-amber-500/20' : 'bg-slate-700/50'
-                  }`}>
-                    {BADGE_ICONS[badge.slug] || badge.icon || '🏅'}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className={`font-semibold text-sm ${earned ? 'text-white' : 'text-slate-500'}`}>
-                        {badge.name}
-                      </p>
-                      {earned && <Sparkles size={14} className="text-amber-400" />}
+        {/* Tab Content */}
+        <AnimatePresence mode="wait">
+          {activeTab === 'badges' && (
+            <motion.div
+              key="badges"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-3"
+            >
+              {allBadges?.map((badge, idx) => {
+                const earned = earnedBadgeIds.has(badge.id);
+                const earnedInfo = userBadges?.find((ub) => ub.badge_id === badge.id);
+                return (
+                  <motion.div
+                    key={badge.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.04 }}
+                    className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${
+                      earned
+                        ? 'glass-card border-amber-500/30 bg-gradient-to-r from-amber-950/20 via-slate-900/60 to-obsidian-950 shadow-lg shadow-amber-950/10'
+                        : 'glass-panel border-slate-800/60 opacity-50'
+                    }`}
+                  >
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-inner ${
+                      earned ? 'bg-amber-500/20 border border-amber-500/30' : 'bg-slate-800/50'
+                    }`}>
+                      {BADGE_ICONS[badge.slug] || badge.icon || '🏅'}
                     </div>
-                    <p className="text-xs text-slate-400 truncate">{badge.description}</p>
-                    {earned && earnedInfo && (
-                      <p className="text-xs text-emerald-400 mt-0.5">
-                        حصلت عليه {new Date(earnedInfo.earned_at).toLocaleDateString('ar-EG')}
-                      </p>
-                    )}
-                  </div>
-                  <div className={`text-xs font-bold px-2 py-1 rounded-lg ${
-                    earned ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-700/50 text-slate-500'
-                  }`}>
-                    +{badge.xp_award} XP
-                  </div>
-                </div>
-              );
-            })}
-            {(!allBadges || allBadges.length === 0) && (
-              <div className="text-center py-12 text-slate-500">
-                <Award size={48} className="mx-auto mb-3 opacity-30" />
-                <p>لا توجد أوسمة متاحة بعد</p>
-              </div>
-            )}
-          </div>
-        )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className={`font-extrabold text-sm ${earned ? 'text-white' : 'text-slate-400'}`}>
+                          {badge.name}
+                        </p>
+                        {earned && <Sparkles size={14} className="text-amber-400" />}
+                      </div>
+                      <p className="text-xs text-slate-400 truncate mt-0.5">{badge.description}</p>
+                      {earned && earnedInfo && (
+                        <p className="text-[11px] text-emerald-400 font-semibold mt-1">
+                          تم الحصول عليه بتاريخ {new Date(earnedInfo.earned_at).toLocaleDateString('ar-EG')}
+                        </p>
+                      )}
+                    </div>
+                    <div className={`text-xs font-black px-3 py-1.5 rounded-xl border shrink-0 ${
+                      earned ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-slate-800 border-slate-700 text-slate-500'
+                    }`}>
+                      +{badge.xp_award} XP
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          )}
 
-        {activeTab === 'stats' && monthlySummary && (
-          <div className="space-y-3">
-            <div className="bg-slate-800/50 rounded-xl border border-slate-700/50 p-4">
-              <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                <Calendar size={16} className="text-emerald-400" />
-                ملخص الشهر الماضي
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-slate-900/50 rounded-lg p-3">
-                  <p className="text-xs text-slate-400 mb-1">نسبة الالتزام</p>
-                  <p className="text-xl font-bold text-emerald-400">{monthlySummary.stats.commitment_rate}%</p>
+          {activeTab === 'stats' && (
+            <motion.div
+              key="stats"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-4"
+            >
+              {monthlySummary ? (
+                <div className="glass-card p-6 rounded-3xl border border-slate-800/90 space-y-4">
+                  <h3 className="text-sm font-extrabold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
+                    <Calendar size={18} className="text-emerald-400" />
+                    ملخص أداء الشهر الحالي والسابيع الماضي
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-obsidian-950 p-4 rounded-2xl border border-slate-800">
+                      <p className="text-xs text-slate-400 mb-1 font-semibold">نسبة الالتزام بالشهر</p>
+                      <p className="text-2xl font-black text-emerald-400 font-mono">{monthlySummary.stats.commitment_rate}%</p>
+                    </div>
+                    <div className="bg-obsidian-950 p-4 rounded-2xl border border-slate-800">
+                      <p className="text-xs text-slate-400 mb-1 font-semibold">أيام الحضور والإنتاج</p>
+                      <p className="text-2xl font-black text-sky-400 font-mono">{monthlySummary.stats.total_checkins}/{monthlySummary.stats.days_in_month}</p>
+                    </div>
+                    <div className="bg-obsidian-950 p-4 rounded-2xl border border-slate-800">
+                      <p className="text-xs text-slate-400 mb-1 font-semibold">إجمالي الصفحات المقروءة</p>
+                      <p className="text-2xl font-black text-amber-400 font-mono">{monthlySummary.stats.total_pages}</p>
+                    </div>
+                    <div className="bg-obsidian-950 p-4 rounded-2xl border border-slate-800">
+                      <p className="text-xs text-slate-400 mb-1 font-semibold">غرامات مسجلة</p>
+                      <p className="text-2xl font-black text-rose-400 font-mono">{monthlySummary.stats.total_fines} ج.م</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-slate-900/50 rounded-lg p-3">
-                  <p className="text-xs text-slate-400 mb-1">أيام الحضور</p>
-                  <p className="text-xl font-bold text-blue-400">{monthlySummary.stats.total_checkins}/{monthlySummary.stats.days_in_month}</p>
+              ) : (
+                <div className="glass-card p-10 rounded-3xl border border-slate-800 text-center text-slate-500">
+                  <TrendingUp size={48} className="mx-auto mb-3 text-slate-600" />
+                  <p className="text-sm font-extrabold text-white">لا يوجد ملخص شهري بعد</p>
+                  <p className="text-xs text-slate-400 mt-1">يتم احتساب ملخص الإحصائيات تلقائياً بمرور أيقونات القراءة.</p>
                 </div>
-                <div className="bg-slate-900/50 rounded-lg p-3">
-                  <p className="text-xs text-slate-400 mb-1">صفحات مقروءة</p>
-                  <p className="text-xl font-bold text-purple-400">{monthlySummary.stats.total_pages}</p>
-                </div>
-                <div className="bg-slate-900/50 rounded-lg p-3">
-                  <p className="text-xs text-slate-400 mb-1">إجمالي الغرامات</p>
-                  <p className="text-xl font-bold text-red-400">{monthlySummary.stats.total_fines} ج.م</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'stats' && !monthlySummary && (
-          <div className="text-center py-12 text-slate-500">
-            <TrendingUp size={48} className="mx-auto mb-3 opacity-30" />
-            <p>لا يوجد ملخص شهري بعد</p>
-            <p className="text-xs mt-1">يتم إنشاؤه تلقائياً في بداية كل شهر</p>
-          </div>
-        )}
-      </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
     </div>
   );
 }
+

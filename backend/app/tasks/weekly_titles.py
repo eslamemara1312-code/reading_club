@@ -29,14 +29,22 @@ async def run_weekly_titles_for_group(db: AsyncSession, group: Group, week_start
     )
     hero_row = hero_res.first()
     if hero_row:
-        hero_title = WeeklyTitle(
-            group_id=group.id,
-            user_id=hero_row.user_id,
-            week_start_date=week_start,
-            title_type="commitment_hero",
-            title_name="أسطورة الالتزام 🛡️"
+        existing_hero = await db.execute(
+            select(WeeklyTitle).where(
+                WeeklyTitle.group_id == group.id,
+                WeeklyTitle.week_start_date == week_start,
+                WeeklyTitle.title_type == "commitment_hero"
+            )
         )
-        db.add(hero_title)
+        if not existing_hero.scalar_one_or_none():
+            hero_title = WeeklyTitle(
+                group_id=group.id,
+                user_id=hero_row.user_id,
+                week_start_date=week_start,
+                title_type="commitment_hero",
+                title_name="أسطورة الالتزام 🛡️"
+            )
+            db.add(hero_title)
 
     # 2. Pages King (most total pages read in past 7 days)
     king_res = await db.execute(
@@ -53,14 +61,23 @@ async def run_weekly_titles_for_group(db: AsyncSession, group: Group, week_start
     )
     king_row = king_res.first()
     if king_row and king_row.total_pages and king_row.total_pages > 0:
-        king_title = WeeklyTitle(
-            group_id=group.id,
-            user_id=king_row.user_id,
-            week_start_date=week_start,
-            title_type="pages_king",
-            title_name="ملك الصفحات 👑"
+        existing_king = await db.execute(
+            select(WeeklyTitle).where(
+                WeeklyTitle.group_id == group.id,
+                WeeklyTitle.week_start_date == week_start,
+                WeeklyTitle.title_type == "pages_king"
+            )
         )
-        db.add(king_title)
+        if not existing_king.scalar_one_or_none():
+            king_title = WeeklyTitle(
+                group_id=group.id,
+                user_id=king_row.user_id,
+                week_start_date=week_start,
+                title_type="pages_king",
+                title_name="ملك الصفحات 👑"
+            )
+            db.add(king_title)
+
 
 
 async def calculate_weekly_titles():

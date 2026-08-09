@@ -1,4 +1,6 @@
 import pytest
+from datetime import datetime, date, timedelta
+from unittest.mock import patch
 from httpx import AsyncClient
 
 
@@ -46,3 +48,66 @@ async def test_checkin_streak_leaderboard_flow(client: AsyncClient):
     assert lb_data[0]["commitment_rate"] == 100.0
     assert lb_data[0]["total_pages_read"] == 15
     assert lb_data[0]["current_streak"] == 1
+
+
+@pytest.mark.asyncio
+async def test_checkin_grace_period_boundaries(client: AsyncClient):
+    # Register user & create group with 00:00 deadline & 3 hour grace period
+    reg = await client.post("/api/v1/auth/register", json={
+        "name": "Grace Boundary User", "email": "gracebound@example.com", "password": "password123"
+    })
+    headers = {"Authorization": f"Bearer {reg.json()['access_token']}"}
+
+    group_res = await client.post("/api/v1/groups", json={
+        "name": "Grace Group", "checkin_deadline_time": "00:00:00", "grace_period_hours": 3
+    }, headers=headers)
+    group_id = group_res.json()["id"]
+
+    # Boundary 1: Check in during grace period (01:30 AM) when yesterday not checked in
+    mock_now_grace = datetime(2026, 8, 9, 1, 30, 0)
+    with patch("app.api.v1.routes.checkins.datetime") as mock_dt, \
+         patch("app.api.v1.routes.checkins.date") as mock_d:
+        mock_dt.now.return_value = mock_now_grace
+        mock_d.today.return_value = date(2026, 8, 9)
+        mock_d.side_effect = lambda *args, **kwargs: date(*args, **kwargs)
+
+        res = await client.post("/api/v1/checkins", json={"group_id": group_id, "pages_read": 10}, headers=headers)
+        assert res.status_code == 201
+        data = res.json()
+        assert data["is_late"] is True
+        assert data["checkin_date"] == "2026-08-08"
+
+    # Boundary 2: Check in after grace period window closes (03:00 AM)
+    mock_now_after_grace = datetime(2026, 8, 9, 3, 0, 0)
+    with patch("app.api.v1.routes.checkins.datetime") as mock_dt, \
+         patch("app.api.v1.routes.checkins.date") as mock_d:
+        mock_dt.now.return_value = mock_now_after_grace
+        mock_d.today.return_value = date(2026, 8, 9)
+        mock_d.side_effect = lambda *args, **kwargs: date(*args, **kwargs)
+
+        res2 = await client.post("/api/v1/checkins", json={"group_id": group_id, "pages_read": 25}, headers=headers)
+        assert res2.status_code == 201
+        data2 = res2.json()
+        assert data2["is_late"] is False
+        assert data2["checkin_date"] == "2026-08-09"
+
+
+@pytest.mark.asyncio
+async def test_checkin_non_member_forbidden(client: AsyncClient):
+    reg = await client.post("/api/v1/auth/register", json={
+        "name": "Outsider", "email": "outsider@example.com", "password": "password123"
+    })
+    headers = {"Authorization": f"Bearer {reg.json()['access_token']}"}
+
+    reg_owner = await client.post("/api/v1/auth/register", json={
+        "name": "Owner Ins", "email": "ownerins@example.com", "password": "password123"
+    })
+    o_headers = {"Authorization": f"Bearer {reg_owner.json()['access_token']}"}
+    g_res = await client.post("/api/v1/groups", json={"name": "Private Group"}, headers=o_headers)
+    group_id = g_res.json()["id"]
+
+    res = await client.post("/api/v1/checkins", json={"group_id": group_id, "pages_read": 5}, headers=headers)
+    assert res.status_code == 403
+
+    today_res = await client.get(f"/api/v1/checkins/today?group_id={group_id}", headers=headers)
+    assert today_res.status_code == 403

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Award } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Award, Crown } from 'lucide-react';
 import { WeeklyTitle } from '../api/gamification';
 
 interface WeeklyTitlesBannerProps {
@@ -10,28 +11,40 @@ export const WeeklyTitlesBanner: React.FC<WeeklyTitlesBannerProps> = ({ titles }
   if (!titles || titles.length === 0) return null;
 
   return (
-    <div className="glass-panel p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 flex flex-col md:flex-row items-center justify-between gap-4">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="glass-panel p-4 rounded-3xl border border-amber-500/30 bg-gradient-to-r from-amber-950/20 via-slate-900/60 to-obsidian-900 flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg shadow-amber-950/10"
+    >
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
-          <Award className="w-6 h-6" />
+        <div className="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold shadow-glow-amber">
+          <Award className="w-6 h-6 animate-pulse" />
         </div>
         <div>
-          <h3 className="font-bold text-sm text-amber-300">ألقاب الأسبوع الجماعية</h3>
-          <p className="text-xs text-slate-400">تكريم تميز الأعضاء في الأسبوع الحالي</p>
+          <h3 className="font-extrabold text-sm text-amber-300 flex items-center gap-1.5">
+            <Crown className="w-4 h-4 text-amber-400" />
+            ألقاب وتكريمات الأسبوع
+          </h3>
+          <p className="text-xs text-slate-400">تكريم تميز وتصدر الأعضاء لهذا الأسبوع</p>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        {titles.slice(0, 3).map((t) => (
-          <div
+      <div className="flex flex-wrap items-center gap-2.5">
+        {titles.slice(0, 3).map((t, i) => (
+          <motion.div
             key={t.id}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/80 border border-amber-500/30 text-xs"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: i * 0.1 }}
+            whileHover={{ scale: 1.05, translateY: -2 }}
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-amber-500/35 text-xs shadow-md"
           >
-            <span className="font-bold text-amber-400">{t.title_name}</span>
-            <span className="text-slate-300">({t.user.name})</span>
-          </div>
+            <span className="font-extrabold text-amber-300">{t.title_name}</span>
+            <span className="text-slate-300 font-medium">({t.user.name})</span>
+          </motion.div>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 };
+

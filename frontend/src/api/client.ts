@@ -40,13 +40,20 @@ apiClient.interceptors.response.use(
             refresh_token: refreshToken,
           });
           
-          const { access_token } = res.data;
+          const { access_token, refresh_token, user } = res.data;
           localStorage.setItem('access_token', access_token);
+          if (refresh_token) {
+            localStorage.setItem('refresh_token', refresh_token);
+          }
+          if (user) {
+            localStorage.setItem('user', JSON.stringify(user));
+          }
           originalRequest.headers.Authorization = `Bearer ${access_token}`;
           return apiClient(originalRequest);
         } catch (refreshErr) {
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
+          localStorage.removeItem('user');
           window.location.href = '/login';
         }
       }

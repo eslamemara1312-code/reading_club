@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Login } from './pages/Login';
@@ -13,6 +14,8 @@ import { DiscussionPage } from './pages/DiscussionPage';
 import ProfilePage from './pages/ProfilePage';
 import { GroupSettingsPage } from './pages/GroupSettingsPage';
 import { ToastContainer } from './components/Toast';
+import { useAuthStore } from './store/authStore';
+import { getCurrentUser } from './api/auth';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,6 +27,18 @@ const queryClient = new QueryClient({
 });
 
 export function App() {
+  const { isAuthenticated, setUser } = useAuthStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      getCurrentUser()
+        .then((u) => setUser(u))
+        .catch(() => {
+          // ignore error, token refresh interceptor will handle if unauthorized
+        });
+    }
+  }, [isAuthenticated, setUser]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>

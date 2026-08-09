@@ -46,4 +46,12 @@ async def test_register_and_login_flow(client: AsyncClient):
     # 5. Token refresh
     refresh_res = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_token})
     assert refresh_res.status_code == 200
-    assert "access_token" in refresh_res.json()
+    new_access_token = refresh_res.json()["access_token"]
+    assert new_access_token is not None
+
+    # 6. Fetch current user via /auth/me
+    headers = {"Authorization": f"Bearer {new_access_token}"}
+    me_res = await client.get("/api/v1/auth/me", headers=headers)
+    assert me_res.status_code == 200
+    assert me_res.json()["email"] == "eslam@example.com"
+

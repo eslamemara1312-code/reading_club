@@ -9,6 +9,7 @@ from app.core.security import (
     create_refresh_token,
     decode_token
 )
+from app.api.v1.deps import get_current_user
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin, UserRead, TokenPair, TokenRefresh
 
@@ -94,3 +95,9 @@ async def refresh_tokens(payload_in: TokenRefresh, db: AsyncSession = Depends(ge
         refresh_token=new_refresh_token,
         user=UserRead.model_validate(user)
     )
+
+
+@router.get("/me", response_model=UserRead)
+async def get_me(current_user: User = Depends(get_current_user)):
+    return UserRead.model_validate(current_user)
+

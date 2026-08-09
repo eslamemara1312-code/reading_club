@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ShieldAlert, CheckCircle2, Lock, Loader2, ArrowRight, Wallet } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ShieldAlert, CheckCircle2, Lock, Loader2, Wallet, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUIStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
 import { getGroupVault, settleVault, markFinePaid, FineVault } from '../api/fines';
 import { getGroupDetails, Group } from '../api/groups';
+import { Navbar } from '../components/Navbar';
 
 export const VaultPage = () => {
   const activeGroupId = useUIStore((state) => state.activeGroupId);
@@ -28,7 +30,12 @@ export const VaultPage = () => {
     enabled: !!activeGroupId,
   });
 
-  const isOwner = group?.owner_id === user?.id;
+  const isOwner = Boolean(
+    user?.id && (
+      (group?.owner_id && group.owner_id.toLowerCase() === user.id.toLowerCase()) ||
+      group?.members?.some((m) => m.user_id.toLowerCase() === user.id.toLowerCase() && m.role === 'owner')
+    )
+  );
 
   const markPaidMutation = useMutation({
     mutationFn: (fineId: string) => markFinePaid(fineId),
@@ -48,13 +55,13 @@ export const VaultPage = () => {
 
   if (!activeGroupId) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-center">
-        <div className="glass-panel p-8 rounded-2xl max-w-md border border-slate-800 space-y-4">
+      <div className="min-h-screen bg-obsidian-950 flex flex-col items-center justify-center p-4 text-center">
+        <div className="glass-panel p-8 rounded-3xl max-w-md border border-slate-800 space-y-4">
           <ShieldAlert className="w-12 h-12 text-amber-400 mx-auto" />
           <h2 className="text-xl font-bold text-white">لم تنضم لأي مجموعة بعد</h2>
           <button
             onClick={() => navigate('/onboarding')}
-            className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 font-semibold rounded-lg text-white"
+            className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 font-semibold rounded-xl text-white"
           >
             الانتقال للمجموعات
           </button>
@@ -64,155 +71,177 @@ export const VaultPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 pb-20">
-      {/* Top Navbar */}
-      <header className="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-10 px-4 py-3">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/dashboard')} className="p-1.5 text-slate-400 hover:text-white rounded-lg">
-              <ArrowRight className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="font-bold text-base text-white flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-amber-400" />
-                خزينة الغرامات (The Fine Vault)
-              </h1>
-              <p className="text-xs text-slate-400">{group?.name || 'Reading Club'}</p>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-obsidian-950 text-slate-100 pb-20 relative overflow-hidden">
+      {/* Dynamic Background Glows */}
+      <div className="glow-orb w-96 h-96 bg-amber-500/10 top-0 right-1/4 animate-pulse-subtle" />
 
-      <main className="max-w-4xl mx-auto px-4 pt-6 space-y-6">
+      {/* Sticky Navbar Header */}
+      <Navbar />
+
+      <main className="max-w-4xl mx-auto px-4 pt-6 space-y-6 relative z-10">
         {/* Pot Card */}
-        <section className="glass-panel p-6 rounded-2xl border border-slate-800 text-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
+        <motion.section
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-card p-8 rounded-3xl border border-amber-500/30 text-center relative overflow-hidden bg-gradient-to-b from-amber-950/20 via-slate-900/60 to-obsidian-950 shadow-2xl shadow-amber-950/20"
+        >
+          <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="flex items-center justify-center gap-2 text-slate-400 text-sm mb-2">
+          <div className="flex items-center justify-center gap-2 text-slate-300 text-xs font-bold mb-2 uppercase tracking-wider">
             <Wallet className="w-4 h-4 text-amber-400" />
-            إجمالي حصيلة غرامات الشهر
+            إجمالي حصيلة غرامات الغياب لهذا الشهر
           </div>
 
-          <div className="text-4xl font-extrabold text-amber-400 font-mono my-2">
-            {vault?.total_amount || 0} {group?.currency || 'EGP'}
+          <div className="text-5xl font-black gradient-text-gold my-3 tracking-tight">
+            {vault?.total_amount || 0} <span className="text-lg font-bold text-amber-400">{group?.currency || 'EGP'}</span>
           </div>
 
           <div className="text-xs text-slate-400 mb-6">
-            حالة الخزينة: {vault?.status === 'settled' ? <span className="text-emerald-400 font-bold">تمت التسوية ✅</span> : <span className="text-amber-400 font-bold">مفتوحة 🔓</span>}
+            حالة الخزينة: {vault?.status === 'settled' ? <span className="text-emerald-400 font-extrabold px-2 py-0.5 bg-emerald-500/10 rounded-full border border-emerald-500/20">تمت التسوية ✅</span> : <span className="text-amber-400 font-extrabold px-2 py-0.5 bg-amber-500/10 rounded-full border border-amber-500/20">مفتوحة للجمع 🔓</span>}
           </div>
 
           {isOwner && vault?.status === 'open' && (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => setShowSettleModal(true)}
-              className="px-6 py-2.5 bg-amber-600 hover:bg-amber-500 font-semibold rounded-xl text-white text-sm shadow-lg shadow-amber-900/30 transition-all mx-auto flex items-center justify-center gap-2"
+              className="px-6 py-3.5 bg-gradient-to-r from-amber-500 via-flame-500 to-amber-600 hover:from-amber-400 hover:to-flame-400 font-extrabold rounded-2xl text-white text-xs shadow-xl shadow-amber-950/50 transition-all mx-auto flex items-center justify-center gap-2"
             >
               <Lock className="w-4 h-4" />
-              تسوية الخزينة وتصفيتها
-            </button>
+              تصفية الخزينة وتحديد وجهة الصرف
+            </motion.button>
           )}
 
           {vault?.status === 'settled' && vault.settlement_note && (
-            <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-xs text-slate-300 max-w-sm mx-auto">
-              ملاحظة التسوية: "{vault.settlement_note}"
+            <div className="p-4 bg-slate-900/90 rounded-2xl border border-slate-800 text-xs text-slate-300 max-w-sm mx-auto shadow-inner leading-relaxed">
+              <strong>ملاحظة التسوية:</strong> "{vault.settlement_note}"
             </div>
           )}
-        </section>
+        </motion.section>
 
         {/* Fines List */}
-        <section className="glass-panel p-5 rounded-2xl border border-slate-800">
-          <h2 className="font-bold text-base text-white mb-4">سجل الغرامات المسجلة لهذا الشهر</h2>
+        <motion.section
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="glass-card p-6 rounded-3xl border border-slate-800/90 space-y-4"
+        >
+          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3.5">
+            <h2 className="font-extrabold text-base text-white flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-amber-400" />
+              سجل الغرامات المسجلة لهذا الشهر
+            </h2>
+            <span className="text-xs text-slate-400 font-mono">{vault?.fines?.length || 0} غرامة</span>
+          </div>
 
           {isLoading ? (
-            <div className="text-center py-6 text-slate-500 text-sm flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" /> جاري تحميل السجل...
+            <div className="text-center py-8 text-slate-500 text-xs flex items-center justify-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-amber-400" /> جاري تحميل السجل...
             </div>
           ) : vault?.fines && vault.fines.length > 0 ? (
             <div className="space-y-3">
-              {vault.fines.map((fine) => (
-                <div
+              {vault.fines.map((fine, idx) => (
+                <motion.div
                   key={fine.id}
-                  className="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800/80"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.04 }}
+                  className="flex items-center justify-between p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-amber-500/20 transition-all"
                 >
                   <div>
-                    <div className="font-semibold text-sm text-white">{fine.user?.name || 'عضو'}</div>
-                    <div className="text-xs text-slate-400 font-mono">تاريخ الغياب: {fine.fine_date}</div>
+                    <div className="font-bold text-sm text-white">{fine.user?.name || 'عضو المجموعة'}</div>
+                    <div className="text-xs text-slate-400 font-mono mt-0.5">تاريخ الغياب: {fine.fine_date}</div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <span className="font-bold font-mono text-amber-400 text-sm">
+                  <div className="flex items-center gap-4">
+                    <span className="font-black font-mono text-amber-300 text-sm">
                       {fine.amount} {group?.currency || 'EGP'}
                     </span>
 
                     {fine.status === 'paid' ? (
-                      <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-xs rounded-full border border-emerald-500/20 flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> مدفوعة
+                      <span className="px-3 py-1 bg-emerald-500/10 text-emerald-300 text-xs font-bold rounded-full border border-emerald-500/20 flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> مدفوعة
                       </span>
                     ) : isOwner ? (
-                      <button
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => markPaidMutation.mutate(fine.id)}
                         disabled={markPaidMutation.isPending}
-                        className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-colors"
+                        className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold rounded-xl transition-colors shadow-md"
                       >
                         تأكيد الدفع
-                      </button>
+                      </motion.button>
                     ) : (
-                      <span className="px-2.5 py-1 bg-rose-500/10 text-rose-400 text-xs rounded-full border border-rose-500/20">
-                        معلقة
+                      <span className="px-3 py-1 bg-rose-500/10 text-rose-300 text-xs font-bold rounded-full border border-rose-500/20">
+                        غير مدفوعة
                       </span>
                     )}
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-slate-500 text-sm">
+            <div className="text-center py-10 text-slate-500 text-xs font-semibold flex flex-col items-center gap-2">
+              <Sparkles className="w-6 h-6 text-slate-600" />
               لا توجد غرامات مسجلة لهذه المجموعة هذا الشهر 🎉
             </div>
           )}
-        </section>
+        </motion.section>
       </main>
 
       {/* Settle Modal */}
-      {showSettleModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="glass-panel p-6 rounded-2xl max-w-md w-full border border-slate-800 space-y-4">
-            <h3 className="text-lg font-bold text-white text-center">تصفية خزينة الشهر 🔒</h3>
-            <p className="text-slate-400 text-xs text-center">
-              اكتب أين ستقوم المجموعة بصرف حصيلة الغرامات (عزومة قهوة، شراء كتاب للمجموعة...).
-            </p>
+      <AnimatePresence>
+        {showSettleModal && (
+          <div className="fixed inset-0 bg-obsidian-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 15 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+              className="glass-panel p-6 rounded-3xl max-w-md w-full border border-slate-700/80 space-y-4 shadow-2xl"
+            >
+              <div className="text-center space-y-1">
+                <h3 className="text-lg font-extrabold text-white">تصفية خزينة الشهر 🔒</h3>
+                <p className="text-slate-400 text-xs">
+                  اكتب أين ستقوم المجموعة بصرف حصيلة الغرامات (عزومة، شراء كتب للمجموعة...).
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">ملاحظة التسوية</label>
-              <textarea
-                required
-                rows={3}
-                value={settlementNote}
-                onChange={(e) => setSettlementNote(e.target.value)}
-                className="w-full p-3 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-amber-500"
-                placeholder="مثال: تم شراء 3 كتب لهدايا المسابقة الجماعية"
-              />
-            </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">ملاحظة أو وجهة الصرف</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={settlementNote}
+                  onChange={(e) => setSettlementNote(e.target.value)}
+                  className="w-full p-3.5 bg-obsidian-950 border border-slate-700 rounded-xl text-white text-xs font-medium focus:border-amber-500 outline-none leading-relaxed"
+                  placeholder="مثال: تم شراء 3 كتب كجوائز للمجموعة"
+                />
+              </div>
 
-            <div className="flex gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowSettleModal(false)}
-                className="w-1/2 py-2.5 bg-slate-800 text-slate-300 font-medium rounded-lg text-sm"
-              >
-                إلغاء
-              </button>
-              <button
-                type="button"
-                disabled={!settlementNote || settleMutation.isPending}
-                onClick={() => settleMutation.mutate(settlementNote)}
-                className="w-1/2 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-lg text-sm flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {settleMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تأكيد التسوية'}
-              </button>
-            </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSettleModal(false)}
+                  className="w-1/2 py-3 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="button"
+                  disabled={!settlementNote || settleMutation.isPending}
+                  onClick={() => settleMutation.mutate(settlementNote)}
+                  className="w-1/2 py-3 bg-gradient-to-r from-amber-500 to-flame-500 hover:from-amber-400 hover:to-flame-400 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-950/50 disabled:opacity-50"
+                >
+                  {settleMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : 'تأكيد التصفية'}
+                </button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 };
+

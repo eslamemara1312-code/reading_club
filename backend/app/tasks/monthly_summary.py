@@ -122,17 +122,28 @@ async def _run(db: AsyncSession):
                 "total_fines": total_fines,
             }
 
-            summary = MonthlySummary(
-                user_id=user_id,
-                group_id=group.id,
-                month=last_month_start,
-                stats_json=json.dumps(stats),
+            existing_summary = await db.execute(
+                select(MonthlySummary).where(
+                    and_(
+                        MonthlySummary.user_id == user_id,
+                        MonthlySummary.group_id == group.id,
+                        MonthlySummary.month == last_month_start,
+                    )
+                )
             )
-            db.add(summary)
+            if not existing_summary.scalar_one_or_none():
+                summary = MonthlySummary(
+                    user_id=user_id,
+                    group_id=group.id,
+                    month=last_month_start,
+                    stats_json=json.dumps(stats),
+                )
+                db.add(summary)
 
             # Reset freezes_remaining
             if streak:
                 streak.freezes_remaining = 2
+
 
         # Open a new fine_vault for this month
         this_month_start = date(today.year, today.month, 1)

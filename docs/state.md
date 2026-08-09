@@ -61,7 +61,15 @@ See `GOVERNANCE.md` §3 for full context.
 
 ## Session log
 
+### Session — August 9, 2026 (Part 2 — Junction Fix, Coverage & Idempotency, Real-World Walkthrough)
+- Done: Untracked duplicate `.agents/` files from Git index (`git rm -r --cached .agents`) and added `.agents` to `.gitignore`. Standardized on `.agent/` as single canonical source of truth while keeping local NT junction.
+- Fixed: Added idempotency checks to `monthly_summary.py`, `weekly_titles.py`, and `reminder_job.py` to prevent duplicate row creation on background job re-runs.
+- Fixed: Resolved `MissingGreenlet` exception in `mark_fine_paid` (`fines.py`) caused by expired lazy relationships after `db.commit()`.
+- Verified: Expanded unit test coverage across 22 passing test suites: `checkins.py` (87%), `fines.py` (86%), `calendar.py` (90%), achieving 80% overall backend statement coverage.
+- Verified: Conducted manual real-world walkthrough with 3 test accounts on live FastAPI server, confirming streak, freeze, and fine behavior per `docs/reading-club-full-plan.md §7`.
+
 ### Session — August 9, 2026 (Audit & Cleanup)
+
 - Done: Removed stray `files.zip` and `mnt/` directory from repository.
 - Done: Added `*.zip` to `.gitignore`.
 - Done: Investigated `.agents` (plural) vs `.agent` (singular): confirmed `.agents` is an NT junction to `.agent` and serves as Antigravity's active Workspace Customizations Root.

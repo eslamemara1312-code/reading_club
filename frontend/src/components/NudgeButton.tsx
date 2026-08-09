@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { BellRing, CheckCircle, Loader2 } from 'lucide-react';
 import { sendNudge } from '../api/stats';
@@ -29,40 +30,47 @@ export function NudgeButton({ groupId, toUserId, toUserName, hasCheckedIn }: Nud
 
   if (hasCheckedIn) {
     return (
-      <span className="text-xs text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-2 py-1 rounded-lg">
+      <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full shadow-sm">
         <CheckCircle size={12} />
-        سجّل قراءته
+        أتم القراءة اليوم
       </span>
     );
   }
 
   if (nudged) {
     return (
-      <span className="text-xs text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20 font-medium">
+      <motion.span 
+        initial={{ scale: 0.9 }} 
+        animate={{ scale: 1 }} 
+        className="text-xs text-amber-300 bg-amber-500/15 px-3 py-1 rounded-full border border-amber-500/30 font-bold shadow-sm flex items-center gap-1"
+      >
         تم النكز 🔔
-      </span>
+      </motion.span>
     );
   }
 
   return (
     <div className="flex flex-col items-end">
-      <button
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
         onClick={() => mutation.mutate()}
         disabled={mutation.isPending}
-        title={`أنكز ${toUserName} لتذكيره بالقراءة اليوم`}
-        className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 transition shadow-sm"
+        title={`تذكير ${toUserName} بالقراءة اليوم`}
+        className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 to-flame-500/20 hover:from-amber-500/30 hover:to-flame-500/30 text-amber-300 border border-amber-500/30 transition shadow-sm"
       >
         {mutation.isPending ? (
-          <Loader2 size={12} className="animate-spin" />
+          <Loader2 size={13} className="animate-spin text-amber-400" />
         ) : (
-          <BellRing size={12} />
+          <BellRing size={13} className="text-amber-400 animate-bounce" />
         )}
-        <span>أنكز المنقذ 🦸</span>
-      </button>
+        <span>أنكز الآن 🔔</span>
+      </motion.button>
 
       {errorText && (
-        <span className="text-[10px] text-red-400 mt-1">{errorText}</span>
+        <span className="text-[10px] text-rose-400 mt-1 font-medium">{errorText}</span>
       )}
     </div>
   );
 }
+
