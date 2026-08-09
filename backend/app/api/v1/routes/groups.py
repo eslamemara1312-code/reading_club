@@ -137,10 +137,7 @@ async def join_group(
     existing_member = mem_res.scalar_one_or_none()
     if existing_member:
         if existing_member.status == "active":
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="You are already an active member of this group"
-            )
+            return await fetch_group_with_members(db, group.id)
         else:
             existing_member.status = "active"
     else:
@@ -154,6 +151,30 @@ async def join_group(
     
     await db.commit()
     return await fetch_group_with_members(db, group.id)
+
+
+@router.get("/me", response_model=List[GroupRead])
+async def get_my_groups(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    mem_res = await db.execute(
+        select(GroupMember).where(
+            GroupMember.user_id == current_user.id,
+            GroupMember.status == "active"
+        )
+    )
+    memberships = mem_res.scalars().all()
+    group_ids = [m.group_id for m in memberships]
+    
+    result = []
+    for g_id in group_ids:
+        try:
+            g = await fetch_group_with_members(db, g_id)
+            result.append(g)
+        except HTTPException:
+            pass
+    return result
 
 
 @router.get("/{group_id}", response_model=GroupRead)

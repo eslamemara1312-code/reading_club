@@ -3,7 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BookOpen, Loader2, KeyRound, Mail, Flame } from 'lucide-react';
 import { loginUser } from '../api/auth';
+import { getMyGroups } from '../api/groups';
 import { useAuthStore } from '../store/authStore';
+import { useUIStore } from '../store/uiStore';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
@@ -12,6 +14,7 @@ export const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const setActiveGroupId = useUIStore((state) => state.setActiveGroupId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +24,19 @@ export const Login = () => {
     try {
       const res = await loginUser({ email, password });
       setAuth(res.user, res.access_token, res.refresh_token);
-      navigate('/dashboard');
+
+      try {
+        const groups = await getMyGroups();
+        if (groups && groups.length > 0) {
+          setActiveGroupId(groups[0].id);
+          navigate('/dashboard');
+        } else {
+          setActiveGroupId(null);
+          navigate('/onboarding');
+        }
+      } catch {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       const msg = err.response?.data?.detail || 'حدث خطأ أثناء تسجيل الدخول. تحقق من البيانات وحاول مجدداً.';
       setError(msg);

@@ -41,3 +41,9 @@ export const getGroupDetails = async (groupId: string): Promise<Group> => {
   const response = await apiClient.get<Group>(`/groups/${groupId}`);
   return response.data;
 };
+
+export const getMyGroups = async (): Promise<Group[]> => {
+  const response = await apiClient.get<Group[]>('/groups/me');
+  return response.data;
+};
+

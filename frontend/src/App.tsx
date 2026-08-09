@@ -15,7 +15,9 @@ import ProfilePage from './pages/ProfilePage';
 import { GroupSettingsPage } from './pages/GroupSettingsPage';
 import { ToastContainer } from './components/Toast';
 import { useAuthStore } from './store/authStore';
+import { useUIStore } from './store/uiStore';
 import { getCurrentUser } from './api/auth';
+import { getMyGroups } from './api/groups';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,16 +30,28 @@ const queryClient = new QueryClient({
 
 export function App() {
   const { isAuthenticated, setUser } = useAuthStore();
+  const { activeGroupId, setActiveGroupId } = useUIStore();
 
   useEffect(() => {
     if (isAuthenticated) {
       getCurrentUser()
         .then((u) => setUser(u))
-        .catch(() => {
-          // ignore error, token refresh interceptor will handle if unauthorized
-        });
+        .catch(() => {});
+
+      getMyGroups()
+        .then((groups) => {
+          if (groups && groups.length > 0) {
+            const hasGroup = groups.some((g) => g.id === activeGroupId);
+            if (!hasGroup || !activeGroupId) {
+              setActiveGroupId(groups[0].id);
+            }
+          } else {
+            setActiveGroupId(null);
+          }
+        })
+        .catch(() => {});
     }
-  }, [isAuthenticated, setUser]);
+  }, [isAuthenticated, setUser, setActiveGroupId, activeGroupId]);
 
   return (
     <QueryClientProvider client={queryClient}>
