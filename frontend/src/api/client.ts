@@ -1,9 +1,14 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+let rawBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+rawBase = rawBase.replace(/\/+$/, '');
+if (rawBase.includes('railway.app') && rawBase.startsWith('http://')) {
+  rawBase = rawBase.replace('http://', 'https://');
+}
+export const API_BASE_URL = rawBase.endsWith('/api/v1') ? rawBase : `${rawBase}/api/v1`;
 
 export const apiClient = axios.create({
-  baseURL: `${API_BASE_URL}/api/v1`,
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -31,7 +36,7 @@ apiClient.interceptors.response.use(
       
       if (refreshToken) {
         try {
-          const res = await axios.post(`${API_BASE_URL}/api/v1/auth/refresh`, {
+          const res = await axios.post(`${API_BASE_URL}/auth/refresh`, {
             refresh_token: refreshToken,
           });
           
