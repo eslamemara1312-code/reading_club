@@ -80,36 +80,6 @@ async def health_check():
     }
 
 
-@app.get("/debug/db", tags=["Debug"])
-async def debug_db():
-    """Temporary diagnostic endpoint — remove after fixing DB connection."""
-    import traceback
-    from app.db.session import engine
-
-    db_url = str(settings.DATABASE_URL)
-    # Mask password for safety
-    if "@" in db_url and ":" in db_url:
-        parts = db_url.split("@")
-        creds = parts[0]
-        colon_idx = creds.rfind(":")
-        masked = creds[:colon_idx + 1] + "****@" + parts[1]
-    else:
-        masked = "COULD_NOT_PARSE"
-
-    result = {"database_url_masked": masked, "engine_url": str(engine.url)}
-
-    try:
-        async with engine.connect() as conn:
-            row = await conn.execute(__import__("sqlalchemy").text("SELECT 1"))
-            result["connection"] = "SUCCESS"
-            result["query_result"] = str(row.scalar())
-    except Exception as e:
-        result["connection"] = "FAILED"
-        result["error_type"] = type(e).__name__
-        result["error"] = str(e)
-        result["traceback"] = traceback.format_exc()
-
-    return result
 
 
 @app.exception_handler(Exception)
