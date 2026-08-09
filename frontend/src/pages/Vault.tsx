@@ -71,7 +71,7 @@ export const VaultPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-obsidian-950 text-slate-100 pb-20 relative overflow-hidden">
+    <div className="min-h-screen bg-obsidian-950 text-slate-100 pb-32 lg:pb-12 relative overflow-hidden">
       {/* Dynamic Background Glows */}
       <div className="glow-orb w-96 h-96 bg-amber-500/10 top-0 right-1/4 animate-pulse-subtle" />
 

@@ -20,8 +20,12 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ calendarData }) => {
   const daysHeader = Array.from({ length: numDays }, (_, i) => i + 1);
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-right text-xs border-collapse">
+    <div>
+      <div className="text-[11px] text-slate-400 mb-2.5 md:hidden flex items-center gap-1.5 font-bold">
+        <span>👈 اسحب الجدول أفقياً لمشاهدة بقية أيام الشهر</span>
+      </div>
+      <div className="overflow-x-auto touch-pan-x pb-2">
+        <table className="w-full text-right text-xs border-collapse min-w-[700px]">
         <thead>
           <tr className="border-b border-slate-800 text-slate-400">
             <th className="p-3.5 sticky right-0 bg-obsidian-900 z-10 w-40 font-extrabold text-xs">العضو</th>
@@ -74,6 +78,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ calendarData }) => {
           ))}
         </tbody>
       </table>
+      </div>
 
       <div className="flex flex-wrap items-center justify-center gap-6 pt-5 text-xs text-slate-300 border-t border-slate-800/60 mt-5 font-medium">
         <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
@@ -92,4 +97,5 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ calendarData }) => {
     </div>
   );
 };
+
 

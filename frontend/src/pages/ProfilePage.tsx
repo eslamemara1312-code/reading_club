@@ -68,7 +68,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-obsidian-950 text-slate-100 pb-24 relative overflow-hidden">
+    <div className="min-h-screen bg-obsidian-950 text-slate-100 pb-32 lg:pb-12 relative overflow-hidden">
       {/* Dynamic Glows */}
       <div className="glow-orb w-96 h-96 bg-emerald-500/10 top-0 left-1/2 -translate-x-1/2 animate-pulse-subtle" />
 

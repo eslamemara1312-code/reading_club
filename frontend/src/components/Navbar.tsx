@@ -247,8 +247,8 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
         </div>
       </div>
 
-      {/* Mobile Nav Drawer Bar */}
-      <nav className="flex lg:hidden items-center justify-around mt-2 pt-2 border-t border-slate-800/80">
+      {/* Fixed Bottom Navigation Bar for Mobile App Feel */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-obsidian-900/90 backdrop-blur-xl border-t border-slate-800/90 py-2 px-3 flex lg:hidden items-center justify-around shadow-2xl safe-area-bottom">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -256,12 +256,14 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex flex-col items-center gap-0.5 text-[11px] font-medium py-1 px-2 rounded-lg transition-colors ${
-                  isActive ? 'text-emerald-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+                `flex flex-col items-center gap-1 text-[10px] font-bold py-1 px-2.5 rounded-xl transition-all ${
+                  isActive
+                    ? 'text-emerald-400 bg-emerald-500/15 border border-emerald-500/25 shadow-glow-emerald scale-105'
+                    : 'text-slate-400 hover:text-slate-200'
                 }`
               }
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="w-5 h-5" />
               <span>{item.label}</span>
             </NavLink>
           );
@@ -270,3 +272,4 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
     </header>
   );
 }
+
