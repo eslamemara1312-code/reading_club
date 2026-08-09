@@ -1,7 +1,8 @@
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from app.core.config import settings
 
 logging.basicConfig(
@@ -77,3 +78,17 @@ async def health_check():
         "project": settings.PROJECT_NAME,
         "environment": settings.ENVIRONMENT
     }
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Catch-all so unhandled errors still return a proper JSON response.
+
+    Without this, a raw 500 bypasses the CORS middleware's response phase,
+    causing browsers to report a misleading CORS error instead of the real one.
+    """
+    logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+    )
