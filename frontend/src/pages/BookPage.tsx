@@ -103,6 +103,7 @@ export const BookPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activeBook', activeGroupId] });
       queryClient.invalidateQueries({ queryKey: ['allGroupBooks', activeGroupId] });
+      queryClient.invalidateQueries({ queryKey: ['booksCatalog'] });
     },
   });
 
@@ -344,14 +345,14 @@ export const BookPage = () => {
                       <p className="text-[10px] text-slate-500">{gb.book.author}</p>
                     </div>
                   </div>
-                  {isOwner && (
-                    <button
-                      onClick={() => deleteGroupBookMutation.mutate(gb.id)}
-                      className="p-1 text-slate-500 hover:text-rose-400 transition-colors"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => deleteGroupBookMutation.mutate(gb.id)}
+                    className="p-2 bg-rose-500/10 hover:bg-rose-500/25 text-rose-400 hover:text-rose-300 border border-rose-500/30 rounded-xl transition-all flex items-center justify-center shrink-0 ml-2"
+                    title="حذف الكتاب من السجل"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               ))}
             </div>
