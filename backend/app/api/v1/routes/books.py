@@ -59,6 +59,8 @@ async def create_book(
     return BookRead.model_validate(book)
 
 
+from app.models.discussion import Discussion
+
 @router.delete("/books/{book_id}")
 async def delete_book(
     book_id: str,
@@ -70,6 +72,15 @@ async def delete_book(
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
     
+    # Clean up associated group_books and discussion references first
+    gb_res = await db.execute(select(GroupBook).where(GroupBook.book_id == book_id))
+    group_books = gb_res.scalars().all()
+    for gb in group_books:
+        disc_res = await db.execute(select(Discussion).where(Discussion.group_book_id == gb.id))
+        for d in disc_res.scalars().all():
+            d.group_book_id = None
+        await db.delete(gb)
+
     await db.delete(book)
     await db.commit()
     return {"message": "Book deleted from catalog successfully"}
@@ -197,6 +208,10 @@ async def delete_group_book(
     if not gb:
         raise HTTPException(status_code=404, detail="Book plan not found")
     
+    disc_res = await db.execute(select(Discussion).where(Discussion.group_book_id == group_book_id))
+    for d in disc_res.scalars().all():
+        d.group_book_id = None
+
     await db.delete(gb)
     await db.commit()
     return {"message": "Book removed successfully"}
