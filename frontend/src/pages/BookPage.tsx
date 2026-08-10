@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Plus, Loader2, Trash2, Sparkles, Layers, Image as ImageIcon } from 'lucide-react';
+import { BookOpen, Plus, Loader2, Trash2, Sparkles, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUIStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
@@ -491,19 +491,6 @@ export const BookPage = () => {
                   value={newPages}
                   onChange={(e) => setNewPages(e.target.value)}
                   className="w-full p-3 bg-obsidian-950 border border-slate-700 rounded-xl text-white text-xs font-mono focus:border-emerald-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1">
-                  <ImageIcon size={14} className="text-emerald-400" /> رابط صورة الغلاف (اختياري)
-                </label>
-                <input
-                  type="text"
-                  value={newCoverUrl}
-                  onChange={(e) => setNewCoverUrl(e.target.value)}
-                  className="w-full p-3 bg-obsidian-950 border border-slate-700 rounded-xl text-white text-xs font-mono focus:border-emerald-500 outline-none"
-                  placeholder="https://example.com/cover.jpg"
                 />
               </div>
 
