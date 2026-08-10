@@ -12,7 +12,6 @@ import {
   createBookInCatalog,
   deleteGroupBook,
   deleteBookFromCatalog,
-  getProxiedCoverUrl,
   GroupBook,
   Book,
 } from '../api/books';
@@ -118,7 +117,7 @@ export const BookPage = () => {
   const handleSelectWikidataBook = (wikidataBook: WikidataBookResult) => {
     setNewTitle(wikidataBook.title);
     setNewAuthor(wikidataBook.author || '');
-    setNewPages(String(wikidataBook.total_pages || 200));
+    setNewPages(wikidataBook.total_pages ? String(wikidataBook.total_pages) : '');
     setNewCoverUrl(wikidataBook.cover_url || '');
     setShowCreateBookModal(true);
   };
@@ -208,7 +207,7 @@ export const BookPage = () => {
                     <div className="w-16 h-24 bg-slate-900 border border-slate-700/80 rounded-xl overflow-hidden shadow-lg flex items-center justify-center shrink-0">
                       {gb.book.cover_url ? (
                         <img
-                          src={getProxiedCoverUrl(gb.book.cover_url)}
+                          src={gb.book.cover_url}
                           alt={gb.book.title}
                           referrerPolicy="no-referrer"
                           className="w-full h-full object-cover"
@@ -276,7 +275,7 @@ export const BookPage = () => {
                     <div className="w-12 h-16 bg-slate-800 rounded-xl border border-slate-700/80 overflow-hidden flex items-center justify-center shrink-0">
                       {book.cover_url ? (
                         <img
-                          src={getProxiedCoverUrl(book.cover_url)}
+                          src={book.cover_url}
                           alt={book.title}
                           referrerPolicy="no-referrer"
                           className="w-full h-full object-cover"
@@ -443,7 +442,7 @@ export const BookPage = () => {
               {newCoverUrl && (
                 <div className="flex justify-center my-2">
                   <div className="w-20 h-28 rounded-xl border border-slate-700 overflow-hidden shadow-md">
-                    <img src={getProxiedCoverUrl(newCoverUrl)} alt={newTitle} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                    <img src={newCoverUrl} alt={newTitle} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                   </div>
                 </div>
               )}
