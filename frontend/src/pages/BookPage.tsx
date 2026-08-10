@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Plus, Loader2, Trash2, Sparkles, Layers } from 'lucide-react';
+import { BookOpen, Plus, Loader2, Trash2, Sparkles, Layers, Image as ImageIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUIStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
@@ -11,6 +11,7 @@ import {
   setGroupBookPlan,
   createBookInCatalog,
   deleteGroupBook,
+  deleteBookFromCatalog,
   GroupBook,
   Book,
 } from '../api/books';
@@ -33,6 +34,7 @@ export const BookPage = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newAuthor, setNewAuthor] = useState('');
   const [newPages, setNewPages] = useState('200');
+  const [newCoverUrl, setNewCoverUrl] = useState('');
 
   const { data: group } = useQuery<Group>({
     queryKey: ['group', activeGroupId],
@@ -82,7 +84,8 @@ export const BookPage = () => {
       createBookInCatalog({
         title: newTitle,
         author: newAuthor,
-        total_pages: parseInt(newPages, 10),
+        total_pages: parseInt(newPages, 10) || 200,
+        cover_url: newCoverUrl || undefined,
       }),
     onSuccess: (newBook) => {
       queryClient.invalidateQueries({ queryKey: ['booksCatalog'] });
@@ -90,10 +93,12 @@ export const BookPage = () => {
       setShowCreateBookModal(false);
       setNewTitle('');
       setNewAuthor('');
+      setNewPages('200');
+      setNewCoverUrl('');
     },
   });
 
-  const deleteBookMutation = useMutation({
+  const deleteGroupBookMutation = useMutation({
     mutationFn: (gbId: string) => deleteGroupBook(activeGroupId!, gbId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activeBook', activeGroupId] });
@@ -101,16 +106,20 @@ export const BookPage = () => {
     },
   });
 
-  const handleSelectWikidataBook = (wikidataBook: WikidataBookResult) => {
-    createBookInCatalog({
-      title: wikidataBook.title,
-      author: wikidataBook.author,
-      total_pages: wikidataBook.total_pages || 200,
-      cover_url: wikidataBook.cover_url,
-    }).then((created) => {
+  const deleteCatalogBookMutation = useMutation({
+    mutationFn: (bookId: string) => deleteBookFromCatalog(bookId),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['booksCatalog'] });
-      setSelectedBookId(created.id);
-    });
+      if (selectedBookId) setSelectedBookId('');
+    },
+  });
+
+  const handleSelectWikidataBook = (wikidataBook: WikidataBookResult) => {
+    setNewTitle(wikidataBook.title);
+    setNewAuthor(wikidataBook.author || '');
+    setNewPages(String(wikidataBook.total_pages || 200));
+    setNewCoverUrl(wikidataBook.cover_url || '');
+    setShowCreateBookModal(true);
   };
 
   if (!activeGroupId) {
@@ -186,18 +195,23 @@ export const BookPage = () => {
                 >
                   {isOwner && (
                     <button
-                      onClick={() => deleteBookMutation.mutate(gb.id)}
-                      className="absolute top-3 left-3 p-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity border border-rose-500/30"
-                      title="حذف الكتاب"
+                      onClick={() => deleteGroupBookMutation.mutate(gb.id)}
+                      className="absolute top-3 left-3 p-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity border border-rose-500/30 z-10"
+                      title="إيقاف قراءة هذا الكتاب"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   )}
 
                   <div className="flex items-start gap-4">
-                    <div className="w-16 h-24 bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/80 rounded-xl overflow-hidden shadow-lg flex items-center justify-center shrink-0">
+                    <div className="w-16 h-24 bg-slate-900 border border-slate-700/80 rounded-xl overflow-hidden shadow-lg flex items-center justify-center shrink-0">
                       {gb.book.cover_url ? (
-                        <img src={gb.book.cover_url} alt={gb.book.title} className="w-full h-full object-cover" />
+                        <img
+                          src={gb.book.cover_url}
+                          alt={gb.book.title}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <BookOpen className="w-7 h-7 text-emerald-400" />
                       )}
@@ -208,6 +222,9 @@ export const BookPage = () => {
                       </span>
                       <h3 className="font-extrabold text-sm text-white truncate">{gb.book.title}</h3>
                       <p className="text-[11px] text-slate-400 truncate mt-0.5">{gb.book.author}</p>
+                      <span className="text-[10px] text-emerald-400 font-mono font-semibold block mt-1">
+                        {gb.book.total_pages} صفحة
+                      </span>
                     </div>
                   </div>
 
@@ -244,12 +261,27 @@ export const BookPage = () => {
               {catalog.map((book) => (
                 <div
                   key={book.id}
-                  className="min-w-[220px] max-w-[240px] glass-card p-4 rounded-2xl border border-slate-800/80 snap-start flex flex-col justify-between shrink-0"
+                  className="min-w-[220px] max-w-[240px] glass-card p-4 rounded-2xl border border-slate-800/80 snap-start flex flex-col justify-between shrink-0 relative group"
                 >
+                  {isOwner && (
+                    <button
+                      onClick={() => deleteCatalogBookMutation.mutate(book.id)}
+                      className="absolute top-2 left-2 p-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity border border-rose-500/30 z-10"
+                      title="حذف الكتاب من الكتالوج"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-12 h-16 bg-slate-800 rounded-xl border border-slate-700/80 overflow-hidden flex items-center justify-center shrink-0">
                       {book.cover_url ? (
-                        <img src={book.cover_url} alt={book.title} className="w-full h-full object-cover" />
+                        <img
+                          src={book.cover_url}
+                          alt={book.title}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <BookOpen className="w-5 h-5 text-amber-400" />
                       )}
@@ -302,7 +334,7 @@ export const BookPage = () => {
                   </div>
                   {isOwner && (
                     <button
-                      onClick={() => deleteBookMutation.mutate(gb.id)}
+                      onClick={() => deleteGroupBookMutation.mutate(gb.id)}
                       className="p-1 text-slate-500 hover:text-rose-400 transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -351,7 +383,13 @@ export const BookPage = () => {
 
               <button
                 type="button"
-                onClick={() => setShowCreateBookModal(true)}
+                onClick={() => {
+                  setNewTitle('');
+                  setNewAuthor('');
+                  setNewPages('200');
+                  setNewCoverUrl('');
+                  setShowCreateBookModal(true);
+                }}
                 className="text-xs text-emerald-400 font-bold hover:underline flex items-center gap-1"
               >
                 + إضافة كتاب كتابةً للكتالوج
@@ -390,7 +428,7 @@ export const BookPage = () => {
         )}
       </AnimatePresence>
 
-      {/* Create Book Modal */}
+      {/* Create / Edit Book Modal */}
       <AnimatePresence>
         {showCreateBookModal && (
           <div className="fixed inset-0 bg-obsidian-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
@@ -399,9 +437,17 @@ export const BookPage = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 15 }}
               transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-              className="glass-panel p-6 rounded-3xl max-w-md w-full border border-slate-700/80 space-y-4 shadow-2xl"
+              className="glass-panel p-6 rounded-3xl max-w-md w-full border border-slate-700/80 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto"
             >
-              <h3 className="text-lg font-extrabold text-white text-center">إضافة كتاب جديد للكتالوج</h3>
+              <h3 className="text-lg font-extrabold text-white text-center">مراجعة وإضافة تفاصيل الكتاب</h3>
+
+              {newCoverUrl && (
+                <div className="flex justify-center my-2">
+                  <div className="w-20 h-28 rounded-xl border border-slate-700 overflow-hidden shadow-md">
+                    <img src={newCoverUrl} alt={newTitle} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1.5">عنوان الكتاب</label>
@@ -436,6 +482,19 @@ export const BookPage = () => {
                 />
               </div>
 
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1">
+                  <ImageIcon size={14} className="text-emerald-400" /> رابط صورة الغلاف (اختياري)
+                </label>
+                <input
+                  type="text"
+                  value={newCoverUrl}
+                  onChange={(e) => setNewCoverUrl(e.target.value)}
+                  className="w-full p-3 bg-obsidian-950 border border-slate-700 rounded-xl text-white text-xs font-mono focus:border-emerald-500 outline-none"
+                  placeholder="https://example.com/cover.jpg"
+                />
+              </div>
+
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
@@ -446,11 +505,11 @@ export const BookPage = () => {
                 </button>
                 <button
                   type="button"
-                  disabled={!newTitle || !newAuthor || createBookMutation.isPending}
+                  disabled={!newTitle || createBookMutation.isPending}
                   onClick={() => createBookMutation.mutate()}
                   className="w-1/2 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 disabled:opacity-50"
                 >
-                  {createBookMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : 'إضافة للكتالوج'}
+                  {createBookMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : 'إضافة وتحديد الكتاب'}
                 </button>
               </div>
             </motion.div>

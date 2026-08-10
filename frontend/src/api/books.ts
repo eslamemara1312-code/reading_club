@@ -50,3 +50,7 @@ export const getAllGroupBooks = async (groupId: string): Promise<GroupBook[]> =>
 export const deleteGroupBook = async (groupId: string, groupBookId: string): Promise<void> => {
   await apiClient.delete(`/groups/${groupId}/books/${groupBookId}`);
 };
+
+export const deleteBookFromCatalog = async (bookId: string): Promise<void> => {
+  await apiClient.delete(`/books/${bookId}`);
+};

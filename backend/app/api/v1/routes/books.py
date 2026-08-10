@@ -34,6 +34,22 @@ async def create_book(
     return BookRead.model_validate(book)
 
 
+@router.delete("/books/{book_id}")
+async def delete_book(
+    book_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    res = await db.execute(select(Book).where(Book.id == book_id))
+    book = res.scalar_one_or_none()
+    if not book:
+        raise HTTPException(status_code=404, detail="Book not found")
+    
+    await db.delete(book)
+    await db.commit()
+    return {"message": "Book deleted from catalog successfully"}
+
+
 @router.get("/groups/{group_id}/books/active", response_model=Optional[GroupBookRead])
 async def get_active_group_book(
     group_id: str,

@@ -139,6 +139,7 @@ export function BookSearchAutocomplete({ onSelectBook }: BookSearchAutocompleteP
                   <img
                     src={item.cover_url}
                     alt={item.title}
+                    referrerPolicy="no-referrer"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       (e.target as HTMLElement).style.display = 'none';
