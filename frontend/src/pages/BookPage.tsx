@@ -204,17 +204,24 @@ export const BookPage = () => {
                   )}
 
                   <div className="flex items-start gap-4">
-                    <div className="w-16 h-24 bg-slate-900 border border-slate-700/80 rounded-xl overflow-hidden shadow-lg flex items-center justify-center shrink-0">
+                    <div className="w-16 h-24 bg-slate-900 border border-slate-700/80 rounded-xl overflow-hidden shadow-lg flex items-center justify-center shrink-0 relative">
                       {gb.book.cover_url ? (
                         <img
                           src={gb.book.cover_url}
                           alt={gb.book.title}
                           referrerPolicy="no-referrer"
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                            const parent = (e.target as HTMLImageElement).parentElement;
+                            if (parent) {
+                              const icon = parent.querySelector('.fallback-icon');
+                              if (icon) icon.classList.remove('hidden');
+                            }
+                          }}
                         />
-                      ) : (
-                        <BookOpen className="w-7 h-7 text-emerald-400" />
-                      )}
+                      ) : null}
+                      <BookOpen className={`w-7 h-7 text-emerald-400 fallback-icon ${gb.book.cover_url ? 'hidden' : ''}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 text-[10px] font-bold border border-emerald-500/25 mb-1.5 inline-block">
@@ -272,17 +279,24 @@ export const BookPage = () => {
                   </button>
 
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-16 bg-slate-800 rounded-xl border border-slate-700/80 overflow-hidden flex items-center justify-center shrink-0">
+                    <div className="w-12 h-16 bg-slate-800 rounded-xl border border-slate-700/80 overflow-hidden flex items-center justify-center shrink-0 relative">
                       {book.cover_url ? (
                         <img
                           src={book.cover_url}
                           alt={book.title}
                           referrerPolicy="no-referrer"
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                            const parent = (e.target as HTMLImageElement).parentElement;
+                            if (parent) {
+                              const icon = parent.querySelector('.fallback-icon');
+                              if (icon) icon.classList.remove('hidden');
+                            }
+                          }}
                         />
-                      ) : (
-                        <BookOpen className="w-5 h-5 text-amber-400" />
-                      )}
+                      ) : null}
+                      <BookOpen className={`w-5 h-5 text-amber-400 fallback-icon ${book.cover_url ? 'hidden' : ''}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-bold text-xs text-white truncate">{book.title}</h4>

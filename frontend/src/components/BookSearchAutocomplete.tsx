@@ -32,63 +32,32 @@ export function BookSearchAutocomplete({ onSelectBook }: BookSearchAutocompleteP
       try {
         const combinedResults: WikidataBookResult[] = [];
 
-        // 1. PRIMARY: OpenLibrary Search API
-        // Covers work directly (no CORS/referrer issues), real page counts, author names
+        // 1. PRIMARY: Google Books API (Best for Arabic titles, authors, real page counts, & covers)
         try {
-          const olUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=6&fields=key,title,author_name,cover_i,number_of_pages_median,first_publish_year,isbn`;
-          const olRes = await fetch(olUrl);
-          const olData = await olRes.json();
-
-          if (olData.docs && olData.docs.length > 0) {
-            for (const doc of olData.docs) {
-              const coverUrl = doc.cover_i
-                ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`
-                : undefined;
-
-              combinedResults.push({
-                id: doc.key || `ol_${Math.random()}`,
-                title: doc.title || query,
-                author: doc.author_name ? doc.author_name.join(', ') : 'مؤلف غير معروف',
-                cover_url: coverUrl,
-                total_pages: doc.number_of_pages_median || undefined,
-                description: doc.first_publish_year ? `نشر عام ${doc.first_publish_year}` : undefined,
-              });
-            }
-          }
-        } catch (e) {
-          console.warn('OpenLibrary search failed:', e);
-        }
-
-        // 2. SECONDARY: Google Books API (fill gaps, especially for Arabic-only books)
-        try {
-          const gbooksUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&hl=ar&maxResults=5`;
+          const gbooksUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
+            query
+          )}&hl=ar&maxResults=7`;
           const gres = await fetch(gbooksUrl);
           const gdata = await gres.json();
 
           if (gdata.items && gdata.items.length > 0) {
             for (const item of gdata.items) {
               const info = item.volumeInfo || {};
-              const gTitle = info.title || '';
+              const gTitle = info.title || query;
 
-              // Skip if we already have this title from OpenLibrary
-              const exists = combinedResults.some(
-                (r) => r.title.toLowerCase() === gTitle.toLowerCase()
-              );
-              if (exists) continue;
-
-              // Try to get ISBN for OpenLibrary cover (more reliable than Google's CDN)
+              // Construct reliable HTTPS cover URL
+              let rawCover = info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail;
               let coverUrl: string | undefined;
-              const isbn = info.industryIdentifiers?.find(
-                (id: any) => id.type === 'ISBN_13' || id.type === 'ISBN_10'
-              )?.identifier;
 
-              if (isbn) {
-                coverUrl = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`;
+              if (rawCover) {
+                coverUrl = rawCover.replace('http://', 'https://').replace('&edge=curl', '');
+              } else if (item.id) {
+                coverUrl = `https://books.google.com/books/publisher/content/images/frontcover/${item.id}?fife=w400-h600&source=gbs_api`;
               }
 
               combinedResults.push({
                 id: item.id || `gb_${Math.random()}`,
-                title: gTitle || query,
+                title: gTitle,
                 author: info.authors ? info.authors.join(', ') : 'مؤلف غير معروف',
                 cover_url: coverUrl,
                 total_pages: info.pageCount || undefined,
@@ -98,6 +67,41 @@ export function BookSearchAutocomplete({ onSelectBook }: BookSearchAutocompleteP
           }
         } catch (e) {
           console.warn('Google Books API fetch failed:', e);
+        }
+
+        // 2. SECONDARY: OpenLibrary Search API (supplement extra books)
+        try {
+          const olUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(
+            query
+          )}&limit=5&fields=key,title,author_name,cover_i,number_of_pages_median,first_publish_year`;
+          const olRes = await fetch(olUrl);
+          const olData = await olRes.json();
+
+          if (olData.docs && olData.docs.length > 0) {
+            for (const doc of olData.docs) {
+              const olTitle = doc.title || '';
+              // Avoid duplicates
+              const exists = combinedResults.some(
+                (r) => r.title.toLowerCase() === olTitle.toLowerCase()
+              );
+              if (exists) continue;
+
+              const coverUrl = doc.cover_i
+                ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`
+                : undefined;
+
+              combinedResults.push({
+                id: doc.key || `ol_${Math.random()}`,
+                title: olTitle || query,
+                author: doc.author_name ? doc.author_name.join(', ') : 'مؤلف غير معروف',
+                cover_url: coverUrl,
+                total_pages: doc.number_of_pages_median || undefined,
+                description: doc.first_publish_year ? `نشر عام ${doc.first_publish_year}` : undefined,
+              });
+            }
+          }
+        } catch (e) {
+          console.warn('OpenLibrary search failed:', e);
         }
 
         setResults(combinedResults);
@@ -128,9 +132,9 @@ export function BookSearchAutocomplete({ onSelectBook }: BookSearchAutocompleteP
       </div>
 
       {open && results.length > 0 && (
-        <div className="absolute top-full right-0 left-0 mt-1.5 bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl overflow-hidden z-50 max-h-64 overflow-y-auto divide-y divide-slate-800">
+        <div className="absolute top-full right-0 left-0 mt-1.5 bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl overflow-hidden z-50 max-h-72 overflow-y-auto divide-y divide-slate-800">
           <div className="px-3 py-1.5 bg-slate-950/80 text-[10px] font-bold text-emerald-400 flex items-center gap-1">
-            <Sparkles className="w-3 h-3" /> نتائج البحث باللغة العربية مع الأغلفة
+            <Sparkles className="w-3 h-3" /> نتائج البحث الذكية باللغة العربية مع الأغلفة
           </div>
           {results.map((item, idx) => (
             <button
@@ -143,25 +147,32 @@ export function BookSearchAutocomplete({ onSelectBook }: BookSearchAutocompleteP
               }}
               className="w-full px-3 py-2.5 text-right hover:bg-slate-800/80 transition-colors flex items-center gap-3"
             >
-              <div className="w-9 h-12 bg-slate-800 rounded border border-slate-700 flex items-center justify-center text-xs shrink-0 overflow-hidden">
+              <div className="w-10 h-14 bg-slate-800 rounded-lg border border-slate-700 flex items-center justify-center shrink-0 overflow-hidden relative">
                 {item.cover_url ? (
                   <img
                     src={item.cover_url}
                     alt={item.title}
+                    referrerPolicy="no-referrer"
                     className="w-full h-full object-cover"
                     onError={(e) => {
+                      // Fallback gracefully on broken images
                       (e.target as HTMLImageElement).style.display = 'none';
-                      (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                      const fallback = (e.target as HTMLImageElement).nextElementSibling;
+                      if (fallback) fallback.classList.remove('hidden');
                     }}
                   />
                 ) : null}
-                <BookOpen className={`w-4 h-4 text-emerald-400 ${item.cover_url ? 'hidden' : ''}`} />
+                <div className={`flex flex-col items-center justify-center p-1 text-center ${item.cover_url ? 'hidden' : ''}`}>
+                  <BookOpen className="w-4 h-4 text-emerald-400 mb-0.5" />
+                </div>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-bold text-white truncate">{item.title}</p>
-                <p className="text-[11px] text-slate-400 truncate">{item.author}</p>
+                <p className="text-[11px] text-slate-400 truncate mt-0.5">{item.author}</p>
                 {item.total_pages && (
-                  <p className="text-[10px] text-emerald-400 font-mono">{item.total_pages} صفحة</p>
+                  <p className="text-[10px] text-emerald-400 font-mono font-semibold mt-0.5">
+                    {item.total_pages} صفحة
+                  </p>
                 )}
               </div>
             </button>
