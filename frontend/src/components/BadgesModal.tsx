@@ -67,10 +67,10 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({ allBadges, userBadges,
                   {isEarned && (
                     <div className="absolute -top-10 -right-10 w-24 h-24 bg-amber-500/10 rounded-full blur-xl pointer-events-none" />
                   )}
-                  <div className={`text-2xl p-2.5 rounded-xl border flex items-center justify-center shrink-0 ${
+                  <div className={`p-2.5 rounded-xl border flex items-center justify-center shrink-0 ${
                     isEarned ? 'bg-amber-500/15 border-amber-500/30 text-amber-300 shadow-sm' : 'bg-slate-900 border-slate-800 text-slate-600'
                   }`}>
-                    {b.icon}
+                    <Award className="w-5 h-5" />
                   </div>
 
                   <div className="flex-1 min-w-0">

@@ -239,7 +239,7 @@ export const DiscussionPage = () => {
                   onClick={() => createThreadMutation.mutate()}
                   className="w-1/2 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 disabled:opacity-50"
                 >
-                  {createThreadMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : 'نشر الموضوع 🚀'}
+                  {createThreadMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : 'نشر الموضوع'}
                 </button>
               </div>
             </motion.div>

@@ -21,19 +21,6 @@ const LEVEL_TITLES: Record<number, string> = {
   10: 'إله القراءة',
 };
 
-const BADGE_ICONS: Record<string, string> = {
-  streak_7: '🔥',
-  streak_30: '💎',
-  streak_100: '👑',
-  first_book: '📖',
-  first_checkin: '✅',
-  speed_reader: '⚡',
-  night_owl: '🦉',
-  early_bird: '🐦',
-  consistent: '💪',
-  rescuer: '🦸',
-};
-
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
@@ -125,7 +112,6 @@ export default function ProfilePage() {
 
             <h2 className="text-2xl font-black text-white mb-0.5">{user.name}</h2>
             <p className="text-emerald-400 text-xs font-bold mb-1 tracking-wide">{levelTitle}</p>
-            <p className="text-slate-400 text-xs font-mono">{user.email}</p>
 
             {/* XP Progress Bar */}
             <div className="w-full max-w-xs mt-5">
@@ -144,7 +130,7 @@ export default function ProfilePage() {
                 />
               </div>
               <p className="text-center text-[11px] text-slate-400 font-medium mt-1.5">
-                تبقي <span className="text-emerald-400 font-bold">{Math.round(xpForNextLevel - user.xp_points)} XP</span> للمستوى التالي 🎯
+                تبقي <span className="text-emerald-400 font-bold">{Math.round(xpForNextLevel - user.xp_points)} XP</span> للمستوى التالي
               </p>
             </div>
           </div>
@@ -160,7 +146,7 @@ export default function ProfilePage() {
           <div className="glass-card p-4 rounded-2xl border border-slate-800/90 text-center">
             <Flame size={22} className="text-flame-400 mx-auto mb-1 animate-flame-bounce" />
             <p className="text-xl font-black text-white font-mono">{monthlySummary?.stats?.longest_streak || 0}</p>
-            <p className="text-[11px] text-slate-400 font-bold">أطول سلسلة (أيام)</p>
+            <p className="text-[11px] text-slate-400 font-bold">أطول حماسة (أيام)</p>
           </div>
           <div className="glass-card p-4 rounded-2xl border border-slate-800/90 text-center">
             <BookOpen size={22} className="text-sky-400 mx-auto mb-1" />
@@ -225,10 +211,10 @@ export default function ProfilePage() {
                         : 'glass-panel border-slate-800/60 opacity-50'
                     }`}
                   >
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-inner ${
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-inner ${
                       earned ? 'bg-amber-500/20 border border-amber-500/30' : 'bg-slate-800/50'
                     }`}>
-                      {BADGE_ICONS[badge.slug] || badge.icon || '🏅'}
+                      <Award size={24} className={earned ? "text-amber-400" : "text-slate-500"} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">

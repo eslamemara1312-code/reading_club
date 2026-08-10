@@ -112,3 +112,50 @@ async def set_group_book_plan(
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/groups/{group_id}/books", response_model=List[GroupBookRead])
+async def get_all_group_books(
+    group_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    res = await db.execute(
+        select(GroupBook)
+        .options(joinedload(GroupBook.book))
+        .where(GroupBook.group_id == group_id)
+        .order_by(GroupBook.created_at.desc())
+    )
+    gbs = res.scalars().all()
+    return [
+        GroupBookRead(
+            id=gb.id,
+            group_id=gb.group_id,
+            book_id=gb.book_id,
+            start_date=gb.start_date,
+            target_end_date=gb.target_end_date,
+            daily_target_pages=gb.daily_target_pages,
+            status=gb.status,
+            created_at=gb.created_at,
+            book=BookRead.model_validate(gb.book)
+        ) for gb in gbs
+    ]
+
+
+@router.delete("/groups/{group_id}/books/{group_book_id}")
+async def delete_group_book(
+    group_id: str,
+    group_book_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    res = await db.execute(
+        select(GroupBook).where(GroupBook.id == group_book_id, GroupBook.group_id == group_id)
+    )
+    gb = res.scalar_one_or_none()
+    if not gb:
+        raise HTTPException(status_code=404, detail="Book plan not found")
+    
+    await db.delete(gb)
+    await db.commit()
+    return {"message": "Book removed successfully"}

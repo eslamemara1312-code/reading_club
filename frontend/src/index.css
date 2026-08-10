@@ -95,6 +95,10 @@
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }
 
+.safe-area-top {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+
 @media (max-width: 768px) {
   input, select, textarea {
     font-size: 16px !important; /* Prevents auto-zoom on iOS Safari input focus */

@@ -44,3 +44,12 @@ export const getLeaderboard = async (groupId: string): Promise<LeaderboardEntry[
   const response = await apiClient.get<LeaderboardEntry[]>(`/groups/${groupId}/leaderboard`);
   return response.data;
 };
+
+export const undoCheckin = async (groupId: string): Promise<void> => {
+  await apiClient.delete(`/checkins/today?group_id=${groupId}`);
+};
+
+export const updateCheckin = async (data: { group_id: string; pages_read?: number; additional_pages?: number; note?: string }): Promise<Checkin> => {
+  const response = await apiClient.patch<Checkin>('/checkins/today', data);
+  return response.data;
+};

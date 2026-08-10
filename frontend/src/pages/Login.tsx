@@ -29,11 +29,10 @@ export const Login = () => {
         const groups = await getMyGroups();
         if (groups && groups.length > 0) {
           setActiveGroupId(groups[0].id);
-          navigate('/dashboard');
         } else {
           setActiveGroupId(null);
-          navigate('/onboarding');
         }
+        navigate('/dashboard');
       } catch {
         navigate('/dashboard');
       }
@@ -124,7 +123,7 @@ export const Login = () => {
             disabled={isLoading}
             className="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 font-extrabold rounded-xl text-white text-sm transition-all shadow-lg shadow-emerald-950/40 flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
           >
-            {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : 'الدخول للحساب 🚀'}
+            {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : 'الدخول للحساب'}
           </motion.button>
         </form>
 

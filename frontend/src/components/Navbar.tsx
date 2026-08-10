@@ -71,7 +71,7 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
   ];
 
   return (
-    <header className="sticky top-0 z-40 glass-header px-2.5 sm:px-4 py-2 transition-all">
+    <header className="sticky top-0 z-40 glass-header px-2.5 sm:px-4 py-2 safe-area-top transition-all">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand & Group Selector */}
         <div className="flex items-center gap-1.5 sm:gap-3">
@@ -86,7 +86,7 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
               </div>
             </motion.div>
             <span className="font-extrabold text-base sm:text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-emerald-400 hidden sm:inline-block">
-              Reading Club
+              نادي القراءة
             </span>
           </NavLink>
 
@@ -218,7 +218,6 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
                 >
                   <div className="px-3 py-2 border-b border-slate-800">
                     <p className="text-xs font-bold text-white truncate">{user?.name}</p>
-                    <p className="text-[11px] text-slate-400 truncate">{user?.email}</p>
                   </div>
 
                   <button

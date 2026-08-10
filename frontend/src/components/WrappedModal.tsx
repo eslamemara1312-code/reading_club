@@ -27,11 +27,11 @@ export function WrappedModal({ summary, userName, onClose }: WrappedModalProps) 
     year: 'numeric',
   });
 
-  const shareText = `📚 حصادي في نادي القراءة (${monthFormatted}):
-✨ نسبة الالتزام: ${stats.commitment_rate}%
-📖 إجمالي الصفحات: ${stats.total_pages} صفحة
-🔥 أطول سلسلة: ${stats.longest_streak} يوم متواصل!
-#نادي_القراءة 🚀`;
+  const shareText = `حصادي في نادي القراءة (${monthFormatted}):
+نسبة الالتزام: ${stats.commitment_rate}%
+إجمالي الصفحات: ${stats.total_pages} صفحة
+أطول حماسة: ${stats.longest_streak} يوم متواصل!
+#نادي_القراءة`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareText);
@@ -65,7 +65,7 @@ export function WrappedModal({ summary, userName, onClose }: WrappedModalProps) 
           <div className="text-center mb-6 pt-2">
             <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-indigo-500/20 to-emerald-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-bold px-3.5 py-1 rounded-full mb-3 shadow-glow-amber">
               <Sparkles size={14} className="text-amber-400 animate-spin" />
-              <span>حصاد الشهر Wrapped 🎁</span>
+              <span>حصاد الشهر</span>
             </div>
             <h2 className="text-2xl font-black text-white">{userName}</h2>
             <p className="text-xs text-slate-400 mt-1">{monthFormatted}</p>
@@ -88,7 +88,7 @@ export function WrappedModal({ summary, userName, onClose }: WrappedModalProps) 
             <motion.div whileHover={{ scale: 1.03 }} className="glass-card rounded-2xl p-4 text-center border-amber-500/30">
               <Flame className="text-amber-400 mx-auto mb-1" size={24} />
               <p className="text-2xl font-black text-amber-400">{stats.longest_streak}</p>
-              <p className="text-xs text-slate-400 mt-0.5">أطول سلسلة أيام</p>
+              <p className="text-xs text-slate-400 mt-0.5">أطول حماسة</p>
             </motion.div>
 
             <motion.div whileHover={{ scale: 1.03 }} className="glass-card rounded-2xl p-4 text-center border-purple-500/30">
@@ -107,12 +107,12 @@ export function WrappedModal({ summary, userName, onClose }: WrappedModalProps) 
             {copied ? (
               <>
                 <Check size={18} />
-                <span>تم النسخ بنجاح! 🎉</span>
+                <span>تم النسخ بنجاح!</span>
               </>
             ) : (
               <>
                 <Share2 size={18} />
-                <span>مشاركة الحصاد الشهري 🚀</span>
+                <span>مشاركة الحصاد الشهري</span>
               </>
             )}
           </motion.button>

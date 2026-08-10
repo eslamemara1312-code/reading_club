@@ -111,3 +111,30 @@ async def test_checkin_non_member_forbidden(client: AsyncClient):
 
     today_res = await client.get(f"/api/v1/checkins/today?group_id={group_id}", headers=headers)
     assert today_res.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_undo_and_update_checkin(client: AsyncClient):
+    reg = await client.post("/api/v1/auth/register", json={
+        "name": "Undo User", "email": "undo@example.com", "password": "password123"
+    })
+    headers = {"Authorization": f"Bearer {reg.json()['access_token']}"}
+
+    g_res = await client.post("/api/v1/groups", json={"name": "Undo Group"}, headers=headers)
+    group_id = g_res.json()["id"]
+
+    # 1. Log checkin
+    await client.post("/api/v1/checkins", json={"group_id": group_id, "pages_read": 10}, headers=headers)
+
+    # 2. Update checkin (add 5 pages)
+    patch_res = await client.patch("/api/v1/checkins/today", json={"group_id": group_id, "additional_pages": 5}, headers=headers)
+    assert patch_res.status_code == 200
+    assert patch_res.json()["pages_read"] == 15
+
+    # 3. Undo checkin
+    del_res = await client.delete(f"/api/v1/checkins/today?group_id={group_id}", headers=headers)
+    assert del_res.status_code == 200
+
+    # 4. Confirm today status is cleared
+    today_res = await client.get(f"/api/v1/checkins/today?group_id={group_id}", headers=headers)
+    assert today_res.json()[0]["has_checked_in"] is False

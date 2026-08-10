@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, CheckCircle, Trophy, BookOpen, Calendar, Loader2, Zap, TrendingUp, Wallet, Sparkles, ChevronRight } from 'lucide-react';
+import { Flame, CheckCircle, Trophy, BookOpen, Calendar, Loader2, Zap, Wallet, Sparkles, ChevronRight, RotateCcw, Edit2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import { useNavigate } from 'react-router-dom';
-import { useTodayStatus, useCheckinMutation } from '../hooks/useCheckin';
+import { useTodayStatus, useCheckinMutation, useUndoCheckinMutation, useUpdateCheckinMutation } from '../hooks/useCheckin';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import { getGroupDetails, Group } from '../api/groups';
 import { getAllBadges, getUserBadges, getGroupTitles, Badge, UserBadge, WeeklyTitle } from '../api/gamification';
@@ -28,7 +28,10 @@ export const Dashboard = () => {
 
   const [pagesRead, setPagesRead] = useState('');
   const [note, setNote] = useState('');
+  const [additionalPages, setAdditionalPages] = useState('');
   const [showCheckinModal, setShowCheckinModal] = useState(false);
+  const [showUndoModal, setShowUndoModal] = useState(false);
+  const [showEditPagesModal, setShowEditPagesModal] = useState(false);
   const [showBadgesModal, setShowBadgesModal] = useState(false);
   const [showNotifModal, setShowNotifModal] = useState(false);
   const [showWrappedModal, setShowWrappedModal] = useState(false);
@@ -83,6 +86,8 @@ export const Dashboard = () => {
   const { data: memberStatuses, isLoading: loadingStatus } = useTodayStatus(activeGroupId);
   const { data: leaderboard, isLoading: loadingLb } = useLeaderboard(activeGroupId);
   const checkinMutation = useCheckinMutation(activeGroupId);
+  const undoCheckinMutation = useUndoCheckinMutation(activeGroupId);
+  const updateCheckinMutation = useUpdateCheckinMutation(activeGroupId);
 
   const currentUserStatus = memberStatuses?.find((m) => m.user.id === user?.id);
   const userStreak = currentUserStatus?.current_streak || 0;
@@ -111,6 +116,29 @@ export const Dashboard = () => {
             spread: 90,
             origin: { y: 0.6 },
           });
+        },
+      }
+    );
+  };
+
+  const handleUndoConfirm = () => {
+    undoCheckinMutation.mutate(undefined, {
+      onSuccess: () => {
+        setShowUndoModal(false);
+      },
+    });
+  };
+
+  const handleAddMorePages = (e: React.FormEvent) => {
+    e.preventDefault();
+    const count = parseInt(additionalPages, 10);
+    if (!count || count <= 0) return;
+    updateCheckinMutation.mutate(
+      { additional_pages: count },
+      {
+        onSuccess: () => {
+          setShowEditPagesModal(false);
+          setAdditionalPages('');
         },
       }
     );
@@ -184,8 +212,8 @@ export const Dashboard = () => {
                 </p>
               </div>
 
-              <div className="w-14 h-18 bg-slate-900 border border-slate-700/80 rounded-xl flex items-center justify-center text-2xl shadow-xl shrink-0">
-                📖
+              <div className="w-14 h-18 bg-slate-900 border border-slate-700/80 rounded-xl flex items-center justify-center shadow-xl shrink-0">
+                <BookOpen className="w-7 h-7 text-emerald-400" />
               </div>
             </div>
 
@@ -246,19 +274,35 @@ export const Dashboard = () => {
                 </span>
                 <h2 className="text-2xl font-black text-white tracking-tight">هل أتممت قراءتك اليوم؟</h2>
                 <p className="text-slate-400 text-xs mt-1.5 max-w-md leading-relaxed">
-                  سجل ورد قراءتك اليومية لرفع الـ Streak وتجنب الغرامة المالية في الخزينة!
+                  سجّل قراءتك اليومية للحفاظ على حماستك وتجنب الغرامة
                 </p>
               </div>
 
               {currentUserStatus?.has_checked_in ? (
-                <motion.div
-                  initial={{ scale: 0.95 }}
-                  animate={{ scale: 1 }}
-                  className="w-full md:w-auto py-3.5 px-6 bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-bold text-xs rounded-2xl flex items-center justify-center gap-2 shadow-glow-emerald"
-                >
-                  <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
-                  تم تسجيل الورد بنجاح 🎉
-                </motion.div>
+                <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
+                  <div className="py-3 px-4 bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-bold text-xs rounded-2xl flex items-center justify-center gap-2 shadow-glow-emerald">
+                    <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                    تم تسجيل الورد بنجاح
+                  </div>
+
+                  <button
+                    onClick={() => setShowEditPagesModal(true)}
+                    className="p-3 bg-slate-800 hover:bg-slate-700 text-emerald-400 rounded-2xl border border-slate-700/80 text-xs font-bold transition-all flex items-center gap-1"
+                    title="زيادة الصفحات"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">إضافة صفحات</span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowUndoModal(true)}
+                    className="p-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-2xl border border-rose-500/30 text-xs font-bold transition-all flex items-center gap-1"
+                    title="تراجع"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">تراجع</span>
+                  </button>
+                </div>
               ) : (
                 <motion.button
                   whileHover={{ scale: 1.04 }}
@@ -279,9 +323,9 @@ export const Dashboard = () => {
                 <span className="font-extrabold text-emerald-400 font-mono text-base">{userPagesToday} صفحة</span>
               </div>
               <div className="p-3 rounded-2xl bg-slate-900/60 border border-slate-800/80 text-center">
-                <span className="block text-[11px] font-semibold text-slate-400">سلسلة الأيام Streak</span>
+                <span className="block text-[11px] font-semibold text-slate-400">الحماسة</span>
                 <span className="font-extrabold text-amber-400 font-mono text-base flex items-center justify-center gap-1">
-                  <Flame className="w-4 h-4 text-amber-400 animate-flame-bounce" /> {userStreak}d
+                  <Flame className="w-4 h-4 text-amber-400 animate-flame-bounce" /> {userStreak} يوم
                 </span>
               </div>
               <div className="p-3 rounded-2xl bg-slate-900/60 border border-slate-800/80 text-center">
@@ -295,13 +339,13 @@ export const Dashboard = () => {
         {/* 4 Metric Quick Stat Cards */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <motion.div whileHover={{ translateY: -3 }} className="glass-card p-4 rounded-2xl border border-slate-800/80 flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              <TrendingUp className="w-5 h-5" />
+            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <Flame className="w-5 h-5 text-amber-400 fill-amber-400" />
             </div>
             <div>
-              <span className="text-[11px] text-slate-400 block font-semibold">نسبة الالتزام</span>
+              <span className="text-[11px] text-slate-400 block font-semibold">الحماسة الحالية</span>
               <span className="font-black text-white font-mono text-base">
-                {leaderboard?.find((l) => l.user.id === user?.id)?.commitment_rate || 100}%
+                {userStreak} يوم
               </span>
             </div>
           </motion.div>
@@ -311,7 +355,7 @@ export const Dashboard = () => {
               <Flame className="w-5 h-5 text-amber-400 fill-amber-400 animate-pulse" />
             </div>
             <div>
-              <span className="text-[11px] text-slate-400 block font-semibold">أعلى Streak</span>
+              <span className="text-[11px] text-slate-400 block font-semibold">أعلى حماسة</span>
               <span className="font-black text-white font-mono text-base">
                 {leaderboard?.find((l) => l.user.id === user?.id)?.longest_streak || userStreak} يوم
               </span>
@@ -383,16 +427,8 @@ export const Dashboard = () => {
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 text-center font-extrabold text-xs shrink-0">
-                        {entry.rank === 1 ? (
-                          <span className="text-xl">🥇</span>
-                        ) : entry.rank === 2 ? (
-                          <span className="text-xl">🥈</span>
-                        ) : entry.rank === 3 ? (
-                          <span className="text-xl">🥉</span>
-                        ) : (
-                          <span className="text-slate-400 font-mono">#{entry.rank}</span>
-                        )}
+                      <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-extrabold text-xs shrink-0 text-amber-300">
+                        #{entry.rank}
                       </div>
 
                       <div>
@@ -403,7 +439,7 @@ export const Dashboard = () => {
                           )}
                         </div>
                         <div className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5 font-mono">
-                          <span className="flex items-center gap-1 text-amber-300 font-bold">🔥 {entry.current_streak}d</span>
+                          <span className="flex items-center gap-1 text-amber-300 font-bold">🔥 {entry.current_streak} يوم</span>
                           <span>•</span>
                           <span>{entry.total_pages_read} صفحة</span>
                         </div>
@@ -511,7 +547,7 @@ export const Dashboard = () => {
               className="glass-panel p-6 rounded-3xl max-w-md w-full border border-slate-700/80 space-y-4 shadow-2xl"
             >
               <div className="text-center space-y-1">
-                <h3 className="text-xl font-extrabold text-white">تسجيل ورد القراءة اليومي 📖</h3>
+                <h3 className="text-xl font-extrabold text-white">تسجيل ورد القراءة اليومي</h3>
                 <p className="text-slate-400 text-xs">حدد الصفحات المقروءة لإكمال مهمة اليوم</p>
               </div>
 
@@ -574,7 +610,89 @@ export const Dashboard = () => {
                     disabled={checkinMutation.isPending}
                     className="w-1/2 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 disabled:opacity-50"
                   >
-                    {checkinMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : 'تأكيد الورد 🚀'}
+                    {checkinMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : 'تأكيد الورد'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Undo Checkin Modal */}
+      <AnimatePresence>
+        {showUndoModal && (
+          <div className="fixed inset-0 bg-obsidian-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 15 }}
+              className="glass-panel p-6 rounded-3xl max-w-sm w-full border border-rose-500/30 space-y-4 text-center shadow-2xl"
+            >
+              <h3 className="text-base font-extrabold text-white">إلغاء تسجيل الورد اليومي</h3>
+              <p className="text-slate-300 text-xs leading-relaxed">
+                هل أنت متأكد أنك لم تقرأ اليوم؟ سيتم إلغاء حالة التسجيل وتحديث حماستك اليومية.
+              </p>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowUndoModal(false)}
+                  className="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="button"
+                  disabled={undoCheckinMutation.isPending}
+                  onClick={handleUndoConfirm}
+                  className="w-1/2 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-1"
+                >
+                  {undoCheckinMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'نعم، إلغاء التسجيل'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit/Add Pages Modal */}
+      <AnimatePresence>
+        {showEditPagesModal && (
+          <div className="fixed inset-0 bg-obsidian-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 15 }}
+              className="glass-panel p-6 rounded-3xl max-w-sm w-full border border-slate-700/80 space-y-4 text-center shadow-2xl"
+            >
+              <h3 className="text-base font-extrabold text-white">إضافة صفحات إلى ورد اليوم</h3>
+              <p className="text-slate-400 text-xs">أدخل عدد الصفحات الإضافية التي قرأتها</p>
+
+              <form onSubmit={handleAddMorePages} className="space-y-3">
+                <input
+                  type="number"
+                  min="1"
+                  value={additionalPages}
+                  onChange={(e) => setAdditionalPages(e.target.value)}
+                  className="w-full px-4 py-3 bg-obsidian-950 border border-slate-700 rounded-xl text-white text-xs font-mono focus:border-emerald-500 outline-none text-center"
+                  placeholder="عدد الصفحات الإضافية"
+                />
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowEditPagesModal(false)}
+                    className="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs"
+                  >
+                    إلغاء
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={updateCheckinMutation.isPending}
+                    className="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-1"
+                  >
+                    {updateCheckinMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تأكيد الإضافة'}
                   </button>
                 </div>
               </form>

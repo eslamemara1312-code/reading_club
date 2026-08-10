@@ -41,3 +41,12 @@ export const setGroupBookPlan = async (groupId: string, plan: { book_id: string;
   const response = await apiClient.post<GroupBook>(`/groups/${groupId}/books`, plan);
   return response.data;
 };
+
+export const getAllGroupBooks = async (groupId: string): Promise<GroupBook[]> => {
+  const response = await apiClient.get<GroupBook[]>(`/groups/${groupId}/books`);
+  return response.data;
+};
+
+export const deleteGroupBook = async (groupId: string, groupBookId: string): Promise<void> => {
+  await apiClient.delete(`/groups/${groupId}/books/${groupBookId}`);
+};

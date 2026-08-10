@@ -19,21 +19,21 @@ export function GroupSettingsPage() {
     enabled: !!groupId,
   });
 
-  const [fineAmount, setFineAmount] = useState<number>(20);
+  const [fineAmount, setFineAmount] = useState<string>('20');
   const [deadlineTime, setDeadlineTime] = useState<string>('00:00');
-  const [graceHours, setGraceHours] = useState<number>(3);
+  const [graceHours, setGraceHours] = useState<string>('3');
   const [funMode, setFunMode] = useState<boolean>(true);
-  const [pageGoal, setPageGoal] = useState<number>(500);
+  const [pageGoal, setPageGoal] = useState<string>('500');
   const [successMsg, setSuccessMsg] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string>('');
 
   useEffect(() => {
     if (group) {
-      setFineAmount(group.fine_amount ?? 20);
+      setFineAmount(String(group.fine_amount ?? 20));
       setDeadlineTime(group.checkin_deadline_time || '00:00');
-      setGraceHours(group.grace_period_hours ?? 3);
+      setGraceHours(String(group.grace_period_hours ?? 3));
       setFunMode(group.fun_mode_enabled ?? true);
-      setPageGoal(group.monthly_page_goal ?? 500);
+      setPageGoal(String(group.monthly_page_goal ?? 500));
     }
   }, [group]);
 
@@ -55,11 +55,11 @@ export function GroupSettingsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     mutation.mutate({
-      fine_amount: fineAmount,
+      fine_amount: Number(fineAmount) || 0,
       checkin_deadline_time: deadlineTime,
-      grace_period_hours: graceHours,
+      grace_period_hours: Number(graceHours) || 0,
       fun_mode_enabled: funMode,
-      monthly_page_goal: pageGoal,
+      monthly_page_goal: Number(pageGoal) || 0,
     });
   };
 
@@ -133,7 +133,7 @@ export function GroupSettingsPage() {
                 min="0"
                 step="5"
                 value={fineAmount}
-                onChange={(e) => setFineAmount(Number(e.target.value))}
+                onChange={(e) => setFineAmount(e.target.value)}
                 className="w-full bg-obsidian-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-xs font-mono focus:border-emerald-500 outline-none"
               />
               <p className="text-[11px] text-slate-400">
@@ -166,7 +166,7 @@ export function GroupSettingsPage() {
                   min="0"
                   max="12"
                   value={graceHours}
-                  onChange={(e) => setGraceHours(Number(e.target.value))}
+                  onChange={(e) => setGraceHours(e.target.value)}
                   className="w-full bg-obsidian-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-xs font-mono focus:border-emerald-500 outline-none"
                 />
                 <p className="text-[11px] text-slate-400">
@@ -186,7 +186,7 @@ export function GroupSettingsPage() {
                 min="50"
                 step="50"
                 value={pageGoal}
-                onChange={(e) => setPageGoal(Number(e.target.value))}
+                onChange={(e) => setPageGoal(e.target.value)}
                 className="w-full bg-obsidian-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-xs font-mono focus:border-emerald-500 outline-none"
               />
               <p className="text-[11px] text-slate-400">
@@ -199,10 +199,10 @@ export function GroupSettingsPage() {
               <div>
                 <label className="flex items-center gap-2 font-extrabold text-xs text-emerald-400">
                   <Sparkles size={18} />
-                  وضع التنافس والاحتفالات (Fun Mode)
+                  وضع التنافس والاحتفالات
                 </label>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  إظهار ألعاب الألقاب الأسبوعية، احتفالات الكونفيتي وسجل الأوسمة.
+                <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                  عند التفعيل: يتم إظهار ألقاب أسبوعية ممتعة للأعضاء، احتفالات بصرية عند تسجيل القراءة، وسجل أوسمة إنجازية. عند الإيقاف: تبقى فقط المتابعة الجادة بدون تأثيرات ترفيهية.
                 </p>
               </div>
               <input

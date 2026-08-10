@@ -54,9 +54,9 @@ export const Onboarding = () => {
         <div className="text-center mb-6">
           <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-300 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 mb-3 shadow-glow-amber">
             <Sparkles className="w-4 h-4 text-amber-400" />
-            خطوة واحدة للبدء 📚
+            خطوة واحدة للبدء
           </span>
-          <h1 className="text-2xl font-black text-white tracking-tight">مرحباً بك في Reading Club</h1>
+          <h1 className="text-2xl font-black text-white tracking-tight">مرحباً بك في نادي القراءة</h1>
           <p className="text-slate-400 text-xs mt-1">أنشئ مجتمع قراءة خاص أو انضم لمجموعة أصحابك</p>
         </div>
 
@@ -170,9 +170,9 @@ export const Onboarding = () => {
             {isLoading ? (
               <Loader2 className="w-5 h-5 animate-spin text-white" />
             ) : mode === 'create' ? (
-              'إنشاء المجموعة والانطلاق 🚀'
+              'إنشاء المجموعة والانطلاق'
             ) : (
-              'الانضمام إلى المجموعة 🚀'
+              'الانضمام إلى المجموعة'
             )}
           </motion.button>
         </form>

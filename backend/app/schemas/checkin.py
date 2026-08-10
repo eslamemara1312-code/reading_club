@@ -10,6 +10,13 @@ class CheckinCreate(BaseModel):
     note: Optional[str] = None
 
 
+class CheckinUpdate(BaseModel):
+    group_id: str
+    pages_read: Optional[int] = None
+    additional_pages: Optional[int] = None
+    note: Optional[str] = None
+
+
 class CheckinRead(BaseModel):
     id: str
     user_id: str

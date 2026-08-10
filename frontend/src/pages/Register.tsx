@@ -23,7 +23,7 @@ export const Register = () => {
     try {
       const res = await registerUser({ name, email, password, phone: phone || undefined });
       setAuth(res.user, res.access_token, res.refresh_token);
-      navigate('/onboarding');
+      navigate('/dashboard');
     } catch (err: any) {
       const msg = err.response?.data?.detail || 'حدث خطأ أثناء تسجيل الحساب. حاول مجدداً.';
       setError(msg);
@@ -140,7 +140,7 @@ export const Register = () => {
             disabled={isLoading}
             className="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 font-extrabold rounded-xl text-white text-sm transition-all shadow-lg shadow-emerald-950/40 flex items-center justify-center gap-2 disabled:opacity-50 mt-3"
           >
-            {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : 'إنشاء الحساب الان 🎉'}
+            {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : 'إنشاء الحساب الآن'}
           </motion.button>
         </form>
 

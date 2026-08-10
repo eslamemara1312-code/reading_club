@@ -12,7 +12,7 @@ from app.models.group import Group
 from app.models.group_member import GroupMember
 from app.models.checkin import Checkin
 from app.models.streak import Streak
-from app.schemas.checkin import CheckinCreate, CheckinRead, MemberTodayStatus
+from app.schemas.checkin import CheckinCreate, CheckinUpdate, CheckinRead, MemberTodayStatus
 from app.schemas.user import UserRead
 from app.services.streak_service import bump_streak_on_checkin
 
@@ -207,3 +207,75 @@ async def get_today_status(
         )
     
     return statuses
+
+
+@router.delete("/today")
+async def undo_today_checkin(
+    group_id: str = Query(...),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    today = date.today()
+    res = await db.execute(
+        select(Checkin).where(
+            Checkin.user_id == current_user.id,
+            Checkin.group_id == group_id,
+            Checkin.checkin_date == today
+        )
+    )
+    checkin = res.scalar_one_or_none()
+    if not checkin:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No checkin found for today to undo"
+        )
+    
+    await db.delete(checkin)
+
+    # Adjust streak if streak exists
+    streak_res = await db.execute(
+        select(Streak).where(
+            Streak.user_id == current_user.id,
+            Streak.group_id == group_id
+        )
+    )
+    streak = streak_res.scalar_one_or_none()
+    if streak and streak.current_streak > 0:
+        streak.current_streak = max(0, streak.current_streak - 1)
+
+    await db.commit()
+    return {"message": "Checkin undone successfully"}
+
+
+@router.patch("/today", response_model=CheckinRead)
+async def update_today_checkin(
+    checkin_in: CheckinUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    today = date.today()
+    res = await db.execute(
+        select(Checkin).where(
+            Checkin.user_id == current_user.id,
+            Checkin.group_id == checkin_in.group_id,
+            Checkin.checkin_date == today
+        )
+    )
+    checkin = res.scalar_one_or_none()
+    if not checkin:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No checkin found for today to update"
+        )
+
+    if checkin_in.additional_pages is not None:
+        checkin.pages_read = (checkin.pages_read or 0) + checkin_in.additional_pages
+    elif checkin_in.pages_read is not None:
+        checkin.pages_read = checkin_in.pages_read
+
+    if checkin_in.note is not None:
+        checkin.note = checkin_in.note
+
+    await db.commit()
+    await db.refresh(checkin)
+    return CheckinRead.model_validate(checkin)
