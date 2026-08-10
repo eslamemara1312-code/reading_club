@@ -12,7 +12,32 @@ from app.models.book import Book, GroupBook
 from app.schemas.book import BookCreate, BookRead, GroupBookCreate, GroupBookRead
 from app.services.book_service import set_active_group_book
 
+import httpx
+from fastapi.responses import Response
+
 router = APIRouter(tags=["Books"])
+
+
+@router.get("/books/cover-proxy")
+async def proxy_book_cover(url: str):
+    if not url:
+        raise HTTPException(status_code=400, detail="URL is required")
+    try:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=10.0) as client:
+            resp = await client.get(
+                url,
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                    "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+                }
+            )
+            if resp.status_code == 200:
+                content_type = resp.headers.get("content-type", "image/jpeg")
+                return Response(content=resp.content, media_type=content_type)
+    except Exception as e:
+        print("Cover Proxy error:", e)
+    
+    raise HTTPException(status_code=404, detail="Could not fetch cover image")
 
 
 @router.get("/books", response_model=List[BookRead])

@@ -54,3 +54,10 @@ export const deleteGroupBook = async (groupId: string, groupBookId: string): Pro
 export const deleteBookFromCatalog = async (bookId: string): Promise<void> => {
   await apiClient.delete(`/books/${bookId}`);
 };
+
+export const getProxiedCoverUrl = (url?: string): string | undefined => {
+  if (!url) return undefined;
+  if (url.startsWith('/api/') || url.includes('/books/cover-proxy')) return url;
+  const baseUrl = apiClient.defaults.baseURL || '/api/v1';
+  return `${baseUrl}/books/cover-proxy?url=${encodeURIComponent(url)}`;
+};

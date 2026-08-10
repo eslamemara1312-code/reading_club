@@ -12,6 +12,7 @@ import {
   createBookInCatalog,
   deleteGroupBook,
   deleteBookFromCatalog,
+  getProxiedCoverUrl,
   GroupBook,
   Book,
 } from '../api/books';
@@ -207,7 +208,7 @@ export const BookPage = () => {
                     <div className="w-16 h-24 bg-slate-900 border border-slate-700/80 rounded-xl overflow-hidden shadow-lg flex items-center justify-center shrink-0">
                       {gb.book.cover_url ? (
                         <img
-                          src={gb.book.cover_url}
+                          src={getProxiedCoverUrl(gb.book.cover_url)}
                           alt={gb.book.title}
                           referrerPolicy="no-referrer"
                           className="w-full h-full object-cover"
@@ -263,21 +264,19 @@ export const BookPage = () => {
                   key={book.id}
                   className="min-w-[220px] max-w-[240px] glass-card p-4 rounded-2xl border border-slate-800/80 snap-start flex flex-col justify-between shrink-0 relative group"
                 >
-                  {isOwner && (
-                    <button
-                      onClick={() => deleteCatalogBookMutation.mutate(book.id)}
-                      className="absolute top-2 left-2 p-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity border border-rose-500/30 z-10"
-                      title="حذف الكتاب من الكتالوج"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
+                  <button
+                    onClick={() => deleteCatalogBookMutation.mutate(book.id)}
+                    className="absolute top-2 left-2 p-1.5 bg-rose-500/20 hover:bg-rose-600 text-rose-300 hover:text-white rounded-lg transition-all border border-rose-500/40 z-10 flex items-center justify-center"
+                    title="حذف الكتاب من الكتالوج"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
 
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-12 h-16 bg-slate-800 rounded-xl border border-slate-700/80 overflow-hidden flex items-center justify-center shrink-0">
                       {book.cover_url ? (
                         <img
-                          src={book.cover_url}
+                          src={getProxiedCoverUrl(book.cover_url)}
                           alt={book.title}
                           referrerPolicy="no-referrer"
                           className="w-full h-full object-cover"
@@ -444,7 +443,7 @@ export const BookPage = () => {
               {newCoverUrl && (
                 <div className="flex justify-center my-2">
                   <div className="w-20 h-28 rounded-xl border border-slate-700 overflow-hidden shadow-md">
-                    <img src={newCoverUrl} alt={newTitle} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                    <img src={getProxiedCoverUrl(newCoverUrl)} alt={newTitle} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                   </div>
                 </div>
               )}

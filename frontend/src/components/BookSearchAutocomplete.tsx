@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Search, BookOpen, Loader2, Sparkles } from 'lucide-react';
+import { getProxiedCoverUrl } from '../api/books';
 
 export interface WikidataBookResult {
   id: string;
@@ -137,7 +138,7 @@ export function BookSearchAutocomplete({ onSelectBook }: BookSearchAutocompleteP
               <div className="w-9 h-11 bg-slate-800 rounded border border-slate-700 flex items-center justify-center text-xs shrink-0 overflow-hidden">
                 {item.cover_url ? (
                   <img
-                    src={item.cover_url}
+                    src={getProxiedCoverUrl(item.cover_url)}
                     alt={item.title}
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover"
