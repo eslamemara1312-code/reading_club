@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { BookOpen, Trash2, RefreshCw, Bookmark, CheckCircle2 } from 'lucide-react';
 import { getProxiedCoverUrl, Book, GroupBook } from '../api/books';
 import { buttonPressAnimation } from '../utils/animationUtils';
+import { BookAssetActions } from './reader/BookAssetActions';
 
 interface ThreeDBookCardProps {
   book: Book;
@@ -10,6 +11,7 @@ interface ThreeDBookCardProps {
   status?: 'active' | 'upcoming' | 'completed';
   dailyTargetPages?: number;
   isOwner?: boolean;
+  groupId?: string;
   onDeleteGroupBook?: (groupBookId: string) => void;
   onDeleteCatalogBook?: (bookId: string) => void;
   onSelectForPlan?: (bookId: string) => void;
@@ -21,6 +23,7 @@ export function ThreeDBookCard({
   status,
   dailyTargetPages,
   isOwner,
+  groupId,
   onDeleteGroupBook,
   onDeleteCatalogBook,
   onSelectForPlan,
@@ -99,6 +102,12 @@ export function ThreeDBookCard({
               <div className="bg-apple-green/15 border border-apple-green/30 p-2 rounded-xl text-[11px] text-apple-green font-bold flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-apple-green shrink-0" />
                 <span>الهدف: {dailyTargetPages} ص/يوم</span>
+              </div>
+            )}
+
+            {groupId && (
+              <div onClick={(e) => e.stopPropagation()}>
+                <BookAssetActions groupId={groupId} bookId={book.id} bookTitle={book.title} />
               </div>
             )}
           </div>

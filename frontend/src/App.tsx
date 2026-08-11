@@ -10,6 +10,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { VaultPage } from './pages/Vault';
 import { CalendarPage } from './pages/CalendarPage';
 import { BookPage } from './pages/BookPage';
+import { ReaderPage } from './pages/ReaderPage';
 import { DiscussionPage } from './pages/DiscussionPage';
 import ProfilePage from './pages/ProfilePage';
 import { GroupSettingsPage } from './pages/GroupSettingsPage';
@@ -121,6 +122,14 @@ export function App() {
             element={
               <ProtectedRoute>
                 <BookPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/groups/:groupId/books/:bookId/read"
+            element={
+              <ProtectedRoute>
+                <ReaderPage />
               </ProtectedRoute>
             }
           />

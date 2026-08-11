@@ -343,6 +343,35 @@ erDiagram
 | content | TEXT | |
 | created_at | TIMESTAMPTZ | |
 
+#### `book_assets` (shared book PDF files)
+| Column | Type | Notes |
+|---|---|---|
+| id | UUID (PK) | |
+| group_id | UUID (FK) | FK to `groups.id` |
+| book_id | UUID (FK) | FK to `books.id` |
+| storage_key | VARCHAR(500) | UNIQUE, private object key in storage |
+| original_filename | VARCHAR(255) | Original uploaded filename for display |
+| mime_type | VARCHAR(100) | `application/pdf` in v1 |
+| file_size_bytes | INT | Max 50 MB (52,428,800 bytes) |
+| uploaded_by_user_id | UUID (FK) | FK to `users.id` |
+| created_at, updated_at | TIMESTAMPTZ | Upload / replacement timestamps |
+| — | UNIQUE(group_id, book_id) | One shared asset per group/book |
+
+#### `reading_progress` (persisted reader page state)
+| Column | Type | Notes |
+|---|---|---|
+| id | UUID (PK) | |
+| user_id | UUID (FK) | FK to `users.id` |
+| group_id | UUID (FK) | FK to `groups.id` |
+| book_id | UUID (FK) | FK to `books.id` |
+| book_asset_id | UUID (FK) | FK to `book_assets.id` |
+| current_page | INT | Last read page (minimum 1) |
+| total_pages | INT | Nullable until loaded by PDF viewer |
+| progress_percent | NUMERIC(5,2) | Derived percentage |
+| last_read_at | TIMESTAMPTZ | Recent activity timestamp |
+| created_at, updated_at | TIMESTAMPTZ | |
+| — | UNIQUE(user_id, book_asset_id) | One progress record per user per asset |
+
 **Important indexes (to avoid N+1 and slow queries):**
 `checkins(user_id, group_id, checkin_date)`, `checkins(group_id, checkin_date)` for the group calendar, `fines(group_id, status)`, `streaks(group_id, current_streak DESC)` for the leaderboard.
 

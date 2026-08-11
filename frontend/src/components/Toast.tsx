@@ -66,3 +66,7 @@ export function ToastContainer() {
   );
 }
 
+export function showToast(text: string, type: ToastType = 'info') {
+  useToastStore.getState().addToast(text, type);
+}
+

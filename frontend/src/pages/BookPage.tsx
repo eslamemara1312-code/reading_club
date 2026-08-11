@@ -54,6 +54,7 @@ import { getGroupDetails, Group } from '../api/groups';
 import { Navbar } from '../components/Navbar';
 import { BookSearchAutocomplete, WikidataBookResult } from '../components/BookSearchAutocomplete';
 import { ThreeDBookCard } from '../components/3DBookCard';
+import { BookAssetActions } from '../components/reader/BookAssetActions';
 
 export const BookPage = () => {
   const activeGroupId = useUIStore((state) => state.activeGroupId);
@@ -274,14 +275,22 @@ export const BookPage = () => {
                   الهدف اليومي للمجموعة: {activeGroupBook.daily_target_pages} صفحة / يوم
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-2 flex flex-col gap-2">
                   <button
                     onClick={() => navigate('/dashboard')}
-                    className="px-5 py-2.5 bg-apple-card hover:bg-apple-elevated text-apple-gold border border-apple-gold/30 font-bold text-xs rounded-xl transition-colors inline-flex items-center gap-2 shadow-sm"
+                    className="px-5 py-2.5 bg-apple-card hover:bg-apple-elevated text-apple-gold border border-apple-gold/30 font-bold text-xs rounded-xl transition-colors inline-flex items-center gap-2 shadow-sm self-start"
                   >
                     <span>تكملة الورد اليومي 📖</span>
                     <ChevronLeft className="w-4 h-4" />
                   </button>
+
+                  {activeGroupId && (
+                    <BookAssetActions
+                      groupId={activeGroupId}
+                      bookId={activeGroupBook.book.id}
+                      bookTitle={activeGroupBook.book.title}
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -352,6 +361,7 @@ export const BookPage = () => {
                   status={gb.status}
                   dailyTargetPages={gb.daily_target_pages}
                   isOwner={isOwner}
+                  groupId={activeGroupId || undefined}
                   onDeleteGroupBook={(groupBookId) => deleteGroupBookMutation.mutate(groupBookId)}
                 />
               ))}
@@ -402,6 +412,7 @@ export const BookPage = () => {
                   key={b.id}
                   book={b}
                   isOwner={isOwner}
+                  groupId={activeGroupId || undefined}
                   onDeleteCatalogBook={(bookId) => deleteCatalogBookMutation.mutate(bookId)}
                   onSelectForPlan={(bookId) => {
                     setSelectedBookId(bookId);
