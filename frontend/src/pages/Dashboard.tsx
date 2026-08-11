@@ -238,7 +238,7 @@ export const Dashboard = () => {
       />
 
       {/* MAIN CONTAINER — UNIFORM SPACING SCALE BETWEEN ALL SECTIONS */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-10 pt-8 space-y-12">
+      <main className="w-full max-w-5xl mx-auto px-3.5 sm:px-10 pt-6 sm:pt-8 space-y-8 sm:space-y-12 overflow-hidden">
         {/* Weekly Titles Banner */}
         {groupTitles && <WeeklyTitlesBanner titles={groupTitles} />}
 
