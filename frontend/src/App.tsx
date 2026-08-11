@@ -34,8 +34,11 @@ export function App() {
   const { isAuthenticated, setUser } = useAuthStore();
   const { activeGroupId, setActiveGroupId } = useUIStore();
 
-  // Smooth Scroll Initialization with Lenis
+  // Smooth Scroll Initialization with Lenis (Desktop only to preserve mobile native touch inertia scroll)
   useEffect(() => {
+    const isDesktop = window.innerWidth >= 1024 && window.matchMedia('(pointer: fine)').matches;
+    if (!isDesktop) return;
+
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
