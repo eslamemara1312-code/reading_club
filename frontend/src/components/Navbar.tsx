@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -11,7 +11,11 @@ import {
   User as UserIcon, 
   LogOut, 
   ChevronDown,
-  Settings
+  Settings,
+  Sparkles,
+  Users,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
@@ -27,11 +31,15 @@ interface NavbarProps {
 export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
-  const { activeGroupId } = useUIStore();
+  const { activeGroupId, theme, toggleTheme, initTheme } = useUIStore();
   const navigate = useNavigate();
 
   const [groupDropdownOpen, setGroupDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    initTheme();
+  }, [initTheme]);
 
   const { data: activeGroup } = useQuery<Group>({
     queryKey: ['groupDetails', activeGroupId],
@@ -56,50 +64,49 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
 
   const desktopNavItems = [
     { to: '/dashboard', label: 'الرئيسية', icon: BookOpen },
-    { to: '/books', label: 'الكتاب', icon: BookOpen },
+    { to: '/books', label: 'مكتبتي', icon: BookOpen },
     { to: '/calendar', label: 'التقويم', icon: Calendar },
     { to: '/vault', label: 'الخزينة', icon: ShieldAlert },
-    { to: '/discussions', label: 'النقاشات', icon: MessageSquare },
+    { to: '/discussions', label: 'النادي', icon: Users },
   ];
 
   const mobileNavItems = [
     { to: '/dashboard', label: 'الرئيسية', icon: BookOpen },
-    { to: '/books', label: 'الكتاب', icon: BookOpen },
+    { to: '/books', label: 'الكتب', icon: BookOpen },
     { to: '/calendar', label: 'التقويم', icon: Calendar },
-    { to: '/discussions', label: 'النقاشات', icon: MessageSquare },
+    { to: '/discussions', label: 'النادي', icon: MessageSquare },
     { to: '/profile', label: 'حسابي', icon: UserIcon },
   ];
 
   return (
-    <header className="sticky top-0 z-40 glass-header px-2.5 sm:px-4 py-2 safe-area-top transition-all">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
-        {/* Brand & Group Selector */}
-        <div className="flex items-center gap-1.5 sm:gap-3">
-          <NavLink to="/dashboard" className="flex items-center gap-2 group">
-            <motion.div 
-              whileHover={{ scale: 1.08, rotate: -5 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 p-0.5 shadow-lg shadow-emerald-500/20"
-            >
-              <div className="w-full h-full bg-obsidian-900 rounded-[10px] flex items-center justify-center">
-                <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 group-hover:text-emerald-300 transition-colors" />
-              </div>
-            </motion.div>
-            <span className="font-extrabold text-base sm:text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-emerald-400 hidden sm:inline-block">
-              نادي القراءة
-            </span>
+    <header className="sticky top-0 z-40 px-3 sm:px-8 py-3.5 safe-area-top transition-all bg-apple-header backdrop-blur-2xl border-b border-apple-border">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        {/* Brand Logo & Group Selector */}
+        <div className="flex items-center gap-3 sm:gap-5">
+          <NavLink to="/dashboard" className="flex items-center gap-2.5 group">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-apple-surface border border-apple-gold/30 flex items-center justify-center text-apple-gold shadow-sm">
+              <BookOpen className="w-5 h-5" />
+            </div>
+            <div className="hidden sm:flex flex-col">
+              <span className="font-black text-base tracking-tight text-apple-text group-hover:text-apple-gold transition-colors">
+                نادي القراءة
+              </span>
+              <span className="text-[10px] text-apple-gold font-bold -mt-0.5 tracking-wider uppercase">مجتمع القراء</span>
+            </div>
           </NavLink>
 
           {/* Active Group Selector */}
           <div className="relative">
             <motion.button
-              whileTap={{ scale: 0.97 }}
+              whileTap={{ scale: 0.96 }}
               onClick={() => setGroupDropdownOpen(!groupDropdownOpen)}
-              className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-xs font-semibold text-slate-200 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-apple-surface hover:bg-apple-elevated border border-apple-border text-xs font-semibold text-apple-text transition-colors"
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <span className="max-w-[85px] sm:max-w-[130px] truncate text-[11px] sm:text-xs">{activeGroup?.name || 'اختر مجموعة'}</span>
-              <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform ${groupDropdownOpen ? 'rotate-180' : ''}`} />
+              <span className="w-2 h-2 rounded-full bg-apple-gold shrink-0" />
+              <span className="max-w-[100px] sm:max-w-[150px] truncate text-[11px] sm:text-xs font-bold">
+                {activeGroup?.name || 'اختر مجموعة'}
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 text-apple-muted shrink-0" />
             </motion.button>
 
             <AnimatePresence>
@@ -108,83 +115,101 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
                   initial={{ opacity: 0, y: 8, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute right-0 mt-2 w-56 rounded-xl glass-panel shadow-2xl border border-slate-700/80 overflow-hidden z-50 py-1.5"
+                  className="absolute right-0 mt-2 w-56 p-2 rounded-2xl bg-apple-surface border border-apple-border shadow-2xl z-50 space-y-1"
                 >
-                  <div className="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">المجموعة الحالية</div>
-                  {activeGroup ? (
-                    <div className="px-3 py-2 text-xs text-emerald-300 font-bold bg-emerald-500/15 border-r-2 border-emerald-500 flex items-center justify-between">
-                      <span className="truncate">{activeGroup.name}</span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    </div>
-                  ) : (
-                    <div className="px-3 py-2 text-xs text-slate-400">لا توجد مجموعة محددة</div>
-                  )}
-
-                  <div className="border-t border-slate-800 my-1 pt-1">
-                    <button
-                      onClick={() => {
-                        setGroupDropdownOpen(false);
-                        navigate('/onboarding');
-                      }}
-                      className="w-full text-right px-3 py-2 text-xs text-emerald-400 font-semibold hover:bg-emerald-500/10 transition-colors"
-                    >
-                      + الانضمام أو إنشاء مجموعة
-                    </button>
+                  <div className="px-3 py-2 border-b border-apple-border text-[11px] font-medium text-apple-secondary">
+                    المجموعة الحالية
                   </div>
+                  <div className="px-3 py-2 rounded-xl bg-apple-card text-xs font-bold text-apple-text flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-apple-gold shrink-0" />
+                    <span className="truncate">{activeGroup?.name || 'مجموعة تجريبية'}</span>
+                  </div>
+                  <NavLink
+                    to="/onboarding"
+                    onClick={() => setGroupDropdownOpen(false)}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-xs font-semibold text-apple-gold hover:bg-apple-card rounded-xl transition-colors"
+                  >
+                    + تبديل أو إنضمام لمجموعة
+                  </NavLink>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         </div>
 
-        {/* Navigation Tabs (Desktop & Tablet) */}
-        <nav className="hidden lg:flex items-center gap-1 bg-slate-900/60 p-1 rounded-xl border border-slate-800/80">
+        {/* Quiet Desktop Navigation */}
+        <nav className="hidden lg:flex items-center gap-1.5 p-1 rounded-2xl bg-apple-surface border border-apple-border">
           {desktopNavItems.map((item) => {
-            const Icon = item.icon;
             return (
               <NavLink
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `relative px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                  `px-4 py-1.5 rounded-xl text-xs font-bold transition-all relative ${
                     isActive
-                      ? 'text-emerald-400 bg-emerald-500/10 shadow-sm border border-emerald-500/20'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                      ? 'text-apple-gold bg-apple-card shadow-sm border border-apple-gold/20'
+                      : 'text-apple-secondary hover:text-apple-text hover:bg-apple-card/50'
                   }`
                 }
               >
-                <Icon className="w-4 h-4" />
-                <span>{item.label}</span>
+                {({ isActive }) => (
+                  <>
+                    <span>{item.label}</span>
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeTabBadge"
+                        className="absolute bottom-0 left-3 right-3 h-0.5 bg-apple-gold rounded-full"
+                        transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                      />
+                    )}
+                  </>
+                )}
               </NavLink>
             );
           })}
         </nav>
 
-        {/* Right Actions: Level, Badges, Notifications & Profile */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Level Pill */}
+        {/* Actions: Level, Badges, Notifications, Theme Switcher & Profile */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Level Badge Pill */}
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
             onClick={onOpenBadges}
-            className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] sm:text-xs font-semibold hover:bg-amber-500/20 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-apple-surface border border-apple-gold/30 text-apple-gold text-[11px] sm:text-xs font-extrabold hover:border-apple-gold/50 transition-all"
           >
-            <Trophy className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <Trophy className="w-3.5 h-3.5 text-apple-gold shrink-0" />
             <span>مستوى {userLevel}</span>
-            <span className="text-[10px] text-amber-400/80 font-normal hidden sm:inline">({userXp} XP)</span>
+            <span className="text-[10px] text-apple-secondary font-normal hidden sm:inline">({userXp} XP)</span>
           </motion.button>
 
-          {/* Notifications Button */}
+          {/* Theme Toggle Button (Sun / Moon) */}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={onOpenNotifications}
-            className="relative p-1.5 sm:p-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-300 transition-colors"
+            onClick={toggleTheme}
+            className="p-2 rounded-xl bg-apple-surface hover:bg-apple-elevated border border-apple-border text-apple-text transition-colors"
+            title={theme === 'dark' ? 'التبديل إلى الوضع الفاتح (Light Mode)' : 'التبديل إلى الوضع الداكن (Dark Mode)'}
+            aria-label="تبديل المظهر"
           >
-            <Bell className="w-4 h-4" />
+            {theme === 'dark' ? (
+              <Sun className="w-4 h-4 text-apple-gold" />
+            ) : (
+              <Moon className="w-4 h-4 text-apple-text" />
+            )}
+          </motion.button>
+
+          {/* Notifications Icon Button */}
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={onOpenNotifications}
+            className="relative p-2 rounded-xl bg-apple-surface hover:bg-apple-elevated border border-apple-border text-apple-muted transition-colors"
+            aria-label="التنبيهات"
+          >
+            <Bell className="w-4 h-4 text-apple-text" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center animate-pulse">
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-apple-red text-[10px] font-bold text-white flex items-center justify-center shadow-md">
                 {unreadCount}
               </span>
             )}
@@ -195,16 +220,16 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-              className="flex items-center gap-1.5 p-1 rounded-full bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-200 transition-colors"
+              className="flex items-center gap-2 p-1 rounded-xl bg-apple-surface hover:bg-apple-elevated border border-apple-border text-apple-text transition-colors"
             >
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-xs font-black flex items-center justify-center shadow-md overflow-hidden shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-apple-card border border-apple-border text-apple-gold text-xs font-black flex items-center justify-center overflow-hidden shrink-0">
                 {user?.avatar_url ? (
                   <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" />
                 ) : (
                   user?.name ? user.name.charAt(0).toUpperCase() : 'U'
                 )}
               </div>
-              <span className="text-xs font-semibold max-w-[80px] truncate hidden md:inline-block pr-1">{user?.name}</span>
+              <span className="text-xs font-bold max-w-[85px] truncate hidden md:inline-block pr-1 text-apple-text">{user?.name}</span>
             </motion.button>
 
             <AnimatePresence>
@@ -213,11 +238,12 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
                   initial={{ opacity: 0, y: 8, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute left-0 mt-2 w-52 rounded-xl glass-panel shadow-2xl border border-slate-700/80 overflow-hidden z-50 py-1.5"
+                  transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+                  className="absolute left-0 mt-2 w-56 rounded-2xl bg-apple-surface backdrop-blur-xl shadow-2xl border border-apple-border overflow-hidden z-50 py-1.5"
                 >
-                  <div className="px-3 py-2 border-b border-slate-800">
-                    <p className="text-xs font-bold text-white truncate">{user?.name}</p>
+                  <div className="px-3.5 py-2.5 border-b border-apple-border">
+                    <p className="text-xs font-black text-apple-text truncate">{user?.name}</p>
+                    <p className="text-[10px] text-apple-gold font-bold mt-0.5">مستوى {userLevel} • {userXp} XP</p>
                   </div>
 
                   <button
@@ -225,9 +251,9 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
                       setProfileDropdownOpen(false);
                       navigate('/profile');
                     }}
-                    className="w-full text-right px-3 py-2 text-xs text-slate-300 hover:bg-slate-800/80 hover:text-white flex items-center gap-2 transition-colors"
+                    className="w-full text-right px-3.5 py-2.5 text-xs text-apple-secondary hover:bg-apple-elevated hover:text-apple-text flex items-center gap-2 font-bold transition-colors"
                   >
-                    <UserIcon className="w-4 h-4 text-emerald-400" />
+                    <UserIcon className="w-4 h-4 text-apple-gold" />
                     الملف الشخصي
                   </button>
 
@@ -236,17 +262,17 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
                       setProfileDropdownOpen(false);
                       navigate('/settings');
                     }}
-                    className="w-full text-right px-3 py-2 text-xs text-slate-300 hover:bg-slate-800/80 hover:text-white flex items-center gap-2 transition-colors"
+                    className="w-full text-right px-3.5 py-2.5 text-xs text-apple-secondary hover:bg-apple-elevated hover:text-apple-text flex items-center gap-2 font-bold transition-colors"
                   >
-                    <Settings className="w-4 h-4 text-slate-400" />
+                    <Settings className="w-4 h-4 text-apple-muted" />
                     إعدادات المجموعة
                   </button>
 
-                  <div className="border-t border-slate-800 my-1" />
+                  <div className="border-t border-apple-border my-1" />
 
                   <button
                     onClick={handleLogout}
-                    className="w-full text-right px-3 py-2 text-xs text-rose-400 hover:bg-rose-500/10 font-semibold flex items-center gap-2 transition-colors"
+                    className="w-full text-right px-3.5 py-2.5 text-xs text-apple-red hover:bg-apple-red/10 font-bold flex items-center gap-2 transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                     تسجيل الخروج
@@ -258,8 +284,8 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
         </div>
       </div>
 
-      {/* Fixed Bottom Navigation Bar for Mobile App Feel */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-obsidian-900/95 backdrop-blur-xl border-t border-slate-800/90 py-2 px-2 flex lg:hidden items-center justify-around shadow-2xl safe-area-bottom">
+      {/* Floating Translucent Mobile Navigation Bar */}
+      <nav className="fixed bottom-3 left-3 right-3 z-40 bg-apple-header backdrop-blur-xl border border-apple-border rounded-2xl py-2 px-3 flex lg:hidden items-center justify-around shadow-2xl safe-area-bottom">
         {mobileNavItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -267,15 +293,26 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex flex-col items-center gap-1 text-[10px] font-bold py-1 px-2 rounded-xl transition-all ${
+                `relative flex flex-col items-center gap-1 text-[10px] font-bold py-1 px-3 rounded-xl transition-all ${
                   isActive
-                    ? 'text-emerald-400 bg-emerald-500/15 border border-emerald-500/25 shadow-glow-emerald scale-105'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'text-apple-gold'
+                    : 'text-apple-secondary hover:text-apple-text'
                 }`
               }
             >
-              <Icon className="w-5 h-5" />
-              <span>{item.label}</span>
+              {({ isActive }) => (
+                <>
+                  <Icon className="w-5 h-5 z-10" />
+                  <span className="z-10">{item.label}</span>
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeMobileTab"
+                      className="absolute inset-0 rounded-xl bg-apple-gold/10 border border-apple-gold/30"
+                      transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+                    />
+                  )}
+                </>
+              )}
             </NavLink>
           );
         })}
@@ -283,4 +320,5 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
     </header>
   );
 }
+
 

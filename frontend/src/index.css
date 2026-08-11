@@ -1,96 +1,175 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply antialiased text-slate-100 bg-obsidian-950 font-sans selection:bg-emerald-500 selection:text-white;
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.07) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(249, 115, 22, 0.05) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(14, 165, 233, 0.05) 0px, transparent 50%);
-    background-attachment: fixed;
+/* Reading Club — High-Contrast Warm Obsidian Dark Mode */
+:root, .dark {
+  --apple-bg: #121110;             /* Deep Charcoal Obsidian Canvas */
+  --apple-surface: #1C1A17;        /* Rich Warm Surface Card */
+  --apple-card: #262420;           /* Elevated Subcard Container */
+  --apple-card-elevated: #332F2A;  /* Active Hover Surface */
+  --apple-border: rgba(255, 255, 255, 0.12); /* Hairline Border */
+  
+  --apple-text: #F8F6F0;           /* High-Contrast Crisp Cream White (16:1) */
+  --apple-text-secondary: #D8D2C5; /* Clear High-Readability Secondary Text (10:1) */
+  --apple-muted: #A8A092;          /* Crisp Muted Subtitle (6:1) */
+
+  --apple-gold: #E5B24A;          /* Vibrant Rich Gold Accent */
+  --apple-amber: #D9774F;         /* Terracotta Flame Accent */
+  --apple-green: #4ADE80;         /* Bright High-Contrast Green */
+  --apple-red: #F87171;           /* Vivid High-Contrast Red */
+  --apple-blue: #60A5FA;          /* Clear Soft Blue */
+
+  --apple-header-bg: rgba(18, 17, 16, 0.92); /* Translucent Header */
+}
+
+/* Reading Club — High-Contrast Parchment Warm Light Mode */
+.light {
+  --apple-bg: #F7F5F0;             /* Warm Parchment Cream Canvas */
+  --apple-surface: #FFFFFF;        /* Crisp Pure White Surface Card */
+  --apple-card: #FFFFFF;           /* White Card with Soft Shadow */
+  --apple-card-elevated: #EFECE6;  /* Subtle Elevated Hover State */
+  --apple-border: rgba(0, 0, 0, 0.12); /* Crisp Warm Divider Line */
+  
+  --apple-text: #1C1917;           /* High-Contrast Charcoal Ink (16:1) */
+  --apple-text-secondary: #44403C; /* Deep Taupe Secondary Text (8.5:1) */
+  --apple-muted: #6B655F;          /* Clear Muted Label (5.2:1) */
+
+  --apple-gold: #B88222;          /* Deep High-Contrast Gold Accent */
+  --apple-amber: #C25E38;         /* Deep Terracotta Accent */
+  --apple-green: #15803D;         /* High-Contrast Deep Forest Green */
+  --apple-red: #DC2626;           /* High-Contrast Vivid Red */
+  --apple-blue: #1D4ED8;          /* High-Contrast Deep Blue */
+
+  --apple-header-bg: rgba(247, 245, 240, 0.92); /* Translucent Header */
+}
+
+body {
+  margin: 0;
+  background-color: var(--apple-bg);
+  color: var(--apple-text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", "Cairo", "IBM Plex Sans Arabic", sans-serif;
+  direction: rtl;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Custom Scrollbar Utilities */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Apple Translucent & Card Panels */
+.apple-panel {
+  background: var(--apple-surface);
+  border: 1px solid var(--apple-border);
+  border-radius: 1.25rem;
+}
+
+.apple-card {
+  background: var(--apple-card);
+  border: 1px solid var(--apple-border);
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.06);
+}
+
+.dark .apple-card {
+  box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.5);
+}
+
+.apple-input {
+  background: var(--apple-surface);
+  border: 1px solid var(--apple-border);
+  color: var(--apple-text);
+  border-radius: 0.875rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.apple-input:focus {
+  border-color: var(--apple-gold);
+  box-shadow: 0 0 0 2px rgba(229, 178, 74, 0.25);
+  outline: none;
+}
+
+/* Flame Glow Animation */
+@keyframes flame-pulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px rgba(229, 178, 74, 0.6));
+  }
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 16px rgba(217, 119, 79, 0.8));
   }
 }
 
-/* Custom Scrollbars */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(51, 65, 85, 0.6);
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(16, 185, 129, 0.5);
+.animate-flame {
+  animation: flame-pulse 2s infinite ease-in-out;
 }
 
-/* Glassmorphism utilities */
-.glass-panel {
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+/* Compatibility classes */
+.editorial-panel, .glass-panel {
+  background: var(--apple-surface);
+  border: 1px solid var(--apple-border);
+  border-radius: 1.25rem;
 }
 
-.glass-card {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.6) 100%);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+.editorial-card, .glass-card {
+  background: var(--apple-card);
+  border: 1px solid var(--apple-border);
+  border-radius: 1.25rem;
 }
 
-.glass-card:hover {
-  border-color: rgba(16, 185, 129, 0.25);
-  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px -5px rgba(16, 185, 129, 0.15);
+.editorial-input, .glass-input {
+  background: var(--apple-surface);
+  border: 1px solid var(--apple-border);
+  color: var(--apple-text);
+  border-radius: 0.875rem;
 }
 
-.glass-header {
-  background: rgba(9, 13, 22, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+.editorial-input:focus, .glass-input:focus {
+  border-color: var(--apple-gold);
+  outline: none;
 }
 
-.glass-input {
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.2s ease;
+/* 3D Book Covers */
+.book-cover-3d {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: -6px 10px 20px -4px rgba(0, 0, 0, 0.15);
 }
 
-.glass-input:focus {
-  border-color: rgba(16, 185, 129, 0.6);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+.dark .book-cover-3d {
+  box-shadow: -6px 10px 20px -4px rgba(0, 0, 0, 0.7);
 }
 
-/* Gradient Text */
-.gradient-text-emerald {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400;
+.book-cover-wrapper:hover .book-cover-3d {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: -8px 16px 32px -4px rgba(0, 0, 0, 0.25);
 }
 
-.gradient-text-flame {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-flame-400 to-rose-500;
+.perspective-1000 {
+  perspective: 1000px;
+}
+.style-preserve-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.rotate-y-180 {
+  transform: rotateY(180deg);
 }
 
-.gradient-text-gold {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500;
-}
-
-/* Glow Orbs */
-.glow-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  pointer-events: none;
-  opacity: 0.35;
-}
-
-/* Mobile Safe Area & PWA Touch Optimizations */
+/* Mobile Safe Area */
 .safe-area-bottom {
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }
@@ -101,8 +180,16 @@
 
 @media (max-width: 768px) {
   input, select, textarea {
-    font-size: 16px !important; /* Prevents auto-zoom on iOS Safari input focus */
+    font-size: 16px !important;
   }
 }
 
-
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

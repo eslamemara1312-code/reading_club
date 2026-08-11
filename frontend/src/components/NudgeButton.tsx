@@ -30,9 +30,9 @@ export function NudgeButton({ groupId, toUserId, toUserName, hasCheckedIn }: Nud
 
   if (hasCheckedIn) {
     return (
-      <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full shadow-sm">
-        <CheckCircle size={12} />
-        أتم القراءة اليوم
+      <span className="text-xs font-medium text-[#7C9A72] flex items-center gap-1">
+        <CheckCircle size={13} />
+        تمت القراءة
       </span>
     );
   }
@@ -42,35 +42,35 @@ export function NudgeButton({ groupId, toUserId, toUserName, hasCheckedIn }: Nud
       <motion.span 
         initial={{ scale: 0.9 }} 
         animate={{ scale: 1 }} 
-        className="text-xs text-amber-300 bg-amber-500/15 px-3 py-1 rounded-full border border-amber-500/30 font-bold shadow-sm flex items-center gap-1"
+        className="text-xs text-[#D9A441] font-semibold flex items-center gap-1"
       >
-        تم النكز 🔔
+        <BellRing size={13} />
+        تم التذكير
       </motion.span>
     );
   }
 
   return (
-    <div className="flex flex-col items-end">
+    <div className="flex items-center gap-2">
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => mutation.mutate()}
         disabled={mutation.isPending}
         title={`تذكير ${toUserName} بالقراءة اليوم`}
-        className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 to-flame-500/20 hover:from-amber-500/30 hover:to-flame-500/30 text-amber-300 border border-amber-500/30 transition shadow-sm"
+        className="text-xs text-[#B8B0A4] hover:text-[#D9A441] p-1.5 rounded-lg border border-white/[0.08] hover:border-[#D9A441]/30 transition-colors flex items-center gap-1.5"
       >
         {mutation.isPending ? (
-          <Loader2 size={13} className="animate-spin text-amber-400" />
+          <Loader2 size={13} className="animate-spin text-[#D9A441]" />
         ) : (
-          <BellRing size={13} className="text-amber-400 animate-bounce" />
+          <BellRing size={13} className="text-[#D9A441]" />
         )}
-        <span>أنكز الآن 🔔</span>
+        <span className="text-[11px] font-medium">تذكير</span>
       </motion.button>
 
       {errorText && (
-        <span className="text-[10px] text-rose-400 mt-1 font-medium">{errorText}</span>
+        <span className="text-[10px] text-[#B96860] font-medium">{errorText}</span>
       )}
     </div>
   );
 }
-

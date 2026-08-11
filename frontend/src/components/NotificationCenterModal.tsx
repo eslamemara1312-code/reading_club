@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Check, Phone, X, ShieldAlert, Loader2, Sparkles } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { AppNotification, markNotificationRead, updateWhatsAppSettings } from '../api/notifications';
 import { useAuthStore } from '../store/authStore';
 
@@ -14,6 +15,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
   const queryClient = useQueryClient();
+  const [listRef] = useAutoAnimate();
 
   const [phone, setPhone] = useState(user?.phone || '');
   const [waEnabled, setWaEnabled] = useState(user?.whatsapp_enabled ?? true);
@@ -112,7 +114,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
           )}
 
           {/* Notifications List */}
-          <div className="space-y-2.5 pt-1">
+          <div ref={listRef} className="space-y-2.5 pt-1">
             {notifications && notifications.length > 0 ? (
               notifications.map((n, idx) => (
                 <motion.div

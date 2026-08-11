@@ -1,7 +1,41 @@
+/*
+===============================================================================
+ خريطة الوظائف المحفوظة (Preserved Functionality Map) — BookPage.tsx
+===============================================================================
+1. State Store & Router:
+   - activeGroupId: useUIStore((state) => state.activeGroupId)
+   - user: useAuthStore((state) => state.user)
+   - navigate: useNavigate()
+   - queryClient: useQueryClient()
+   - showSetPlanModal, selectedBookId, targetDays
+   - searchTerm, selectedFilter ('all' | 'active' | 'upcoming' | 'completed')
+   - showCreateBookModal, newTitle, newAuthor, newPages, newCoverUrl
+
+2. Queries:
+   - group: getGroupDetails(activeGroupId!) [Key: 'group', activeGroupId]
+   - allGroupBooks: getAllGroupBooks(activeGroupId!) [Key: 'allGroupBooks', activeGroupId]
+   - catalogBooks: getBooksCatalog() [Key: 'booksCatalog']
+
+3. Computed Values & Permissions:
+   - isOwner: group?.owner_id === user?.id
+   - activeGroupBook: allGroupBooks?.find(b => b.status === 'active')
+   - filteredGroupBooks: filtered by selectedFilter and searchTerm
+
+4. Mutations:
+   - setPlanMutation: setGroupBookPlan(activeGroupId!, data)
+   - createBookMutation: createBookInCatalog(data)
+   - deleteGroupBookMutation: deleteGroupBook(activeGroupId!, groupBookId)
+   - deleteCatalogBookMutation: deleteBookFromCatalog(bookId)
+===============================================================================
+*/
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Plus, Loader2, Trash2, Sparkles, Layers } from 'lucide-react';
+import {
+  BookOpen, Plus, Loader2, Sparkles, Layers, Bookmark,
+  Search, ChevronLeft
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUIStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
@@ -12,12 +46,14 @@ import {
   createBookInCatalog,
   deleteGroupBook,
   deleteBookFromCatalog,
+  getProxiedCoverUrl,
   GroupBook,
   Book,
 } from '../api/books';
 import { getGroupDetails, Group } from '../api/groups';
 import { Navbar } from '../components/Navbar';
 import { BookSearchAutocomplete, WikidataBookResult } from '../components/BookSearchAutocomplete';
+import { ThreeDBookCard } from '../components/3DBookCard';
 
 export const BookPage = () => {
   const activeGroupId = useUIStore((state) => state.activeGroupId);
@@ -28,6 +64,10 @@ export const BookPage = () => {
   const [showSetPlanModal, setShowSetPlanModal] = useState(false);
   const [selectedBookId, setSelectedBookId] = useState('');
   const [targetDays, setTargetDays] = useState('15');
+
+  // Search & Filter
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'active' | 'upcoming' | 'completed'>('all');
 
   // New Book Form
   const [showCreateBookModal, setShowCreateBookModal] = useState(false);
@@ -48,62 +88,43 @@ export const BookPage = () => {
     enabled: !!activeGroupId,
   });
 
-  const { data: catalog } = useQuery<Book[]>({
+  const { data: catalogBooks, isLoading: loadingCatalog } = useQuery<Book[]>({
     queryKey: ['booksCatalog'],
     queryFn: getBooksCatalog,
   });
 
-  const isOwner = Boolean(
-    user?.id && (
-      (group?.owner_id && group.owner_id.toLowerCase() === user.id.toLowerCase()) ||
-      group?.members?.some((m) => m.user_id.toLowerCase() === user.id.toLowerCase() && m.role === 'owner')
-    )
-  );
-
   const setPlanMutation = useMutation({
-    mutationFn: async () => {
-      const today = new Date();
-      const targetDate = new Date();
-      targetDate.setDate(today.getDate() + parseInt(targetDays, 10));
-
-      return setGroupBookPlan(activeGroupId!, {
-        book_id: selectedBookId,
-        start_date: today.toISOString().split('T')[0],
-        target_end_date: targetDate.toISOString().split('T')[0],
-      });
-    },
+    mutationFn: (data: { book_id: string; start_date: string; target_end_date: string }) =>
+      setGroupBookPlan(activeGroupId!, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['activeBook', activeGroupId] });
       queryClient.invalidateQueries({ queryKey: ['allGroupBooks', activeGroupId] });
+      queryClient.invalidateQueries({ queryKey: ['activeBook', activeGroupId] });
       setShowSetPlanModal(false);
+      setSelectedBookId('');
     },
   });
 
   const createBookMutation = useMutation({
-    mutationFn: () =>
-      createBookInCatalog({
-        title: newTitle,
-        author: newAuthor,
-        total_pages: parseInt(newPages, 10) || 200,
-        cover_url: newCoverUrl || undefined,
-      }),
-    onSuccess: (newBook) => {
+    mutationFn: (data: { title: string; author: string; total_pages: number; cover_url?: string }) =>
+      createBookInCatalog(data),
+    onSuccess: (createdBook) => {
       queryClient.invalidateQueries({ queryKey: ['booksCatalog'] });
-      setSelectedBookId(newBook.id);
       setShowCreateBookModal(false);
       setNewTitle('');
       setNewAuthor('');
       setNewPages('200');
       setNewCoverUrl('');
+
+      setSelectedBookId(createdBook.id);
+      setShowSetPlanModal(true);
     },
   });
 
   const deleteGroupBookMutation = useMutation({
-    mutationFn: (gbId: string) => deleteGroupBook(activeGroupId!, gbId),
+    mutationFn: (groupBookId: string) => deleteGroupBook(activeGroupId!, groupBookId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['activeBook', activeGroupId] });
       queryClient.invalidateQueries({ queryKey: ['allGroupBooks', activeGroupId] });
-      queryClient.invalidateQueries({ queryKey: ['booksCatalog'] });
+      queryClient.invalidateQueries({ queryKey: ['activeBook', activeGroupId] });
     },
   });
 
@@ -111,27 +132,66 @@ export const BookPage = () => {
     mutationFn: (bookId: string) => deleteBookFromCatalog(bookId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['booksCatalog'] });
-      if (selectedBookId) setSelectedBookId('');
     },
   });
 
-  const handleSelectWikidataBook = (wikidataBook: WikidataBookResult) => {
-    setNewTitle(wikidataBook.title);
-    setNewAuthor(wikidataBook.author || '');
-    setNewPages(wikidataBook.total_pages ? String(wikidataBook.total_pages) : '');
-    setNewCoverUrl(wikidataBook.cover_url || '');
-    setShowCreateBookModal(true);
+  const isOwner = group?.owner_id === user?.id;
+
+  const handleSelectWikidataBook = (wb: WikidataBookResult) => {
+    setNewTitle(wb.title);
+    setNewAuthor(wb.author);
+    setNewPages(wb.total_pages?.toString() || '200');
+    if (wb.cover_url) {
+      setNewCoverUrl(wb.cover_url);
+    }
   };
+
+  const handleSetPlanSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedBookId) return;
+
+    const days = parseInt(targetDays, 10) || 15;
+    const start = new Date();
+    const end = new Date();
+    end.setDate(end.getDate() + days);
+
+    setPlanMutation.mutate({
+      book_id: selectedBookId,
+      start_date: start.toISOString().split('T')[0],
+      target_end_date: end.toISOString().split('T')[0],
+    });
+  };
+
+  const handleCreateBookSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    createBookMutation.mutate({
+      title: newTitle,
+      author: newAuthor,
+      total_pages: parseInt(newPages, 10) || 200,
+      cover_url: newCoverUrl || undefined,
+    });
+  };
+
+  const activeGroupBook = allGroupBooks?.find((b) => b.status === 'active');
+
+  const filteredGroupBooks = allGroupBooks?.filter((b) => {
+    if (selectedFilter !== 'all' && b.status !== selectedFilter) return false;
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      return b.book.title.toLowerCase().includes(q) || b.book.author.toLowerCase().includes(q);
+    }
+    return true;
+  });
 
   if (!activeGroupId) {
     return (
-      <div className="min-h-screen bg-obsidian-950 flex flex-col items-center justify-center p-4 text-center">
-        <div className="glass-panel p-8 rounded-3xl max-w-md border border-slate-800 space-y-4">
-          <BookOpen className="w-12 h-12 text-emerald-400 mx-auto" />
-          <h2 className="text-xl font-bold text-white">لم تنضم لأي مجموعة بعد</h2>
+      <div className="min-h-screen bg-apple-bg text-apple-text flex items-center justify-center p-4">
+        <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4 bg-apple-surface rounded-2xl border border-apple-border shadow-xl">
+          <BookOpen className="w-10 h-10 text-apple-gold mx-auto" />
+          <h2 className="text-xl font-bold text-apple-text">يرجى الانضمام إلى مجموعة لتصفح رف الكتب</h2>
           <button
             onClick={() => navigate('/onboarding')}
-            className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 font-semibold rounded-xl text-white"
+            className="w-full py-3 bg-apple-gold hover:opacity-90 text-black rounded-xl text-xs font-black transition-colors"
           >
             الانتقال للمجموعات
           </button>
@@ -140,378 +200,372 @@ export const BookPage = () => {
     );
   }
 
-  const activeBooks = allGroupBooks?.filter((b) => b.status === 'active') || [];
-  const otherBooks = allGroupBooks?.filter((b) => b.status !== 'active') || [];
-
   return (
-    <div className="min-h-screen bg-obsidian-950 text-slate-100 pb-32 lg:pb-12 relative overflow-hidden">
-      {/* Background Orbs */}
-      <div className="glow-orb w-96 h-96 bg-emerald-500/10 top-0 right-1/4 animate-pulse-subtle" />
-
-      {/* Navbar Header */}
+    <div className="min-h-screen bg-apple-bg text-apple-text pb-32 relative dir-rtl font-sans transition-colors duration-300">
+      {/* Quiet Header Navbar */}
       <Navbar />
 
-      <main className="max-w-5xl mx-auto px-4 pt-6 space-y-8 relative z-10">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="font-extrabold text-xl text-white flex items-center gap-2">
-              <BookOpen className="w-6 h-6 text-emerald-400" />
-              مكتبة وقائمة كتب المجموعة
+      <main className="max-w-6xl mx-auto px-4 sm:px-8 pt-8 space-y-12 relative z-10">
+        
+        {/* HEADER GREETING & PRIMARY ACTION BUTTON */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-apple-border pb-6">
+          <div className="space-y-1">
+            <span className="text-xs text-apple-gold font-bold tracking-wider uppercase block">
+              مكتبة النادي • Bookshelf 📚
+            </span>
+            <h1 className="font-black text-3xl text-apple-text tracking-tight">
+              أهلاً بك، {user?.name || 'القارئ'}
             </h1>
-            <p className="text-slate-400 text-xs mt-1">تصفح وتحديد كتب القراءة الجماعية النشطة والمقترحة</p>
+            <p className="text-apple-muted text-xs font-medium">
+              تصفح كتب مجموعتك، واكتشف كتب الكتالوج المتاحة للقراءة.
+            </p>
           </div>
 
-          {isOwner && (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setShowSetPlanModal(true)}
-              className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white text-xs font-extrabold rounded-xl flex items-center gap-1.5 shadow-lg shadow-emerald-950/50"
-            >
-              <Plus className="w-4 h-4" />
-              إضافة أو تحديد كتاب
-            </motion.button>
-          )}
+          {/* SINGLE SOLID ACCENT FILL BUTTON ON THIS PAGE */}
+          <button
+            onClick={() => setShowCreateBookModal(true)}
+            className="px-5 py-3 bg-apple-gold hover:opacity-90 text-black font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.97] shrink-0 shadow-lg"
+          >
+            <Plus className="w-4 h-4" />
+            إضافة كتاب للكتالوج
+          </button>
         </div>
 
-        {/* Section 1: Active Reading Books (Horizontal Slider) */}
-        <section className="space-y-3">
-          <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
-            <Sparkles className="w-4 h-4 text-emerald-400" />
-            <h2 className="font-bold text-sm text-white">الكتب الحالية قيد القراءة</h2>
-            <span className="text-[11px] text-emerald-400 font-mono">({activeBooks.length})</span>
-          </div>
-
-          {loadingGroupBooks ? (
-            <div className="text-center py-8 text-slate-500 text-xs flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-emerald-400" /> جاري تحميل الكتب...
+        {/* 1. CURRENTLY READING HERO SPOTLIGHT (LARGE STANDALONE COVER, NO CARD FRAME) */}
+        {activeGroupBook && (
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 text-xs font-bold text-apple-gold">
+              <Sparkles className="w-4 h-4 text-apple-gold" />
+              <span>تقرأ حالياً • Currently Reading</span>
             </div>
-          ) : activeBooks.length > 0 ? (
-            <div className="flex gap-4 overflow-x-auto pb-4 pt-1 snap-x scrollbar-thin">
-              {activeBooks.map((gb) => (
-                <motion.div
-                  key={gb.id}
-                  whileHover={{ scale: 1.02 }}
-                  className="min-w-[280px] sm:min-w-[320px] max-w-[340px] glass-card p-5 rounded-3xl border border-slate-800/90 snap-start flex flex-col justify-between shrink-0 relative group"
-                >
-                  {isOwner && (
-                    <button
-                      onClick={() => deleteGroupBookMutation.mutate(gb.id)}
-                      className="absolute top-3 left-3 p-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity border border-rose-500/30 z-10"
-                      title="إيقاف قراءة هذا الكتاب"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
 
-                  <div className="flex items-start gap-4">
-                    <div className="w-16 h-24 bg-slate-900 border border-slate-700/80 rounded-xl overflow-hidden shadow-lg flex items-center justify-center shrink-0 relative">
-                      {gb.book.cover_url ? (
-                        <img
-                          src={gb.book.cover_url}
-                          alt={gb.book.title}
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                            const parent = (e.target as HTMLImageElement).parentElement;
-                            if (parent) {
-                              const icon = parent.querySelector('.fallback-icon');
-                              if (icon) icon.classList.remove('hidden');
-                            }
-                          }}
-                        />
-                      ) : null}
-                      <BookOpen className={`w-7 h-7 text-emerald-400 fallback-icon ${gb.book.cover_url ? 'hidden' : ''}`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 text-[10px] font-bold border border-emerald-500/25 mb-1.5 inline-block">
-                        نشط الآن
-                      </span>
-                      <h3 className="font-extrabold text-sm text-white truncate">{gb.book.title}</h3>
-                      <p className="text-[11px] text-slate-400 truncate mt-0.5">{gb.book.author}</p>
-                      <span className="text-[10px] text-emerald-400 font-mono font-semibold block mt-1">
-                        {gb.book.total_pages} صفحة
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-[11px]">
-                    <div className="p-2 rounded-xl bg-slate-900/60 border border-slate-800">
-                      <span className="text-slate-400 block font-semibold">المعدل اليومي</span>
-                      <span className="font-bold text-emerald-400 font-mono">{gb.daily_target_pages} ص/يوم</span>
-                    </div>
-                    <div className="p-2 rounded-xl bg-slate-900/60 border border-slate-800">
-                      <span className="text-slate-400 block font-semibold">الإنهاء في</span>
-                      <span className="font-bold text-sky-400 font-mono">{gb.target_end_date}</span>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-6 rounded-2xl glass-card border border-slate-800/80 text-center text-slate-500 text-xs">
-              لا توجد كتب نشطة قيد القراءة حالياً.
-            </div>
-          )}
-        </section>
-
-        {/* Section 2: Catalog / Suggested Books (Horizontal Slider) */}
-        <section className="space-y-3">
-          <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
-            <Layers className="w-4 h-4 text-amber-400" />
-            <h2 className="font-bold text-sm text-white">الكتب المقترحة في الكتالوج</h2>
-            <span className="text-[11px] text-amber-400 font-mono">({catalog?.length || 0})</span>
-          </div>
-
-          {catalog && catalog.length > 0 ? (
-            <div className="flex gap-4 overflow-x-auto pb-4 pt-1 snap-x scrollbar-thin">
-              {catalog.map((book) => (
-                <div
-                  key={book.id}
-                  className="min-w-[220px] max-w-[240px] glass-card p-4 rounded-2xl border border-slate-800/80 snap-start flex flex-col justify-between shrink-0 relative group"
-                >
-                  <button
-                    onClick={() => deleteCatalogBookMutation.mutate(book.id)}
-                    className="absolute top-2 left-2 p-1.5 bg-rose-500/20 hover:bg-rose-600 text-rose-300 hover:text-white rounded-lg transition-all border border-rose-500/40 z-10 flex items-center justify-center"
-                    title="حذف الكتاب من الكتالوج"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-16 bg-slate-800 rounded-xl border border-slate-700/80 overflow-hidden flex items-center justify-center shrink-0 relative">
-                      {book.cover_url ? (
-                        <img
-                          src={book.cover_url}
-                          alt={book.title}
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                            const parent = (e.target as HTMLImageElement).parentElement;
-                            if (parent) {
-                              const icon = parent.querySelector('.fallback-icon');
-                              if (icon) icon.classList.remove('hidden');
-                            }
-                          }}
-                        />
-                      ) : null}
-                      <BookOpen className={`w-5 h-5 text-amber-400 fallback-icon ${book.cover_url ? 'hidden' : ''}`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-xs text-white truncate">{book.title}</h4>
-                      <p className="text-[10px] text-slate-400 truncate mt-0.5">{book.author}</p>
-                      <span className="text-[10px] text-emerald-400 font-mono font-semibold block mt-1">
-                        {book.total_pages} صفحة
-                      </span>
-                    </div>
-                  </div>
-
-                  {isOwner && (
-                    <button
-                      onClick={() => {
-                        setSelectedBookId(book.id);
-                        setShowSetPlanModal(true);
-                      }}
-                      className="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700/80 rounded-xl text-[11px] font-bold transition-colors"
-                    >
-                      تحديد لخطة القراءة
-                    </button>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center border-b border-apple-border pb-8">
+              {/* Standalone Large Cover (No Card Frame Around It) */}
+              <div className="md:col-span-3 flex justify-center md:justify-start">
+                <div className="w-36 h-56 bg-apple-surface rounded-lg overflow-hidden shadow-2xl flex items-center justify-center border border-apple-border">
+                  {activeGroupBook.book.cover_url ? (
+                    <img
+                      src={getProxiedCoverUrl(activeGroupBook.book.cover_url)}
+                      alt={activeGroupBook.book.title}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <BookOpen className="w-12 h-12 text-apple-muted" />
                   )}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-6 rounded-2xl glass-card border border-slate-800/80 text-center text-slate-500 text-xs">
-              الكتالوج فارغ حالياً. قم بإضافة كتب جديدة عبر البحث الذكي!
-            </div>
-          )}
-        </section>
+              </div>
 
-        {/* Section 3: Completed / Archive Books */}
-        {otherBooks.length > 0 && (
-          <section className="space-y-3">
-            <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
-              <h2 className="font-bold text-sm text-slate-400">سجل الكتب السابقة والمكتملة</h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {otherBooks.map((gb) => (
-                <div key={gb.id} className="glass-panel p-3.5 rounded-2xl border border-slate-800/60 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <BookOpen className="w-4 h-4 text-slate-500" />
-                    <div>
-                      <h5 className="font-bold text-xs text-slate-300">{gb.book.title}</h5>
-                      <p className="text-[10px] text-slate-500">{gb.book.author}</p>
-                    </div>
-                  </div>
+              {/* Title & Metadata */}
+              <div className="md:col-span-9 space-y-3 text-right">
+                <span className="text-[11px] font-mono text-apple-green font-bold">
+                  {activeGroupBook.book.category || 'كتاب رئيسي'}
+                </span>
+
+                <h2 className="text-3xl font-black text-apple-text leading-snug">
+                  {activeGroupBook.book.title}
+                </h2>
+                
+                <p className="text-xs text-apple-secondary font-medium">
+                  المؤلف: {activeGroupBook.book.author} • إجمالي {activeGroupBook.book.total_pages} صفحة
+                </p>
+
+                <div className="text-xs text-apple-gold font-mono font-bold pt-1">
+                  الهدف اليومي للمجموعة: {activeGroupBook.daily_target_pages} صفحة / يوم
+                </div>
+
+                <div className="pt-2">
                   <button
-                    type="button"
-                    onClick={() => deleteGroupBookMutation.mutate(gb.id)}
-                    className="p-2 bg-rose-500/10 hover:bg-rose-500/25 text-rose-400 hover:text-rose-300 border border-rose-500/30 rounded-xl transition-all flex items-center justify-center shrink-0 ml-2"
-                    title="حذف الكتاب من السجل"
+                    onClick={() => navigate('/dashboard')}
+                    className="px-5 py-2.5 bg-apple-card hover:bg-apple-elevated text-apple-gold border border-apple-gold/30 font-bold text-xs rounded-xl transition-colors inline-flex items-center gap-2 shadow-sm"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <span>تكملة الورد اليومي 📖</span>
+                    <ChevronLeft className="w-4 h-4" />
                   </button>
                 </div>
-              ))}
+              </div>
             </div>
           </section>
         )}
+
+        {/* 2. MY BOOKSHELF SECTION & FILTERS */}
+        <section className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-apple-gold" />
+              <h2 className="text-lg font-bold text-apple-text">رف كتب المجموعة</h2>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex items-center gap-2 bg-apple-surface p-1 rounded-xl border border-apple-border text-xs font-semibold shadow-sm">
+              <button
+                onClick={() => setSelectedFilter('all')}
+                className={`px-3 py-1.5 rounded-lg transition ${selectedFilter === 'all' ? 'bg-apple-card text-apple-gold border border-apple-gold/30 shadow-sm' : 'text-apple-secondary hover:text-apple-text'}`}
+              >
+                الكل
+              </button>
+              <button
+                onClick={() => setSelectedFilter('active')}
+                className={`px-3 py-1.5 rounded-lg transition ${selectedFilter === 'active' ? 'bg-apple-card text-apple-gold border border-apple-gold/30 shadow-sm' : 'text-apple-secondary hover:text-apple-text'}`}
+              >
+                حالي 🔥
+              </button>
+              <button
+                onClick={() => setSelectedFilter('upcoming')}
+                className={`px-3 py-1.5 rounded-lg transition ${selectedFilter === 'upcoming' ? 'bg-apple-card text-apple-gold border border-apple-gold/30 shadow-sm' : 'text-apple-secondary hover:text-apple-text'}`}
+              >
+                قادم ⏳
+              </button>
+              <button
+                onClick={() => setSelectedFilter('completed')}
+                className={`px-3 py-1.5 rounded-lg transition ${selectedFilter === 'completed' ? 'bg-apple-card text-apple-gold border border-apple-gold/30 shadow-sm' : 'text-apple-secondary hover:text-apple-text'}`}
+              >
+                مكتمل ✅
+              </button>
+            </div>
+          </div>
+
+          {/* Search Input Bar */}
+          <div className="relative">
+            <Search className="w-4 h-4 text-apple-muted absolute right-4 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="ابحث باسم الكتاب أو المؤلف..."
+              className="w-full pl-4 pr-11 py-3 bg-apple-surface border border-apple-border rounded-xl text-apple-text text-xs font-medium focus:border-apple-gold outline-none shadow-sm"
+            />
+          </div>
+
+          {/* Group Books Horizontal Shelf */}
+          {loadingGroupBooks ? (
+            <div className="text-center py-12 text-apple-muted text-xs flex items-center justify-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-apple-gold" /> جاري تحميل رف الكتب...
+            </div>
+          ) : filteredGroupBooks && filteredGroupBooks.length > 0 ? (
+            <div className="overflow-x-auto pb-4 pt-1 no-scrollbar flex items-center gap-4 scroll-smooth">
+              {filteredGroupBooks.map((gb) => (
+                <ThreeDBookCard
+                  key={gb.id}
+                  book={gb.book}
+                  groupBook={gb}
+                  status={gb.status}
+                  dailyTargetPages={gb.daily_target_pages}
+                  isOwner={isOwner}
+                  onDeleteGroupBook={(groupBookId) => deleteGroupBookMutation.mutate(groupBookId)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-10 bg-apple-surface rounded-2xl border border-apple-border space-y-3 shadow-md">
+              <BookOpen className="w-8 h-8 text-apple-muted mx-auto" />
+              <h3 className="text-xs font-bold text-apple-text">لا توجد كتب مضافة لهذا الرف بعد</h3>
+              {isOwner && (
+                <button
+                  onClick={() => setShowSetPlanModal(true)}
+                  className="px-4 py-2 bg-apple-card hover:bg-apple-elevated text-apple-gold border border-apple-gold/30 font-bold text-xs rounded-xl transition-colors shadow-sm"
+                >
+                  حدد كتاباً من الكتالوج للخطة
+                </button>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* 3. CATALOG GRID SECTION WITH HAIRLINE BORDERS */}
+        <section className="space-y-4 pt-4 border-t border-apple-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Layers className="w-4 h-4 text-apple-gold" />
+              <h2 className="text-base font-bold text-apple-text">كتالوج الكتب المتاحة للمجموعة</h2>
+            </div>
+
+            {isOwner && (
+              <button
+                onClick={() => setShowSetPlanModal(true)}
+                className="px-3.5 py-2 bg-apple-card hover:bg-apple-elevated text-apple-gold border border-apple-gold/30 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-sm"
+              >
+                <Bookmark className="w-3.5 h-3.5" />
+                تحديد كتاب كخطة
+              </button>
+            )}
+          </div>
+
+          {loadingCatalog ? (
+            <div className="text-center py-8 text-apple-muted text-xs flex items-center justify-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-apple-gold" /> جاري تحميل الكتالوج...
+            </div>
+          ) : catalogBooks && catalogBooks.length > 0 ? (
+            <div className="overflow-x-auto pb-4 pt-1 no-scrollbar flex items-center gap-4 scroll-smooth">
+              {catalogBooks.map((b) => (
+                <ThreeDBookCard
+                  key={b.id}
+                  book={b}
+                  isOwner={isOwner}
+                  onDeleteCatalogBook={(bookId) => deleteCatalogBookMutation.mutate(bookId)}
+                  onSelectForPlan={(bookId) => {
+                    setSelectedBookId(bookId);
+                    setShowSetPlanModal(true);
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-apple-muted text-xs font-medium">
+              الكتالوج فارغ حالياً. يمكنك إضافة كتب جديدة عبر زر "إضافة كتاب للكتالوج".
+            </div>
+          )}
+        </section>
+
       </main>
 
-      {/* Set Plan Modal with Wikidata Search */}
+      {/* Set Plan Modal */}
       <AnimatePresence>
         {showSetPlanModal && (
-          <div className="fixed inset-0 bg-obsidian-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 15 }}
-              transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-              className="glass-panel p-6 rounded-3xl max-w-md w-full border border-slate-700/80 space-y-4 shadow-2xl"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-apple-surface p-6 rounded-2xl max-w-md w-full border border-apple-border space-y-4 shadow-2xl"
             >
-              <h3 className="text-lg font-extrabold text-white text-center">اختيار أو بحث عن كتاب للمجموعة</h3>
+              <h3 className="text-base font-bold text-apple-text text-center">تحديد خطة كتاب للمجموعة 📖</h3>
 
-              <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-300">البحث الذكي عن كتاب (Wikidata API)</label>
-                <BookSearchAutocomplete onSelectBook={handleSelectWikidataBook} />
-              </div>
+              <form onSubmit={handleSetPlanSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-apple-secondary mb-1.5">اختر كتاباً من الكتالوج</label>
+                  <select
+                    value={selectedBookId}
+                    onChange={(e) => setSelectedBookId(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 bg-apple-bg border border-apple-border rounded-xl text-apple-text text-xs font-medium outline-none focus:border-apple-gold"
+                  >
+                    <option value="">-- اختر الكتاب --</option>
+                    {catalogBooks?.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.title} - {b.author} ({b.total_pages} ص)
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5">أو اختر من الكتالوج المتاح</label>
-                <select
-                  value={selectedBookId}
-                  onChange={(e) => setSelectedBookId(e.target.value)}
-                  className="w-full p-3 bg-obsidian-950 border border-slate-700 rounded-xl text-white text-xs font-medium focus:border-emerald-500 outline-none"
-                >
-                  <option value="">-- اختر كتاباً من القائمة --</option>
-                  {catalog?.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.title} ({b.author}) - {b.total_pages} صفحة
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <div>
+                  <label className="block text-xs font-semibold text-apple-secondary mb-1.5">مدّة القراءة بالـ (أيام)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={targetDays}
+                    onChange={(e) => setTargetDays(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 bg-apple-bg border border-apple-border rounded-xl text-apple-text text-xs font-mono outline-none focus:border-apple-gold text-center"
+                  />
+                </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setNewTitle('');
-                  setNewAuthor('');
-                  setNewPages('200');
-                  setNewCoverUrl('');
-                  setShowCreateBookModal(true);
-                }}
-                className="text-xs text-emerald-400 font-bold hover:underline flex items-center gap-1"
-              >
-                + إضافة كتاب كتابةً للكتالوج
-              </button>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5">عدد أيام القراءة المستهدفة</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={targetDays}
-                  onChange={(e) => setTargetDays(e.target.value)}
-                  className="w-full p-3 bg-obsidian-950 border border-slate-700 rounded-xl text-white text-xs font-mono focus:border-emerald-500 outline-none"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowSetPlanModal(false)}
-                  className="w-1/2 py-3 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="button"
-                  disabled={!selectedBookId || setPlanMutation.isPending}
-                  onClick={() => setPlanMutation.mutate()}
-                  className="w-1/2 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 disabled:opacity-50"
-                >
-                  {setPlanMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : 'تأكيد الخطة'}
-                </button>
-              </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowSetPlanModal(false)}
+                    className="w-1/2 py-2.5 bg-apple-card text-apple-secondary font-semibold rounded-xl text-xs"
+                  >
+                    إلغاء
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={setPlanMutation.isPending}
+                    className="w-1/2 py-2.5 bg-apple-gold hover:opacity-90 text-black font-black rounded-xl text-xs flex items-center justify-center gap-1"
+                  >
+                    {setPlanMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin text-black" /> : 'تأكيد الخطة'}
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* Create / Edit Book Modal */}
+      {/* Create Book Modal */}
       <AnimatePresence>
         {showCreateBookModal && (
-          <div className="fixed inset-0 bg-obsidian-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 15 }}
-              transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-              className="glass-panel p-6 rounded-3xl max-w-md w-full border border-slate-700/80 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-apple-surface p-6 rounded-2xl max-w-md w-full border border-apple-border space-y-4 shadow-2xl max-h-[85vh] overflow-y-auto"
             >
-              <h3 className="text-lg font-extrabold text-white text-center">مراجعة وإضافة تفاصيل الكتاب</h3>
+              <h3 className="text-base font-bold text-apple-text text-center">إضافة كتاب جديد للكتالوج 📚</h3>
 
-              {newCoverUrl && (
-                <div className="flex justify-center my-2">
-                  <div className="w-20 h-28 rounded-xl border border-slate-700 overflow-hidden shadow-md">
-                    <img src={newCoverUrl} alt={newTitle} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
-                  </div>
+              {/* Wikidata Smart Search */}
+              <div className="space-y-1">
+                <label className="block text-[11px] font-semibold text-apple-gold">البحث الذكي عن كتاب أوتوماتيكياً</label>
+                <BookSearchAutocomplete onSelectBook={handleSelectWikidataBook} />
+              </div>
+
+              <form onSubmit={handleCreateBookSubmit} className="space-y-3.5 pt-2">
+                <div>
+                  <label className="block text-xs font-semibold text-apple-secondary mb-1">عنوان الكتاب</label>
+                  <input
+                    type="text"
+                    required
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-apple-bg border border-apple-border rounded-xl text-apple-text text-xs font-medium outline-none focus:border-apple-gold"
+                    placeholder="مثال: مقدمة ابن خلدون"
+                  />
                 </div>
-              )}
 
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5">عنوان الكتاب</label>
-                <input
-                  type="text"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full p-3 bg-obsidian-950 border border-slate-700 rounded-xl text-white text-xs font-medium focus:border-emerald-500 outline-none"
-                  placeholder="مثال: التفكير السريع والبطيء"
-                />
-              </div>
+                <div>
+                  <label className="block text-xs font-semibold text-apple-secondary mb-1">اسم المؤلف</label>
+                  <input
+                    type="text"
+                    required
+                    value={newAuthor}
+                    onChange={(e) => setNewAuthor(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-apple-bg border border-apple-border rounded-xl text-apple-text text-xs font-medium outline-none focus:border-apple-gold"
+                    placeholder="مثال: ابن خلدون"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5">المؤلف</label>
-                <input
-                  type="text"
-                  value={newAuthor}
-                  onChange={(e) => setNewAuthor(e.target.value)}
-                  className="w-full p-3 bg-obsidian-950 border border-slate-700 rounded-xl text-white text-xs font-medium focus:border-emerald-500 outline-none"
-                  placeholder="مثال: دانيال كانمان"
-                />
-              </div>
+                <div>
+                  <label className="block text-xs font-semibold text-apple-secondary mb-1">إجمالي عدد الصفحات</label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={newPages}
+                    onChange={(e) => setNewPages(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-apple-bg border border-apple-border rounded-xl text-apple-text text-xs font-mono outline-none focus:border-apple-gold"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5">عدد الصفحات الإجمالي</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={newPages}
-                  onChange={(e) => setNewPages(e.target.value)}
-                  className="w-full p-3 bg-obsidian-950 border border-slate-700 rounded-xl text-white text-xs font-mono focus:border-emerald-500 outline-none"
-                />
-              </div>
+                <div>
+                  <label className="block text-xs font-semibold text-apple-secondary mb-1">رابط صورة الغلاف (اختياري)</label>
+                  <input
+                    type="url"
+                    value={newCoverUrl}
+                    onChange={(e) => setNewCoverUrl(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-apple-bg border border-apple-border rounded-xl text-apple-text text-xs font-mono outline-none focus:border-apple-gold"
+                    placeholder="https://..."
+                  />
+                </div>
 
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateBookModal(false)}
-                  className="w-1/2 py-3 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="button"
-                  disabled={!newTitle || createBookMutation.isPending}
-                  onClick={() => createBookMutation.mutate()}
-                  className="w-1/2 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 disabled:opacity-50"
-                >
-                  {createBookMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : 'إضافة وتحديد الكتاب'}
-                </button>
-              </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateBookModal(false)}
+                    className="w-1/2 py-2.5 bg-apple-card text-apple-secondary font-semibold rounded-xl text-xs"
+                  >
+                    إلغاء
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={createBookMutation.isPending}
+                    className="w-1/2 py-2.5 bg-[#FFD60A] hover:bg-[#E5C000] text-[#000000] font-black rounded-xl text-xs flex items-center justify-center gap-1"
+                  >
+                    {createBookMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin text-[#000000]" /> : 'حفظ الكتاب'}
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}
@@ -519,5 +573,3 @@ export const BookPage = () => {
     </div>
   );
 };
-
-

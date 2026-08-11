@@ -33,50 +33,36 @@ export const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-obsidian-950 relative overflow-hidden">
-      {/* Background Ambient Orbs */}
-      <div className="glow-orb w-96 h-96 bg-teal-500/20 top-1/4 -left-20 animate-pulse-subtle" />
-      <div className="glow-orb w-96 h-96 bg-emerald-500/15 bottom-1/4 -right-20 animate-pulse-subtle" />
-
+    <div className="min-h-screen flex items-center justify-center p-4 bg-apple-bg relative text-apple-text dir-rtl font-sans transition-colors duration-300">
       <motion.div
-        initial={{ opacity: 0, y: 25, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-md p-8 rounded-3xl glass-panel shadow-2xl border border-slate-800/80 relative z-10 backdrop-blur-xl"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md p-8 rounded-2xl bg-apple-surface shadow-2xl border border-apple-border relative z-10 space-y-6"
       >
         <div className="flex flex-col items-center mb-6 text-center">
-          <motion.div
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-amber-400 p-0.5 shadow-glow-emerald mb-3"
-          >
-            <div className="w-full h-full bg-obsidian-900 rounded-[14px] flex items-center justify-center">
-              <UserPlus className="w-8 h-8 text-emerald-400" />
-            </div>
-          </motion.div>
+          <div className="w-12 h-12 rounded-xl bg-apple-card border border-apple-gold/30 flex items-center justify-center mb-3 text-apple-gold shadow-sm">
+            <UserPlus className="w-6 h-6" />
+          </div>
 
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-300 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            الانضمام لمجتمع القراءة
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-apple-gold px-3 py-1 rounded-full bg-apple-gold/10 border border-apple-gold/20 mb-2">
+            <Sparkles className="w-3.5 h-3.5" />
+            الانضمام لمجتمع القراء
           </span>
 
-          <h1 className="text-2xl font-black text-white tracking-tight">إنشاء حساب جديد</h1>
-          <p className="text-slate-400 text-xs mt-1">ابدأ رحلتك اليومية ومتابعة قراءتك مع أصحابك</p>
+          <h1 className="text-2xl font-black text-apple-text tracking-tight">إنشاء حساب جديد</h1>
+          <p className="text-apple-muted text-xs mt-1 font-medium">ابدأ رحلتك اليومية ومتابعة القراءة مع أصحابك</p>
         </div>
 
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-5 p-3.5 rounded-xl bg-rose-950/60 border border-rose-500/30 text-rose-300 text-xs font-semibold text-center leading-relaxed"
-          >
+          <div className="mb-5 p-3.5 rounded-xl bg-apple-red/15 border border-apple-red/30 text-apple-red text-xs font-bold text-center leading-relaxed">
             {error}
-          </motion.div>
+          </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-3.5">
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-emerald-400" />
+            <label className="block text-xs font-semibold text-apple-secondary mb-1 flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-apple-gold" />
               الاسم الكامل
             </label>
             <input
@@ -84,14 +70,14 @@ export const Register = () => {
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl glass-input text-white text-xs font-medium placeholder-slate-500 outline-none"
+              className="w-full px-4 py-2.5 rounded-xl bg-apple-bg border border-apple-border text-apple-text text-xs font-medium placeholder-apple-muted outline-none focus:border-apple-gold"
               placeholder="اسمك الكامل"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5 text-emerald-400" />
+            <label className="block text-xs font-semibold text-apple-secondary mb-1 flex items-center gap-1.5">
+              <Mail className="w-3.5 h-3.5 text-apple-gold" />
               البريد الإلكتروني
             </label>
             <input
@@ -99,28 +85,28 @@ export const Register = () => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl glass-input text-white text-xs font-medium placeholder-slate-500 outline-none"
+              className="w-full px-4 py-2.5 rounded-xl bg-apple-bg border border-apple-border text-apple-text text-xs font-medium placeholder-apple-muted outline-none focus:border-apple-gold"
               placeholder="name@example.com"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
-              <Phone className="w-3.5 h-3.5 text-emerald-400" />
+            <label className="block text-xs font-semibold text-apple-secondary mb-1 flex items-center gap-1.5">
+              <Phone className="w-3.5 h-3.5 text-apple-gold" />
               رقم الواتساب (اختياري للتنبيهات)
             </label>
             <input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl glass-input text-white text-xs font-mono placeholder-slate-500 outline-none"
+              className="w-full px-4 py-2.5 rounded-xl bg-apple-bg border border-apple-border text-apple-text text-xs font-mono placeholder-apple-muted outline-none focus:border-apple-gold"
               placeholder="+201000000000"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
-              <KeyRound className="w-3.5 h-3.5 text-emerald-400" />
+            <label className="block text-xs font-semibold text-apple-secondary mb-1 flex items-center gap-1.5">
+              <KeyRound className="w-3.5 h-3.5 text-apple-gold" />
               كلمة السر
             </label>
             <input
@@ -128,25 +114,31 @@ export const Register = () => {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl glass-input text-white text-xs font-medium placeholder-slate-500 outline-none"
+              className="w-full px-4 py-2.5 rounded-xl bg-apple-bg border border-apple-border text-apple-text text-xs font-medium placeholder-apple-muted outline-none focus:border-apple-gold"
               placeholder="••••••••"
             />
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
+          {/* SINGLE SOLID ACCENT FILL BUTTON ON THIS PAGE */}
+          <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 font-extrabold rounded-xl text-white text-sm transition-all shadow-lg shadow-emerald-950/40 flex items-center justify-center gap-2 disabled:opacity-50 mt-3"
+            className="w-full py-3.5 px-4 bg-apple-gold hover:opacity-90 text-black font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2 border border-apple-gold/40 disabled:opacity-50 mt-4 shadow-lg"
           >
-            {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : 'إنشاء الحساب الآن'}
-          </motion.button>
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-black" />
+                <span>جاري إنشاء الحساب...</span>
+              </>
+            ) : (
+              'إنشاء الحساب الآن ✨'
+            )}
+          </button>
         </form>
 
-        <div className="mt-5 text-center text-xs text-slate-400 font-medium">
+        <div className="mt-5 text-center text-xs text-apple-muted font-medium pt-4 border-t border-apple-border">
           لديك حساب بالفعل؟{' '}
-          <Link to="/login" className="text-emerald-400 hover:text-emerald-300 hover:underline font-bold transition-colors">
+          <Link to="/login" className="text-apple-gold hover:underline font-bold transition-colors">
             تسجيل الدخول
           </Link>
         </div>
@@ -154,4 +146,3 @@ export const Register = () => {
     </div>
   );
 };
-

@@ -1,8 +1,30 @@
+/*
+===============================================================================
+ خريطة الوظائف المحفوظة (Preserved Functionality Map) — GroupSettingsPage.tsx
+===============================================================================
+1. State Store & Router:
+   - queryClient: useQueryClient()
+   - user: useAuthStore((state) => state.user)
+   - activeGroupId: useUIStore((state) => state.activeGroupId)
+   - fineAmount, deadlineTime, graceHours, funMode, pageGoal, successMsg, errorMsg
+
+2. Queries:
+   - group: getGroupDetails(groupId) [Key: 'groupDetails', groupId]
+
+3. Computed Values & Permissions:
+   - isOwner: checks if user.id matches group.owner_id or has 'owner' role in group.members
+
+4. Mutations:
+   - mutation: updateGroupSettings(groupId, data)
+   - handleSubmit: triggers mutation with number conversions for inputs
+===============================================================================
+*/
+
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import { Settings, Save, ShieldAlert, Clock, DollarSign, Sparkles, Target, CheckCircle2, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { useUIStore } from '../store/uiStore';
 import { getGroupDetails } from '../api/groups';
 import { updateGroupSettings } from '../api/stats';
 import { Navbar } from '../components/Navbar';
@@ -11,7 +33,8 @@ export function GroupSettingsPage() {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
 
-  const groupId = localStorage.getItem('activeGroupId') || '';
+  const activeGroupId = useUIStore((state) => state.activeGroupId);
+  const groupId = activeGroupId || '';
 
   const { data: group, isLoading } = useQuery({
     queryKey: ['groupDetails', groupId],
@@ -42,7 +65,7 @@ export function GroupSettingsPage() {
       updateGroupSettings(groupId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['groupDetails', groupId] });
-      setSuccessMsg('تم حفظ الإعدادات بنجاح!');
+      setSuccessMsg('تم حفظ قواعد وإعدادات المجموعة بنجاح!');
       setErrorMsg('');
       setTimeout(() => setSuccessMsg(''), 4000);
     },
@@ -71,61 +94,52 @@ export function GroupSettingsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-obsidian-950 text-slate-100 pb-32 lg:pb-12 relative overflow-hidden">
-      {/* Background Glows */}
-      <div className="glow-orb w-96 h-96 bg-emerald-500/10 top-0 right-1/4 animate-pulse-subtle" />
-
-      {/* Sticky Navbar */}
+    <div className="min-h-screen bg-apple-bg text-apple-text pb-32 lg:pb-16 relative dir-rtl font-sans transition-colors duration-300">
+      {/* Quiet Header Navbar */}
       <Navbar />
 
-      <main className="max-w-xl mx-auto px-4 pt-6 space-y-6 relative z-10">
-        <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-          <Settings className="text-emerald-400" size={22} />
-          <h1 className="font-extrabold text-lg text-white">إعدادات وقواعد المجموعة</h1>
+      <main className="max-w-xl mx-auto px-4 sm:px-8 pt-8 space-y-8 relative z-10">
+        <div className="flex items-center gap-2.5 border-b border-apple-border pb-4">
+          <Settings className="text-apple-gold" size={22} />
+          <div>
+            <h1 className="font-black text-2xl text-apple-text tracking-tight">إعدادات وقواعد المجموعة</h1>
+            <p className="text-apple-muted text-xs mt-0.5 font-medium">{group?.name || 'النادي'}</p>
+          </div>
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-slate-400 text-xs">
-            <Loader2 className="animate-spin text-emerald-400 mb-2" size={32} />
-            <p>جاري تحميل الإعدادات...</p>
+          <div className="flex flex-col items-center justify-center py-20 text-apple-muted text-xs">
+            <Loader2 className="animate-spin text-apple-gold mb-2" size={28} />
+            <p className="font-medium">جاري تحميل إعدادات المجموعة...</p>
           </div>
         ) : !isOwner ? (
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="glass-panel p-6 rounded-3xl border border-amber-500/30 text-amber-400 text-center space-y-2 shadow-xl"
-          >
-            <ShieldAlert className="mx-auto text-amber-400" size={36} />
-            <p className="font-extrabold text-base text-white">تنبيه الصلاحيات</p>
-            <p className="text-xs text-slate-300">
-              مؤسس وإداري المجموعة فقط هو من يحق له تعديل غرامات ومواعيد القراءة.
+          <div className="bg-apple-surface p-6 rounded-2xl border border-apple-gold/30 text-apple-gold text-center space-y-2 shadow-lg">
+            <ShieldAlert className="mx-auto text-apple-gold" size={32} />
+            <p className="font-bold text-base text-apple-text">تنبيه الصلاحيات الإدارية</p>
+            <p className="text-xs text-apple-secondary font-medium leading-relaxed">
+              مؤسس وإداري المجموعة فقط هو من يحق له تعديل قيمة الغرامات، مواعيد الإغلاق، وهدف القراءة الجماعي.
             </p>
-          </motion.div>
+          </div>
         ) : (
-          <motion.form 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            onSubmit={handleSubmit} 
-            className="space-y-5"
-          >
+          <form onSubmit={handleSubmit} className="space-y-6">
             {successMsg && (
-              <div className="bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 p-4 rounded-2xl flex items-center gap-2 text-xs font-bold shadow-md">
-                <CheckCircle2 size={18} className="text-emerald-400" />
+              <div className="bg-apple-green/15 border border-apple-green/30 text-apple-green p-4 rounded-xl flex items-center gap-2 text-xs font-bold">
+                <CheckCircle2 size={16} className="text-apple-green" />
                 <span>{successMsg}</span>
               </div>
             )}
 
             {errorMsg && (
-              <div className="bg-rose-500/15 border border-rose-500/30 text-rose-300 p-4 rounded-2xl flex items-center gap-2 text-xs font-bold shadow-md">
-                <ShieldAlert size={18} className="text-rose-400" />
+              <div className="bg-apple-red/15 border border-apple-red/30 text-apple-red p-4 rounded-xl flex items-center gap-2 text-xs font-bold">
+                <ShieldAlert size={16} className="text-apple-red" />
                 <span>{errorMsg}</span>
               </div>
             )}
 
             {/* Fine Amount */}
-            <div className="glass-card p-5 rounded-3xl border border-slate-800/90 space-y-2.5">
-              <label className="flex items-center gap-2 font-extrabold text-xs text-emerald-400">
-                <DollarSign size={18} />
+            <div className="bg-apple-surface p-5 rounded-2xl border border-apple-border space-y-2.5 shadow-md">
+              <label className="flex items-center gap-2 font-bold text-xs text-apple-text">
+                <DollarSign size={16} className="text-apple-gold" />
                 قيمة غرامة اليوم الغائب (جنيه / EGP)
               </label>
               <input
@@ -134,31 +148,31 @@ export function GroupSettingsPage() {
                 step="5"
                 value={fineAmount}
                 onChange={(e) => setFineAmount(e.target.value)}
-                className="w-full bg-obsidian-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-xs font-mono focus:border-emerald-500 outline-none"
+                className="w-full bg-apple-bg border border-apple-border rounded-xl px-4 py-3 text-apple-text text-xs font-mono focus:border-apple-gold outline-none"
               />
-              <p className="text-[11px] text-slate-400">
-                المبلغ الذي يضاف لخزينة المجموعة فور تخطي اليوم المحدد بدون تسجيل قراءة.
+              <p className="text-[11px] text-apple-muted font-medium">
+                المبلغ الذي يضاف لغرامات العضو فور تخطي الموعد المحدد بدون تسجيل القراءة اليومية.
               </p>
             </div>
 
             {/* Checkin Deadline & Grace Period */}
-            <div className="glass-card p-5 rounded-3xl border border-slate-800/90 space-y-4">
+            <div className="bg-apple-surface p-5 rounded-2xl border border-apple-border space-y-4 shadow-md">
               <div className="space-y-2">
-                <label className="flex items-center gap-2 font-extrabold text-xs text-emerald-400">
-                  <Clock size={18} />
+                <label className="flex items-center gap-2 font-bold text-xs text-apple-text">
+                  <Clock size={16} className="text-apple-gold" />
                   موعد إغلاق التقرير اليومي
                 </label>
                 <input
                   type="time"
                   value={deadlineTime}
                   onChange={(e) => setDeadlineTime(e.target.value)}
-                  className="w-full bg-obsidian-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-xs font-mono focus:border-emerald-500 outline-none"
+                  className="w-full bg-apple-bg border border-apple-border rounded-xl px-4 py-3 text-apple-text text-xs font-mono focus:border-apple-gold outline-none"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="flex items-center gap-2 font-extrabold text-xs text-emerald-400">
-                  <Clock size={18} />
+                <label className="flex items-center gap-2 font-bold text-xs text-apple-text">
+                  <Clock size={16} className="text-apple-gold" />
                   مهلة السماح الفجرية (بالساعات)
                 </label>
                 <input
@@ -167,18 +181,18 @@ export function GroupSettingsPage() {
                   max="12"
                   value={graceHours}
                   onChange={(e) => setGraceHours(e.target.value)}
-                  className="w-full bg-obsidian-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-xs font-mono focus:border-emerald-500 outline-none"
+                  className="w-full bg-apple-bg border border-apple-border rounded-xl px-4 py-3 text-apple-text text-xs font-mono focus:border-apple-gold outline-none"
                 />
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-apple-muted font-medium">
                   ساعات إضافية لتسجيل القراءة كـ "متأخر" قبل احتساب الغياب رسمياً وتسجيل الغرامة.
                 </p>
               </div>
             </div>
 
             {/* Monthly Page Goal */}
-            <div className="glass-card p-5 rounded-3xl border border-slate-800/90 space-y-2.5">
-              <label className="flex items-center gap-2 font-extrabold text-xs text-emerald-400">
-                <Target size={18} />
+            <div className="bg-apple-surface p-5 rounded-2xl border border-apple-border space-y-2.5 shadow-md">
+              <label className="flex items-center gap-2 font-bold text-xs text-apple-text">
+                <Target size={16} className="text-apple-gold" />
                 هدف الصفحات الشهرية الجماعية
               </label>
               <input
@@ -187,56 +201,53 @@ export function GroupSettingsPage() {
                 step="50"
                 value={pageGoal}
                 onChange={(e) => setPageGoal(e.target.value)}
-                className="w-full bg-obsidian-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-xs font-mono focus:border-emerald-500 outline-none"
+                className="w-full bg-apple-bg border border-apple-border rounded-xl px-4 py-3 text-apple-text text-xs font-mono focus:border-apple-gold outline-none"
               />
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-apple-muted font-medium">
                 مجموع الصفحات التي تسعى كافة أعضاء المجموعة لإنجازها شهرياً.
               </p>
             </div>
 
             {/* Fun Mode Toggle */}
-            <div className="glass-card p-5 rounded-3xl border border-slate-800/90 flex items-center justify-between">
+            <div className="bg-apple-surface p-5 rounded-2xl border border-apple-border flex items-center justify-between shadow-md">
               <div>
-                <label className="flex items-center gap-2 font-extrabold text-xs text-emerald-400">
-                  <Sparkles size={18} />
-                  وضع التنافس والاحتفالات
+                <label className="flex items-center gap-2 font-bold text-xs text-apple-text">
+                  <Sparkles size={16} className="text-apple-gold" />
+                  وضع التنافس والاحتفالات 🎮
                 </label>
-                <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                  عند التفعيل: يتم إظهار ألقاب أسبوعية ممتعة للأعضاء، احتفالات بصرية عند تسجيل القراءة، وسجل أوسمة إنجازية. عند الإيقاف: تبقى فقط المتابعة الجادة بدون تأثيرات ترفيهية.
+                <p className="text-[11px] text-apple-muted mt-1 leading-relaxed max-w-sm font-medium">
+                  إظهار الألقاب الأسبوعية والتأثيرات الحماسية عند تسجيل القراءة وسجل الأوسمة.
                 </p>
               </div>
               <input
                 type="checkbox"
                 checked={funMode}
                 onChange={(e) => setFunMode(e.target.checked)}
-                className="w-5 h-5 accent-emerald-500 rounded cursor-pointer"
+                className="w-5 h-5 accent-apple-gold rounded cursor-pointer"
               />
             </div>
 
-            {/* Submit Button */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            {/* SINGLE SOLID ACCENT FILL BUTTON ON THIS PAGE */}
+            <button
               type="submit"
               disabled={mutation.isPending}
-              className="w-full bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold py-3.5 px-4 rounded-2xl transition shadow-xl shadow-emerald-950/50 flex items-center justify-center gap-2 text-xs"
+              className="w-full bg-apple-gold hover:opacity-90 text-black font-black py-3.5 px-4 rounded-xl transition-all active:scale-[0.97] flex items-center justify-center gap-2 text-xs border border-apple-gold/40 disabled:opacity-50 shadow-lg"
             >
               {mutation.isPending ? (
                 <>
-                  <Loader2 size={18} className="animate-spin" />
+                  <Loader2 size={16} className="animate-spin text-black" />
                   <span>جاري حفظ الإعدادات...</span>
                 </>
               ) : (
                 <>
-                  <Save size={18} />
+                  <Save size={16} />
                   <span>حفظ قواعد وإعدادات المجموعة</span>
                 </>
               )}
-            </motion.button>
-          </motion.form>
+            </button>
+          </form>
         )}
       </main>
     </div>
   );
 }
-

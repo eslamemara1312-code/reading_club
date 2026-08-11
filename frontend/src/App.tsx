@@ -19,6 +19,8 @@ import { useUIStore } from './store/uiStore';
 import { getCurrentUser } from './api/auth';
 import { getMyGroups } from './api/groups';
 
+import Lenis from 'lenis';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -31,6 +33,25 @@ const queryClient = new QueryClient({
 export function App() {
   const { isAuthenticated, setUser } = useAuthStore();
   const { activeGroupId, setActiveGroupId } = useUIStore();
+
+  // Smooth Scroll Initialization with Lenis
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    });
+
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+
+    return () => {
+      lenis.destroy();
+    };
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated) {

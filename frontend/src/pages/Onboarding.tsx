@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Key, Loader2, Sparkles } from 'lucide-react';
+import { Users, Key, Loader2, Sparkles, BookOpen } from 'lucide-react';
 import { createGroup, joinGroup } from '../api/groups';
 import { useUIStore } from '../store/uiStore';
 
@@ -40,35 +40,29 @@ export const Onboarding = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-obsidian-950 relative overflow-hidden">
-      {/* Background Orbs */}
-      <div className="glow-orb w-96 h-96 bg-emerald-500/20 top-1/4 -right-20 animate-pulse-subtle" />
-      <div className="glow-orb w-96 h-96 bg-amber-500/15 bottom-1/4 -left-20 animate-pulse-subtle" />
-
+    <div className="min-h-screen flex items-center justify-center p-4 bg-apple-bg text-apple-text dir-rtl font-sans transition-colors duration-300">
       <motion.div
-        initial={{ opacity: 0, y: 25, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-lg p-8 rounded-3xl glass-panel shadow-2xl border border-slate-800/80 relative z-10 backdrop-blur-xl"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-lg p-8 rounded-2xl bg-apple-surface border border-apple-border relative z-10 space-y-6 shadow-2xl"
       >
-        <div className="text-center mb-6">
-          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-300 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 mb-3 shadow-glow-amber">
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            خطوة واحدة للبدء
-          </span>
-          <h1 className="text-2xl font-black text-white tracking-tight">مرحباً بك في نادي القراءة</h1>
-          <p className="text-slate-400 text-xs mt-1">أنشئ مجتمع قراءة خاص أو انضم لمجموعة أصحابك</p>
+        <div className="text-center space-y-2">
+          <div className="w-12 h-12 rounded-xl bg-apple-card border border-apple-gold/30 text-apple-gold flex items-center justify-center mx-auto shadow-sm">
+            <BookOpen className="w-6 h-6" />
+          </div>
+          <h1 className="text-2xl font-black text-apple-text tracking-tight">مرحباً بك في نادي القراءة</h1>
+          <p className="text-apple-muted text-xs font-medium">أنشئ مجتمع قراءة خاص بك أو انضم لرفاقك بكود الدعوة</p>
         </div>
 
         {/* Segmented Mode Control */}
-        <div className="grid grid-cols-2 gap-2 mb-6 p-1.5 bg-obsidian-900/90 rounded-2xl border border-slate-800">
+        <div className="grid grid-cols-2 gap-2 p-1 bg-apple-bg rounded-xl border border-apple-border shadow-inner">
           <button
             type="button"
             onClick={() => setMode('create')}
-            className={`relative flex items-center justify-center gap-2 py-3 rounded-xl font-extrabold text-xs transition-all ${
+            className={`flex items-center justify-center gap-2 py-2.5 rounded-lg font-bold text-xs transition-colors ${
               mode === 'create'
-                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-apple-card text-apple-gold border border-apple-gold/30 shadow-sm'
+                : 'text-apple-secondary hover:text-apple-text'
             }`}
           >
             <Users className="w-4 h-4" />
@@ -77,10 +71,10 @@ export const Onboarding = () => {
           <button
             type="button"
             onClick={() => setMode('join')}
-            className={`relative flex items-center justify-center gap-2 py-3 rounded-xl font-extrabold text-xs transition-all ${
+            className={`flex items-center justify-center gap-2 py-2.5 rounded-lg font-bold text-xs transition-colors ${
               mode === 'join'
-                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-apple-card text-apple-gold border border-apple-gold/30 shadow-sm'
+                : 'text-apple-secondary hover:text-apple-text'
             }`}
           >
             <Key className="w-4 h-4" />
@@ -89,13 +83,9 @@ export const Onboarding = () => {
         </div>
 
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-5 p-3.5 rounded-xl bg-rose-950/60 border border-rose-500/30 text-rose-300 text-xs font-semibold text-center leading-relaxed"
-          >
+          <div className="p-3.5 rounded-xl bg-apple-red/15 border border-apple-red/30 text-apple-red text-xs font-bold text-center leading-relaxed">
             {error}
-          </motion.div>
+          </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -103,35 +93,35 @@ export const Onboarding = () => {
             {mode === 'create' ? (
               <motion.div
                 key="create"
-                initial={{ opacity: 0, x: -15 }}
+                initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 15 }}
-                transition={{ duration: 0.2 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.15 }}
                 className="space-y-4"
               >
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1.5">اسم المجموعة</label>
+                  <label className="block text-xs font-semibold text-apple-secondary mb-1.5">اسم المجموعة أو النادي</label>
                   <input
                     type="text"
                     required
                     value={groupName}
                     onChange={(e) => setGroupName(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl glass-input text-white text-xs font-medium placeholder-slate-500 outline-none"
-                    placeholder="مثال: نادي أبطال القراءة"
+                    className="w-full px-4 py-3 rounded-xl bg-apple-bg border border-apple-border text-apple-text text-xs font-medium placeholder-apple-muted outline-none focus:border-apple-gold"
+                    placeholder="مثال: أبطال القراءة اليومية 📚"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
-                    <span>قيمة الغرامة اليومية للغائب</span>
-                    <span className="text-amber-400 text-[11px] font-normal">تودع بالخزينة عند التخلف</span>
+                  <label className="block text-xs font-semibold text-apple-secondary mb-1.5 flex items-center justify-between">
+                    <span>قيمة الغرامة اليومية عند التخلف (EGP)</span>
+                    <span className="text-apple-gold text-[11px] font-medium">تودع بالخزينة عند التخلف</span>
                   </label>
                   <input
                     type="number"
                     min="0"
                     value={fineAmount}
                     onChange={(e) => setFineAmount(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl glass-input text-white text-xs font-mono placeholder-slate-500 outline-none"
+                    className="w-full px-4 py-3 rounded-xl bg-apple-bg border border-apple-border text-apple-text text-xs font-mono placeholder-apple-muted outline-none focus:border-apple-gold"
                     placeholder="20"
                   />
                 </div>
@@ -139,45 +129,47 @@ export const Onboarding = () => {
             ) : (
               <motion.div
                 key="join"
-                initial={{ opacity: 0, x: 15 }}
+                initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -15 }}
-                transition={{ duration: 0.2 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.15 }}
                 className="space-y-4"
               >
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1.5">كود الدعوة الخاص بالمجموعة</label>
+                  <label className="block text-xs font-semibold text-apple-secondary mb-1.5">كود الدعوة الخاص بالمجموعة</label>
                   <input
                     type="text"
                     required
                     value={inviteCode}
-                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                    className="w-full px-4 py-3 rounded-xl glass-input text-white text-sm tracking-widest text-center uppercase font-mono font-bold outline-none"
-                    placeholder="X7K2P9"
+                    onChange={(e) => setInviteCode(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl bg-apple-bg border border-apple-border text-apple-text text-xs font-mono tracking-widest text-center uppercase outline-none focus:border-apple-gold"
+                    placeholder="مثال: ABC123XYZ"
                   />
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
 
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
+          {/* SINGLE SOLID ACCENT FILL BUTTON ON THIS PAGE */}
+          <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 font-extrabold rounded-xl text-white text-sm transition-all shadow-lg shadow-emerald-950/40 flex items-center justify-center gap-2 disabled:opacity-50 mt-4"
+            className="w-full py-3.5 bg-apple-gold hover:opacity-90 text-black font-black rounded-xl text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.97] border border-apple-gold/40 disabled:opacity-50 mt-4 shadow-lg"
           >
             {isLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin text-white" />
-            ) : mode === 'create' ? (
-              'إنشاء المجموعة والانطلاق'
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-black" />
+                <span>جاري معالجة الطلب...</span>
+              </>
             ) : (
-              'الانضمام إلى المجموعة'
+              <>
+                <Sparkles className="w-4 h-4" />
+                <span>{mode === 'create' ? 'إنشاء البدء فوراً' : 'الانضمام للمجموعة'}</span>
+              </>
             )}
-          </motion.button>
+          </button>
         </form>
       </motion.div>
     </div>
   );
 };
-

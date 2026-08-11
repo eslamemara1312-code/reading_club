@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, Share2, Award, Flame, BookOpen, CheckCircle, Check } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
 import { MonthlySummary } from '../api/stats';
 
 interface WrappedModalProps {
@@ -12,6 +14,7 @@ interface WrappedModalProps {
 
 export function WrappedModal({ summary, userName, onClose }: WrappedModalProps) {
   const [copied, setCopied] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const { stats } = summary;
 
   useEffect(() => {
@@ -21,6 +24,25 @@ export function WrappedModal({ summary, userName, onClose }: WrappedModalProps) 
       origin: { y: 0.6 }
     });
   }, []);
+
+  useGSAP(() => {
+    if (!containerRef.current) return;
+    const cards = containerRef.current.querySelectorAll('.gsap-stat-card');
+    
+    gsap.fromTo(
+      cards,
+      { opacity: 0, y: 30, scale: 0.9 },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.5,
+        stagger: 0.12,
+        ease: 'back.out(1.7)',
+        delay: 0.2,
+      }
+    );
+  }, { scope: containerRef });
 
   const monthFormatted = new Date(summary.month).toLocaleDateString('ar-EG', {
     month: 'long',
@@ -71,31 +93,31 @@ export function WrappedModal({ summary, userName, onClose }: WrappedModalProps) 
             <p className="text-xs text-slate-400 mt-1">{monthFormatted}</p>
           </div>
 
-          {/* Highlight Stats Grid */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <motion.div whileHover={{ scale: 1.03 }} className="glass-card rounded-2xl p-4 text-center border-emerald-500/30">
+          {/* Highlight Stats Grid (GSAP Animated) */}
+          <div ref={containerRef} className="grid grid-cols-2 gap-3 mb-6">
+            <div className="gsap-stat-card glass-card rounded-2xl p-4 text-center border-emerald-500/30">
               <CheckCircle className="text-emerald-400 mx-auto mb-1" size={24} />
               <p className="text-2xl font-black text-emerald-400">{stats.commitment_rate}%</p>
               <p className="text-xs text-slate-400 mt-0.5">نسبة الالتزام</p>
-            </motion.div>
+            </div>
 
-            <motion.div whileHover={{ scale: 1.03 }} className="glass-card rounded-2xl p-4 text-center border-blue-500/30">
+            <div className="gsap-stat-card glass-card rounded-2xl p-4 text-center border-blue-500/30">
               <BookOpen className="text-blue-400 mx-auto mb-1" size={24} />
               <p className="text-2xl font-black text-blue-400">{stats.total_pages}</p>
               <p className="text-xs text-slate-400 mt-0.5">صفحة مقروءة</p>
-            </motion.div>
+            </div>
 
-            <motion.div whileHover={{ scale: 1.03 }} className="glass-card rounded-2xl p-4 text-center border-amber-500/30">
+            <div className="gsap-stat-card glass-card rounded-2xl p-4 text-center border-amber-500/30">
               <Flame className="text-amber-400 mx-auto mb-1" size={24} />
               <p className="text-2xl font-black text-amber-400">{stats.longest_streak}</p>
               <p className="text-xs text-slate-400 mt-0.5">أطول حماسة</p>
-            </motion.div>
+            </div>
 
-            <motion.div whileHover={{ scale: 1.03 }} className="glass-card rounded-2xl p-4 text-center border-purple-500/30">
+            <div className="gsap-stat-card glass-card rounded-2xl p-4 text-center border-purple-500/30">
               <Award className="text-purple-400 mx-auto mb-1" size={24} />
               <p className="text-2xl font-black text-purple-400">{stats.total_checkins}</p>
               <p className="text-xs text-slate-400 mt-0.5">أيام القراءة</p>
-            </motion.div>
+            </div>
           </div>
 
           {/* Share / Copy Button */}
