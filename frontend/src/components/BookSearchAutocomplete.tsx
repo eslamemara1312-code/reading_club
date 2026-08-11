@@ -119,21 +119,21 @@ export function BookSearchAutocomplete({ onSelectBook }: BookSearchAutocompleteP
   return (
     <div className="relative w-full">
       <div className="relative flex items-center">
-        <Search className="absolute right-3 w-4 h-4 text-emerald-400 pointer-events-none" />
+        <Search className="absolute right-3 w-4 h-4 text-apple-gold pointer-events-none" />
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => query.length >= 2 && setOpen(true)}
           placeholder="ابحث بالعنوان أو الكاتب..."
-          className="w-full pl-4 pr-10 py-3 rounded-xl bg-obsidian-950 border border-slate-700 text-white text-xs font-medium focus:border-emerald-500 outline-none transition-all"
+          className="w-full pl-4 pr-10 py-3 rounded-xl bg-apple-bg border border-apple-border text-apple-text text-xs font-medium placeholder:text-apple-muted focus:border-apple-gold outline-none transition-all shadow-sm"
         />
-        {loading && <Loader2 className="absolute left-3 w-4 h-4 text-emerald-400 animate-spin" />}
+        {loading && <Loader2 className="absolute left-3 w-4 h-4 text-apple-gold animate-spin" />}
       </div>
 
       {open && results.length > 0 && (
-        <div className="absolute top-full right-0 left-0 mt-1.5 bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl overflow-hidden z-50 max-h-72 overflow-y-auto divide-y divide-slate-800">
-          <div className="px-3 py-1.5 bg-slate-950/80 text-[10px] font-bold text-emerald-400 flex items-center gap-1">
+        <div className="absolute top-full right-0 left-0 mt-1.5 bg-apple-surface border border-apple-border rounded-2xl shadow-2xl overflow-hidden z-50 max-h-72 overflow-y-auto divide-y divide-apple-border">
+          <div className="px-3 py-1.5 bg-apple-card text-[10px] font-bold text-apple-gold flex items-center gap-1">
             <Sparkles className="w-3 h-3" /> نتائج البحث الذكية باللغة العربية مع الأغلفة
           </div>
           {results.map((item, idx) => (
@@ -145,9 +145,9 @@ export function BookSearchAutocomplete({ onSelectBook }: BookSearchAutocompleteP
                 setQuery(item.title);
                 setOpen(false);
               }}
-              className="w-full px-3 py-2.5 text-right hover:bg-slate-800/80 transition-colors flex items-center gap-3"
+              className="w-full px-3 py-2.5 text-right hover:bg-apple-card-elevated transition-colors flex items-center gap-3"
             >
-              <div className="w-10 h-14 bg-slate-800 rounded-lg border border-slate-700 flex items-center justify-center shrink-0 overflow-hidden relative">
+              <div className="w-10 h-14 bg-apple-card rounded-lg border border-apple-border flex items-center justify-center shrink-0 overflow-hidden relative">
                 {item.cover_url ? (
                   <img
                     src={item.cover_url}
@@ -163,14 +163,14 @@ export function BookSearchAutocomplete({ onSelectBook }: BookSearchAutocompleteP
                   />
                 ) : null}
                 <div className={`flex flex-col items-center justify-center p-1 text-center ${item.cover_url ? 'hidden' : ''}`}>
-                  <BookOpen className="w-4 h-4 text-emerald-400 mb-0.5" />
+                  <BookOpen className="w-4 h-4 text-apple-gold mb-0.5" />
                 </div>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-white truncate">{item.title}</p>
-                <p className="text-[11px] text-slate-400 truncate mt-0.5">{item.author}</p>
+                <p className="text-xs font-bold text-apple-text truncate">{item.title}</p>
+                <p className="text-[11px] text-apple-secondary truncate mt-0.5">{item.author}</p>
                 {item.total_pages && (
-                  <p className="text-[10px] text-emerald-400 font-mono font-semibold mt-0.5">
+                  <p className="text-[10px] text-apple-gold font-mono font-semibold mt-0.5">
                     {item.total_pages} صفحة
                   </p>
                 )}

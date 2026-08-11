@@ -89,7 +89,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+201000000000"
-                  className="w-full p-2.5 bg-obsidian-950 border border-slate-700/80 rounded-xl text-white text-xs font-mono focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                  className="w-full p-2.5 bg-apple-bg border border-apple-border rounded-xl text-apple-text text-xs font-mono placeholder:text-apple-muted focus:border-apple-gold outline-none"
                 />
               </div>
 
