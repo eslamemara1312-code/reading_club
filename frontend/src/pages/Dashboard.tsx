@@ -199,155 +199,81 @@ export const Dashboard = () => {
         />
       )}
     >
-      <div className="space-y-6 sm:space-y-8 max-w-6xl mx-auto">
+      <div className="mx-auto max-w-6xl space-y-7">
         {/* Weekly Titles Banner */}
         {groupTitles && <WeeklyTitlesBanner titles={groupTitles} />}
 
-        {/* 1. HERO & ACTIVE BOOK GRID */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-          {/* Reader Identity & Greeting Panel (7 cols) */}
-          <div className="lg:col-span-7 p-6 sm:p-8 rounded-3xl bg-reader-panel border border-reader-border shadow-xl flex flex-col justify-between space-y-6 relative overflow-hidden">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-reader-muted font-bold tracking-wide flex items-center gap-1.5">
-                  {getGreeting()} 📖
+        {/* 1. ACTIVE BOOK HERO — mirrors Reference #3 */}
+        <section className="relative overflow-hidden rounded-[34px] border border-reader-border bg-reader-subdued p-5 shadow-2xl sm:p-7">
+          <div className="pointer-events-none absolute -left-24 -top-28 h-72 w-72 rounded-full bg-reader-accentSoft blur-3xl" />
+          <div className="relative flex flex-col gap-7 md:flex-row md:items-center">
+            <BookCover
+              coverUrl={activeBook?.book.cover_url}
+              title={activeBook?.book.title || 'كتاب النادي القادم'}
+              author={activeBook?.book.author || 'اختر كتابًا من المكتبة'}
+              size="xl"
+              className="mx-auto shadow-2xl md:mx-0"
+            />
+
+            <div className="min-w-0 flex-1 space-y-5 text-center md:text-right">
+              <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
+                <span className="inline-flex items-center gap-2 rounded-full border border-reader-borderStrong bg-reader-surface px-3 py-1.5 text-[11px] font-black text-reader-accent">
+                  <span className="h-2 w-2 rounded-full bg-reader-success" />
+                  كتاب النادي الحالي
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-reader-accentSoft border border-reader-borderStrong text-reader-accent shadow-sm">
-                  <span className="w-2 h-2 rounded-full bg-reader-accent animate-ping" />
-                  مباشر النادي اليوم
-                </span>
+                <span className="text-[11px] font-bold text-reader-muted">{getGreeting()}، {user?.name || 'صديق القراءة'}</span>
               </div>
 
-              {/* Greeting Title */}
-              <h1 className="text-2xl sm:text-3xl font-black text-reader-text tracking-tight leading-snug">
-                أهلاً، <span className="text-reader-accent font-black">{user?.name || 'صديق القراءة'}</span> ⚡
-              </h1>
-
-              {/* Level & XP Strip */}
-              <div className="p-4 bg-reader-surface border border-reader-border rounded-2xl space-y-2.5">
-                <div className="flex items-center justify-between text-xs font-bold">
-                  <span className="text-reader-metric-goldText flex items-center gap-1.5">
-                    <Trophy className="w-4 h-4 text-reader-metric-goldText" />
-                    المستوى {user?.level || 1} • قارئ ملتزم 🏅
-                  </span>
-                  <span className="text-reader-subtle font-mono">{user?.xp_points || 0} / {((user?.level || 1) * 200)} XP</span>
-                </div>
-                <ReadingProgress
-                  current={user?.xp_points || 0}
-                  total={(user?.level || 1) * 200}
-                  unit="XP"
-                  showPercent={false}
-                  colorClass="bg-gradient-to-r from-reader-metric-goldText to-reader-accent"
-                />
+              <div>
+                <h1 className="max-w-2xl text-3xl font-black leading-[1.25] tracking-tight text-reader-text sm:text-4xl xl:text-5xl">
+                  {activeBook?.book.title || 'اختر قصة تستحق أن تعيش معها'}
+                </h1>
+                <p className="mt-2 text-sm font-bold text-reader-muted sm:text-base">بقلم {activeBook?.book.author || 'مؤلفك المفضل'}</p>
               </div>
 
-              <p className="text-xs sm:text-sm text-reader-muted font-medium leading-relaxed">
-                "صفحة واحدة يومياً تفصلك عن الحفاظ على العادة وإلهام رفاق النادي."
-              </p>
-            </div>
-
-            {/* Streak & Freeze Status Strip */}
-            <div className="p-4 bg-reader-surface border border-reader-border rounded-2xl flex items-center justify-between shadow-inner">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-reader-metric-coralBg border border-reader-border flex items-center justify-center text-reader-metric-coralText shrink-0 shadow-md">
-                  <Flame className="w-6 h-6" />
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-reader-border bg-reader-surface p-3">
+                  <span className="block text-[10px] font-bold text-reader-muted">هدف اليوم</span>
+                  <strong className="mt-1 block font-mono text-xl text-reader-text">{activeBook?.daily_target_pages || 20} صفحة</strong>
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl font-black text-reader-text font-mono">{userStreak}</span>
-                    <span className="text-xs font-bold text-reader-muted">أيام استمرارية متواصلة</span>
-                  </div>
-                  <p className="text-[11px] text-reader-subtle font-medium mt-0.5">
-                    الوسام القادم عند <strong className="text-reader-metric-goldText font-bold">7 أيام 🏆</strong>
-                  </p>
+                <div className="rounded-2xl border border-reader-border bg-reader-surface p-3">
+                  <span className="block text-[10px] font-bold text-reader-muted">ما قرأته</span>
+                  <strong className="mt-1 block font-mono text-xl text-reader-text">{userPagesToday} صفحة</strong>
+                </div>
+                <div className="col-span-2 rounded-2xl border border-reader-border bg-reader-surface p-3 sm:col-span-1">
+                  <span className="block text-[10px] font-bold text-reader-muted">استمراريتك</span>
+                  <strong className="mt-1 flex items-center justify-center gap-1 font-mono text-xl text-reader-text md:justify-start"><Flame className="h-5 w-5 text-reader-metric-coralText" /> {userStreak} أيام</strong>
                 </div>
               </div>
 
-              <div className="text-left font-mono text-xs">
-                <span className="inline-flex items-center gap-1 text-reader-accent font-bold px-3 py-1.5 rounded-xl bg-reader-accentSoft border border-reader-borderStrong shadow-sm">
-                  ❄️ 2 تجميد متبقي
-                </span>
-              </div>
-            </div>
-          </div>
+              <ReadingProgress current={userPagesToday} total={activeBook?.daily_target_pages || 20} label="تقدم ورد اليوم" unit="صفحة" colorClass="bg-reader-accent" />
 
-          {/* Active Book Showcase Panel (5 cols) */}
-          <div className="lg:col-span-5">
-            {activeBook ? (
-              <div className="p-6 rounded-3xl bg-reader-panel border border-reader-border shadow-xl h-full flex flex-col justify-between space-y-4">
-                <div className="flex items-center justify-between border-b border-reader-border pb-3">
-                  <span className="text-xs font-bold text-reader-accent tracking-wider uppercase flex items-center gap-1.5">
-                    <BookOpen className="w-4 h-4" />
-                    كتاب النادي الحالي
-                  </span>
-                  <span className="text-[11px] font-bold text-reader-muted font-mono">
-                    هدف اليوم: {activeBook.daily_target_pages} ص/يوم
-                  </span>
-                </div>
-
-                <div className="flex gap-4 items-center flex-1">
-                  <BookCover
-                    coverUrl={activeBook.book.cover_url}
-                    title={activeBook.book.title}
-                    author={activeBook.book.author}
-                    size="md"
-                  />
-
-                  <div className="space-y-2.5 min-w-0 flex-1">
-                    <h3 className="font-black text-base text-reader-text line-clamp-2 leading-snug">
-                      {activeBook.book.title}
-                    </h3>
-                    <p className="text-xs text-reader-muted font-medium line-clamp-1">
-                      {activeBook.book.author}
-                    </p>
-
-                    <ReadingProgress
-                      current={userPagesToday}
-                      total={activeBook.daily_target_pages || 1}
-                      label="إنجاز اليوم"
-                      unit="صفحة"
-                      colorClass="bg-reader-accent"
-                    />
-                  </div>
-                </div>
-
+              <div className="flex flex-col justify-center gap-3 sm:flex-row md:justify-start">
                 <button
-                  onClick={() => navigate(`/groups/${activeGroupId}/books/${activeBook.id}/read`)}
-                  className="w-full py-3 px-4 bg-reader-accent hover:bg-reader-accentHover text-reader-accentForeground font-bold text-xs rounded-2xl transition-colors flex items-center justify-center gap-2 shadow-sm"
+                  onClick={() => activeBook ? navigate(`/groups/${activeGroupId}/books/${activeBook.id}/read`) : navigate('/books')}
+                  className="flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-reader-accent px-6 text-sm font-black text-reader-accentForeground shadow-xl transition-colors hover:bg-reader-accentHover"
                 >
-                  <BookOpen className="w-4 h-4" />
-                  <span>فتح القارئ الإلكتروني</span>
+                  <BookOpen className="h-5 w-5" />
+                  {activeBook ? 'استكمال القراءة' : 'اختيار كتاب'}
+                </button>
+                <button onClick={() => navigate('/books')} className="flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border border-reader-borderStrong bg-reader-surface px-6 text-sm font-black text-reader-text transition-colors hover:bg-reader-hover">
+                  عرض الكتب المرتبطة
+                  <ChevronLeft className="h-4 w-4" />
                 </button>
               </div>
-            ) : (
-              <div className="p-6 rounded-3xl bg-reader-panel border border-reader-border space-y-4 flex flex-col justify-between h-full min-h-[240px] shadow-xl">
-                <div className="space-y-2">
-                  <span className="text-xs font-bold text-reader-accent tracking-wider uppercase block">كتاب النادي الحالي</span>
-                  <h3 className="text-base font-bold text-reader-text">لم يتم اختيار كتاب للمجموعة</h3>
-                  <p className="text-xs text-reader-muted leading-relaxed">
-                    اختر الكتاب الذي سيقرؤه النادي حالياً للبدء في تتبع ورد القراءة اليومي.
-                  </p>
-                </div>
-                <button
-                  onClick={() => navigate('/books')}
-                  className="w-full py-3 px-4 bg-reader-surface hover:bg-reader-hover text-reader-accent border border-reader-borderStrong font-bold text-xs rounded-2xl transition-colors flex items-center justify-center gap-1.5 shadow-sm"
-                >
-                  <span>اختيار كتاب من الرف</span>
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-              </div>
-            )}
+            </div>
           </div>
         </section>
 
         {/* 2. METRIC CARDS ROW (Reference #3 inspired) */}
-        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
+        <section className="grid grid-cols-2 gap-4 md:grid-cols-3">
           <MetricCard
             title="صفحات اليوم"
             value={userPagesToday}
             subtitle={`من ${activeBook?.daily_target_pages || 20} ص`}
             icon={<BookOpen className="w-4 h-4" />}
             variant="gold"
+            className="col-span-2 md:col-span-2"
           />
           <MetricCard
             title="أيام الستريك"
@@ -355,6 +281,7 @@ export const Dashboard = () => {
             subtitle="استمرارية متواصلة"
             icon={<Flame className="w-4 h-4" />}
             variant="coral"
+            className="col-span-2 md:col-span-1"
           />
           <MetricCard
             title="المستوى الحرفي"

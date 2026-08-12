@@ -13,6 +13,7 @@ from app.api.v1.routes.notifications import router as notifications_router
 from app.api.v1.routes.nudges import router as nudges_router
 from app.api.v1.routes.stats import router as stats_router
 from app.api.v1.routes.reader import router as reader_router
+from app.api.v1.routes.reader_annotations import router as reader_annotations_router
 
 api_v1_router = APIRouter(prefix="/api/v1")
 api_v1_router.include_router(auth_router)
@@ -29,3 +30,4 @@ api_v1_router.include_router(notifications_router)
 api_v1_router.include_router(nudges_router)
 api_v1_router.include_router(stats_router)
 api_v1_router.include_router(reader_router)
+api_v1_router.include_router(reader_annotations_router)

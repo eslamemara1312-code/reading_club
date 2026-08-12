@@ -10,6 +10,9 @@ from app.models.weekly_title import WeeklyTitle
 from app.models.book import Book, GroupBook
 from app.models.book_asset import BookAsset
 from app.models.reading_progress import ReadingProgress
+from app.models.reader_bookmark import ReaderBookmark
+from app.models.reader_note import ReaderNote
+from app.models.reader_highlight import ReaderHighlight
 from app.models.discussion import Discussion, DiscussionReply
 from app.models.notification import Notification
 from app.models.nudge import Nudge
@@ -30,6 +33,9 @@ __all__ = [
     "GroupBook",
     "BookAsset",
     "ReadingProgress",
+    "ReaderBookmark",
+    "ReaderNote",
+    "ReaderHighlight",
     "Discussion",
     "DiscussionReply",
     "Notification",

@@ -32,16 +32,16 @@ export function ThreeDBookCard({
   const [imgError, setImgError] = useState(false);
 
   return (
-    <div className="perspective-1000 w-44 sm:w-52 shrink-0 py-2">
+    <div className="perspective-1000 w-32 sm:w-44 lg:w-48 shrink-0 py-2">
       <motion.div
         animate={{ rotateY: isFlipped ? 180 : 0 }}
         transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-        className="w-full h-72 rounded-2xl relative style-preserve-3d cursor-pointer"
+        className="w-full h-64 sm:h-72 rounded-2xl relative style-preserve-3d cursor-pointer"
         onClick={() => setIsFlipped(!isFlipped)}
       >
         {/* Front Face */}
-        <div className="absolute inset-0 backface-hidden rounded-2xl bg-reader-panel border border-reader-border p-3 flex flex-col justify-between overflow-hidden group shadow-lg">
-          <div className="w-full h-44 rounded-xl overflow-hidden bg-reader-surface border border-reader-border relative flex items-center justify-center">
+        <div className="absolute inset-0 backface-hidden rounded-2xl bg-reader-panel border border-reader-border p-2.5 sm:p-3 flex flex-col justify-between overflow-hidden group shadow-lg">
+          <div className="w-full h-40 sm:h-44 rounded-xl overflow-hidden bg-reader-surface border border-reader-border relative flex items-center justify-center">
             {!imgError && book.cover_url ? (
               <img
                 src={getProxiedCoverUrl(book.cover_url)}

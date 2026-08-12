@@ -36,20 +36,22 @@
 /* Layer 2 & 3: Semantic Theme Aliases — Dark is Default */
 :root,
 html.dark {
-  --rc-canvas: var(--rc-ink-950);
-  --rc-canvas-elevated: #101a1b;
-  --rc-panel: var(--rc-ink-925);
-  --rc-surface: var(--rc-ink-900);
-  --rc-surface-raised: var(--rc-ink-850);
-  --rc-surface-hover: var(--rc-ink-800);
-  --rc-glass-panel: rgb(16 25 26 / 0.94);
-  --rc-surface-subdued: rgb(20 31 32 / 0.62);
-  --rc-surface-disabled: rgb(20 31 32 / 0.42);
+  --rc-canvas: #080e12;
+  --rc-canvas-elevated: #11191f;
+  --rc-shell: rgb(24 30 35 / 0.92);
+  --rc-shell-border: rgb(255 255 255 / 0.18);
+  --rc-panel: rgb(9 14 18 / 0.72);
+  --rc-surface: rgb(255 255 255 / 0.065);
+  --rc-surface-raised: rgb(255 255 255 / 0.10);
+  --rc-surface-hover: rgb(255 255 255 / 0.14);
+  --rc-glass-panel: rgb(17 23 28 / 0.86);
+  --rc-surface-subdued: rgb(255 255 255 / 0.045);
+  --rc-surface-disabled: rgb(255 255 255 / 0.025);
   --rc-text: var(--rc-white);
   --rc-text-muted: var(--rc-slate-300);
   --rc-text-subtle: var(--rc-slate-400);
-  --rc-border: rgb(255 255 255 / 0.09);
-  --rc-border-strong: rgb(121 210 235 / 0.34);
+  --rc-border: rgb(255 255 255 / 0.10);
+  --rc-border-strong: rgb(255 255 255 / 0.22);
   --rc-accent: var(--rc-cyan-400);
   --rc-accent-hover: var(--rc-cyan-300);
   --rc-accent-foreground: #071416;
@@ -58,37 +60,40 @@ html.dark {
   --rc-danger: var(--rc-red-400);
   --rc-danger-soft: rgb(250 126 126 / 0.12);
   --rc-focus: rgb(121 210 235 / 0.70);
-  --rc-shadow: var(--rc-shadow-dark);
+  --rc-shadow: 0 36px 90px rgb(0 0 0 / 0.46);
   --rc-reader-page: #eef1e9;
 
   /* Metric Tokens */
-  --rc-metric-gold-bg: rgb(255 228 111 / 0.12);
-  --rc-metric-gold-text: var(--rc-gold-400);
-  --rc-metric-coral-bg: rgb(255 155 112 / 0.12);
-  --rc-metric-coral-text: var(--rc-coral-400);
-  --rc-metric-violet-bg: rgb(193 154 255 / 0.12);
-  --rc-metric-violet-text: var(--rc-violet-400);
-  --rc-metric-lime-bg: rgb(175 240 107 / 0.12);
-  --rc-metric-lime-text: var(--rc-lime-400);
-  --rc-metric-sky-bg: rgb(126 210 239 / 0.12);
-  --rc-metric-sky-text: var(--rc-sky-400);
+  --rc-metric-ink: #10171a;
+  --rc-metric-gold-bg: #ffe16b;
+  --rc-metric-gold-text: #5f4900;
+  --rc-metric-coral-bg: #ff986b;
+  --rc-metric-coral-text: #5f2107;
+  --rc-metric-violet-bg: #c69aff;
+  --rc-metric-violet-text: #3e186f;
+  --rc-metric-lime-bg: #adf064;
+  --rc-metric-lime-text: #284f00;
+  --rc-metric-sky-bg: #82d5f1;
+  --rc-metric-sky-text: #074f69;
 }
 
 html.light {
-  --rc-canvas: #edf3f2;
-  --rc-canvas-elevated: #e6eeee;
-  --rc-panel: #f8fbfa;
-  --rc-surface: #ffffff;
-  --rc-surface-raised: #f2f7f6;
-  --rc-surface-hover: #e8f1f0;
-  --rc-glass-panel: rgb(248 251 250 / 0.94);
-  --rc-surface-subdued: rgb(255 255 255 / 0.72);
-  --rc-surface-disabled: rgb(242 247 246 / 0.78);
+  --rc-canvas: #cfd9db;
+  --rc-canvas-elevated: #e1e8e9;
+  --rc-shell: rgb(231 237 238 / 0.90);
+  --rc-shell-border: rgb(255 255 255 / 0.78);
+  --rc-panel: rgb(238 243 244 / 0.78);
+  --rc-surface: rgb(255 255 255 / 0.74);
+  --rc-surface-raised: rgb(255 255 255 / 0.90);
+  --rc-surface-hover: rgb(255 255 255 / 0.98);
+  --rc-glass-panel: rgb(238 243 244 / 0.88);
+  --rc-surface-subdued: rgb(255 255 255 / 0.46);
+  --rc-surface-disabled: rgb(224 232 233 / 0.72);
   --rc-text: #102021;
   --rc-text-muted: #405352;
   --rc-text-subtle: #6c7d7b;
-  --rc-border: rgb(16 32 33 / 0.11);
-  --rc-border-strong: rgb(28 113 137 / 0.38);
+  --rc-border: rgb(20 36 41 / 0.12);
+  --rc-border-strong: rgb(255 255 255 / 0.82);
   --rc-accent: var(--rc-cyan-700);
   --rc-accent-hover: #155d71;
   --rc-accent-foreground: #ffffff;
@@ -97,18 +102,19 @@ html.light {
   --rc-danger: #b42318;
   --rc-danger-soft: rgb(180 35 24 / 0.09);
   --rc-focus: rgb(28 113 137 / 0.65);
-  --rc-shadow: var(--rc-shadow-light);
+  --rc-shadow: 0 36px 90px rgb(32 53 58 / 0.22);
   --rc-reader-page: #fffdf7;
 
   /* Metric Tokens */
-  --rc-metric-gold-bg: rgb(245 201 77 / 0.16);
+  --rc-metric-ink: #10171a;
+  --rc-metric-gold-bg: #f8d966;
   --rc-metric-gold-text: #8f6c0a;
-  --rc-metric-coral-bg: rgb(255 155 112 / 0.16);
+  --rc-metric-coral-bg: #f79a70;
   --rc-metric-coral-text: #b84a1d;
-  --rc-metric-violet-bg: rgb(193 154 255 / 0.16);
+  --rc-metric-violet-bg: #c69aff;
   --rc-metric-violet-text: #6b3ba7;
-  --rc-metric-lime-bg: rgb(175 240 107 / 0.20);
+  --rc-metric-lime-bg: #adeb68;
   --rc-metric-lime-text: #3d6e0a;
-  --rc-metric-sky-bg: rgb(126 210 239 / 0.18);
+  --rc-metric-sky-bg: #83d0eb;
   --rc-metric-sky-text: #166a85;
 }

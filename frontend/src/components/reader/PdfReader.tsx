@@ -14,6 +14,10 @@ import {
 import 'react-pdf/dist/Page/TextLayer.css';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 
+// LEGACY PDF READER - This is the original react-pdf implementation
+// Kept as fallback during migration to EmbedPDF (ReadingViewer.tsx)
+// TODO: Remove after EmbedPDF migration passes compatibility testing
+
 // Bundle the worker with Vite. A local worker avoids CDN/CORS failures and
 // guarantees that its PDF.js version always matches react-pdf.
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(

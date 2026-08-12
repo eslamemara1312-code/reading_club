@@ -232,6 +232,11 @@ async def upsert_user_progress(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="current_page must be an integer >= 1"
         )
+    if total_pages is not None and current_page > total_pages:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="current_page cannot exceed total_pages",
+        )
 
     await verify_active_group_member(db, group_id, user_id)
 
@@ -255,7 +260,7 @@ async def upsert_user_progress(
 
     progress_percent = None
     if total_pages and total_pages > 0:
-        progress_percent = round((current_page / total_pages) * 100.0, 2)
+        progress_percent = min(100.0, round((current_page / total_pages) * 100.0, 2))
 
     now = datetime.now(timezone.utc)
 

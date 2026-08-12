@@ -19,31 +19,26 @@ export function MetricCard({
   variant = 'gold',
   className = '',
 }: MetricCardProps) {
-  const variantStyles: Record<MetricVariant, { bg: string; text: string; border: string }> = {
+  const variantStyles: Record<MetricVariant, { bg: string; accent: string }> = {
     gold: {
       bg: 'bg-reader-metric-goldBg',
-      text: 'text-reader-metric-goldText',
-      border: 'border-reader-border',
+      accent: 'text-reader-metric-goldText',
     },
     coral: {
       bg: 'bg-reader-metric-coralBg',
-      text: 'text-reader-metric-coralText',
-      border: 'border-reader-border',
+      accent: 'text-reader-metric-coralText',
     },
     violet: {
       bg: 'bg-reader-metric-violetBg',
-      text: 'text-reader-metric-violetText',
-      border: 'border-reader-border',
+      accent: 'text-reader-metric-violetText',
     },
     lime: {
       bg: 'bg-reader-metric-limeBg',
-      text: 'text-reader-metric-limeText',
-      border: 'border-reader-border',
+      accent: 'text-reader-metric-limeText',
     },
     sky: {
       bg: 'bg-reader-metric-skyBg',
-      text: 'text-reader-metric-skyText',
-      border: 'border-reader-border',
+      accent: 'text-reader-metric-skyText',
     },
   };
 
@@ -51,23 +46,24 @@ export function MetricCard({
 
   return (
     <div
-      className={`p-4 sm:p-5 rounded-2xl bg-reader-surface border ${style.border} shadow-lg space-y-3 relative overflow-hidden transition-all hover:translate-y-[-2px] ${className}`}
+      className={`relative flex min-h-[170px] flex-col justify-between overflow-hidden rounded-[28px] border border-white/30 p-5 text-reader-metric-ink shadow-xl transition-transform duration-200 hover:-translate-y-1 ${style.bg} ${className}`}
     >
+      <span className="pointer-events-none absolute -left-8 -top-10 h-28 w-28 rounded-full bg-white/25 blur-2xl" />
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold text-reader-muted">{title}</span>
+        <span className="text-xs font-black uppercase tracking-wide text-reader-metric-ink">{title}</span>
         <div
-          className={`w-9 h-9 rounded-xl ${style.bg} ${style.text} flex items-center justify-center border border-reader-border shrink-0`}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-black/10 bg-white/25 ${style.accent}`}
         >
           {icon}
         </div>
       </div>
 
       <div>
-        <p className={`text-2xl sm:text-3xl font-black font-mono tracking-tight ${style.text}`}>
+        <p className="font-mono text-4xl font-black tracking-tight text-reader-metric-ink sm:text-5xl">
           {value}
         </p>
         {subtitle && (
-          <p className="text-[11px] font-semibold text-reader-subtle mt-1 line-clamp-1">
+          <p className="mt-2 line-clamp-2 text-[11px] font-bold leading-relaxed text-reader-metric-ink opacity-70">
             {subtitle}
           </p>
         )}

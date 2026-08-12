@@ -172,12 +172,12 @@ export const BookPage = () => {
 
   return (
     <AppShell>
-      <div className="space-y-8 sm:space-y-12 max-w-6xl mx-auto">
+      <div className="mx-auto max-w-6xl space-y-8">
         {/* HEADER GREETING & PRIMARY ACTION BUTTON */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-reader-border pb-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
             <span className="text-xs text-reader-accent font-bold tracking-wider uppercase block">
-              مكتبة النادي • Bookshelf 📚
+              مكتبة النادي • Bookshelf
             </span>
             <h1 className="font-black text-2xl sm:text-3xl text-reader-text tracking-tight">
               أهلاً بك، {user?.name || 'القارئ'}
@@ -189,7 +189,7 @@ export const BookPage = () => {
 
           <button
             onClick={() => setShowCreateBookModal(true)}
-            className="px-5 py-3 bg-reader-accent hover:bg-reader-accentHover text-reader-accentForeground font-black text-xs rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.97] shrink-0 shadow-lg"
+            className="flex min-h-[52px] shrink-0 items-center justify-center gap-2 rounded-2xl bg-reader-accent px-5 text-xs font-black text-reader-accentForeground shadow-xl transition-colors hover:bg-reader-accentHover"
           >
             <Plus className="w-4 h-4" />
             إضافة كتاب للكتالوج
@@ -198,15 +198,15 @@ export const BookPage = () => {
 
         {/* 1. CURRENTLY READING HERO SPOTLIGHT */}
         {activeGroupBook && (
-          <section className="space-y-4">
+          <section className="space-y-4 rounded-[34px] border border-reader-border bg-reader-subdued p-5 shadow-2xl sm:p-7">
             <div className="flex items-center gap-2 text-xs font-bold text-reader-accent">
               <Sparkles className="w-4 h-4 text-reader-accent" />
               <span>تقرأ حالياً • Currently Reading</span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center border-b border-reader-border pb-8">
+            <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-12">
               <div className="md:col-span-3 flex justify-center md:justify-start">
-                <div className="w-36 h-56 bg-reader-surface rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center border border-reader-border">
+                <div className="flex h-64 w-44 items-center justify-center overflow-hidden rounded-[24px] border border-reader-border bg-reader-surface shadow-2xl">
                   {activeGroupBook.book.cover_url ? (
                     <img
                       src={getProxiedCoverUrl(activeGroupBook.book.cover_url)}
@@ -225,7 +225,7 @@ export const BookPage = () => {
                   {activeGroupBook.book.category || 'كتاب رئيسي'}
                 </span>
 
-                <h2 className="text-2xl sm:text-3xl font-black text-reader-text leading-snug">
+                <h2 className="text-3xl font-black leading-tight text-reader-text sm:text-4xl">
                   {activeGroupBook.book.title}
                 </h2>
                 
@@ -242,7 +242,8 @@ export const BookPage = () => {
                     onClick={() => navigate('/dashboard')}
                     className="px-5 py-2.5 bg-reader-surface hover:bg-reader-hover text-reader-accent border border-reader-borderStrong font-bold text-xs rounded-xl transition-colors inline-flex items-center gap-2 shadow-sm"
                   >
-                    <span>تكملة الورد اليومي 📖</span>
+                    <BookOpen className="h-4 w-4" />
+                    <span>تكملة الورد اليومي</span>
                     <ChevronLeft className="w-4 h-4" />
                   </button>
 
@@ -260,11 +261,11 @@ export const BookPage = () => {
         )}
 
         {/* 2. MY BOOKSHELF SECTION & FILTERS */}
-        <section className="space-y-6">
+        <section className="space-y-6 rounded-[34px] border border-reader-border bg-reader-panel p-5 sm:p-7">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-reader-accent" />
-              <h2 className="text-lg font-bold text-reader-text">رف كتب المجموعة</h2>
+              <h2 className="text-xl font-black text-reader-text">رف كتب المجموعة</h2>
             </div>
 
             <div className="flex items-center gap-2 bg-reader-panel p-1 rounded-2xl border border-reader-border text-xs font-semibold shadow-sm">
@@ -278,19 +279,19 @@ export const BookPage = () => {
                 onClick={() => setSelectedFilter('active')}
                 className={`px-3 py-1.5 rounded-xl transition ${selectedFilter === 'active' ? 'bg-reader-surface text-reader-accent border border-reader-borderStrong shadow-sm' : 'text-reader-muted hover:text-reader-text'}`}
               >
-                حالي 🔥
+                أقرأ الآن
               </button>
               <button
                 onClick={() => setSelectedFilter('upcoming')}
                 className={`px-3 py-1.5 rounded-xl transition ${selectedFilter === 'upcoming' ? 'bg-reader-surface text-reader-accent border border-reader-borderStrong shadow-sm' : 'text-reader-muted hover:text-reader-text'}`}
               >
-                قادم ⏳
+                قادم
               </button>
               <button
                 onClick={() => setSelectedFilter('completed')}
                 className={`px-3 py-1.5 rounded-xl transition ${selectedFilter === 'completed' ? 'bg-reader-surface text-reader-accent border border-reader-borderStrong shadow-sm' : 'text-reader-muted hover:text-reader-text'}`}
               >
-                مكتمل ✅
+                مكتمل
               </button>
             </div>
           </div>
@@ -302,7 +303,7 @@ export const BookPage = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="ابحث باسم الكتاب أو المؤلف..."
-              className="w-full pl-4 pr-11 py-3 bg-reader-panel border border-reader-border rounded-2xl text-reader-text text-xs font-medium focus:border-reader-accent outline-none shadow-sm"
+              className="w-full rounded-2xl border border-reader-border bg-reader-surface py-4 pl-4 pr-11 text-sm font-medium text-reader-text shadow-inner outline-none focus:border-reader-accent"
             />
           </div>
 
@@ -342,11 +343,11 @@ export const BookPage = () => {
         </section>
 
         {/* 3. CATALOG GRID SECTION */}
-        <section className="space-y-4 pt-4 border-t border-reader-border">
+        <section className="space-y-5 rounded-[34px] border border-reader-border bg-reader-panel p-5 sm:p-7">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Layers className="w-4 h-4 text-reader-accent" />
-              <h2 className="text-base font-bold text-reader-text">كتالوج الكتب المتاحة للمجموعة</h2>
+              <h2 className="text-xl font-black text-reader-text">استكشف كتبًا جديدة</h2>
             </div>
 
             {isOwner && (

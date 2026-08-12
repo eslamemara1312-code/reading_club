@@ -1,7 +1,16 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Upload, FolderOpen, RefreshCw, Trash2 } from 'lucide-react';
-import { getBookAssetMetadata, deleteSharedBookAsset, BookAssetWithProgress } from '../../api/reader';
+import { BookOpen, FolderOpen, RefreshCw, Trash2, Upload } from 'lucide-react';
+import {
+  BookAssetWithProgress,
+  deleteSharedBookAsset,
+  getBookAssetMetadata,
+} from '../../api/reader';
+import {
+  getSavedLocalBook,
+  saveLocalBookFile,
+  SavedLocalBook,
+} from '../../storage/localReaderStorage';
 import { BookUploadModal } from './BookUploadModal';
 import { showToast } from '../Toast';
 
@@ -18,7 +27,9 @@ export const BookAssetActions: React.FC<BookAssetActionsProps> = ({
 }) => {
   const navigate = useNavigate();
   const [data, setData] = useState<BookAssetWithProgress | null>(null);
+  const [savedLocalBook, setSavedLocalBook] = useState<SavedLocalBook | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSavingLocal, setIsSavingLocal] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isReplacing, setIsReplacing] = useState(false);
   const localFileInputRef = useRef<HTMLInputElement>(null);
@@ -26,8 +37,7 @@ export const BookAssetActions: React.FC<BookAssetActionsProps> = ({
   const fetchMetadata = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await getBookAssetMetadata(groupId, bookId);
-      setData(res);
+      setData(await getBookAssetMetadata(groupId, bookId));
     } catch {
       setData(null);
     } finally {
@@ -39,8 +49,24 @@ export const BookAssetActions: React.FC<BookAssetActionsProps> = ({
     fetchMetadata();
   }, [fetchMetadata]);
 
+  useEffect(() => {
+    let cancelled = false;
+    getSavedLocalBook(groupId, bookId)
+      .then((savedBook) => {
+        if (!cancelled) setSavedLocalBook(savedBook);
+      })
+      .catch(() => {
+        if (!cancelled) setSavedLocalBook(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [groupId, bookId]);
+
   const handleDelete = async () => {
-    if (!window.confirm('هل أنت تأكد من حذف النسخة المشتركة لهذا الكتاب من المجموعة؟')) return;
+    if (!window.confirm('هل أنت متأكد من حذف النسخة المشتركة لهذا الكتاب من المجموعة؟')) return;
+
     try {
       await deleteSharedBookAsset(groupId, bookId);
       showToast('تم حذف النسخة المشتركة بنجاح', 'success');
@@ -50,38 +76,48 @@ export const BookAssetActions: React.FC<BookAssetActionsProps> = ({
     }
   };
 
-  const handleOpenLocalPdf = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      if (!file.name.toLowerCase().endsWith('.pdf')) {
-        showToast('يرجى اختيار ملف PDF فقط.', 'error');
-        return;
-      }
-      // Store local file in window state or navigation location state
-      navigate(`/groups/${groupId}/books/${bookId}/read`, {
-        state: { localFile: file }
+  const handleOpenLocalPdf = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      showToast('يرجى اختيار ملف PDF فقط.', 'error');
+      event.target.value = '';
+      return;
+    }
+
+    try {
+      setIsSavingLocal(true);
+      const savedBook = await saveLocalBookFile(groupId, bookId, file);
+      setSavedLocalBook(savedBook);
+      navigate(`/groups/${groupId}/books/${bookId}/read?source=local`, {
+        state: { localFile: savedBook.file },
       });
+    } catch {
+      showToast('تعذر حفظ الملف على هذا الجهاز. تأكد من وجود مساحة تخزين كافية.', 'error');
+    } finally {
+      setIsSavingLocal(false);
+      event.target.value = '';
     }
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 text-xs text-zinc-500 animate-pulse py-2">
-        <div className="w-3 h-3 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+      <div className="flex items-center gap-2 py-2 text-xs text-zinc-500 animate-pulse">
+        <div className="h-3 w-3 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
         جاري فحص توافر القراءة...
       </div>
     );
   }
 
   const hasAsset = data?.has_asset;
-  const progress = data?.progress;
-  const currentPage = progress?.current_page;
+  const sharedCurrentPage = data?.progress?.current_page;
 
   return (
-    <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-zinc-800/80">
+    <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-zinc-800/80 pt-3">
       <input
-        type="file"
         ref={localFileInputRef}
+        type="file"
         onChange={handleOpenLocalPdf}
         accept=".pdf,application/pdf"
         className="hidden"
@@ -89,63 +125,74 @@ export const BookAssetActions: React.FC<BookAssetActionsProps> = ({
 
       {hasAsset ? (
         <>
-          {/* Read Shared PDF Button */}
           <button
             onClick={() => navigate(`/groups/${groupId}/books/${bookId}/read`)}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-black transition-all shadow-md shadow-emerald-500/10"
+            className="flex items-center gap-2 rounded-xl bg-emerald-500 px-3.5 py-2 text-xs font-bold text-black shadow-md shadow-emerald-500/10 transition-all hover:bg-emerald-400"
           >
-            <BookOpen className="w-4 h-4" />
-            {currentPage && currentPage > 1
-              ? `متابعة القراءة (صفحة ${currentPage})`
-              : 'بدء قراءة الكتاب'}
+            <BookOpen className="h-4 w-4" />
+            {sharedCurrentPage && sharedCurrentPage > 1
+              ? `متابعة النسخة المشتركة (صفحة ${sharedCurrentPage})`
+              : 'قراءة النسخة المشتركة'}
           </button>
 
-          {/* Replace Shared PDF */}
           <button
             onClick={() => {
               setIsReplacing(true);
               setIsUploadOpen(true);
             }}
             title="استبدال النسخة المشتركة"
-            className="p-2 rounded-xl text-zinc-400 hover:text-white bg-zinc-800/60 hover:bg-zinc-800 transition-colors"
+            className="rounded-xl bg-zinc-800/60 p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="h-4 w-4" />
           </button>
 
-          {/* Delete Shared PDF */}
           <button
             onClick={handleDelete}
             title="حذف النسخة المشتركة"
-            className="p-2 rounded-xl text-zinc-400 hover:text-red-400 bg-zinc-800/60 hover:bg-zinc-800 transition-colors"
+            className="rounded-xl bg-zinc-800/60 p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-red-400"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="h-4 w-4" />
           </button>
         </>
       ) : (
-        /* Upload Shared PDF */
         <button
           onClick={() => {
             setIsReplacing(false);
             setIsUploadOpen(true);
           }}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-all"
+          className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-2 text-xs font-semibold text-emerald-400 transition-all hover:bg-emerald-500/20"
         >
-          <Upload className="w-4 h-4" />
+          <Upload className="h-4 w-4" />
           رفع نسخة PDF للمجموعة
         </button>
       )}
 
-      {/* Local PDF opening */}
+      {savedLocalBook && (
+        <button
+          onClick={() => navigate(`/groups/${groupId}/books/${bookId}/read?source=local`)}
+          className="flex items-center gap-2 rounded-xl bg-amber-500 px-3.5 py-2 text-xs font-bold text-black shadow-md shadow-amber-500/10 transition-all hover:bg-amber-400"
+        >
+          <BookOpen className="h-4 w-4" />
+          {savedLocalBook.currentPage > 1
+            ? `متابعة الملف المحلي (صفحة ${savedLocalBook.currentPage})`
+            : 'قراءة الملف المحلي المحفوظ'}
+        </button>
+      )}
+
       <button
         onClick={() => localFileInputRef.current?.click()}
-        title="فتح ملف PDF محلياً من جهازك بدون رفعه"
-        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white bg-zinc-800/40 hover:bg-zinc-800 transition-all border border-zinc-800"
+        disabled={isSavingLocal}
+        title="حفظ ملف PDF محلياً على هذا الجهاز"
+        className="flex items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-800/40 px-3 py-2 text-xs font-medium text-zinc-400 transition-all hover:bg-zinc-800 hover:text-white disabled:opacity-50"
       >
-        <FolderOpen className="w-4 h-4" />
-        فتح ملف محلي
+        <FolderOpen className="h-4 w-4" />
+        {isSavingLocal
+          ? 'جاري حفظ الملف...'
+          : savedLocalBook
+            ? 'استبدال الملف المحلي'
+            : 'فتح ملف محلي وحفظه'}
       </button>
 
-      {/* Upload Modal */}
       <BookUploadModal
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}

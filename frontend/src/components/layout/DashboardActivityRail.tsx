@@ -1,4 +1,4 @@
-import { Activity, BookOpen, CheckCircle2, Clock3, Flame, Trophy } from 'lucide-react';
+import { Activity, BookOpen, CheckCircle2, Clock3, Flame, MessageCircle, Trophy } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { LeaderboardEntry, MemberTodayStatus } from '../../api/checkins';
 
@@ -13,11 +13,11 @@ export function DashboardActivityRail({ memberStatuses = [], leaderboard = [] }:
     .slice(0, 6);
 
   return (
-    <div className="space-y-5" aria-label="نشاط النادي اليوم">
+    <div className="space-y-6" aria-label="نشاط النادي اليوم">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[11px] font-bold text-reader-accent tracking-widest">مباشر الآن</p>
-          <h2 className="mt-1 text-lg font-black text-reader-text">نشاط النادي</h2>
+          <p className="text-[11px] font-bold tracking-widest text-reader-accent">مباشر الآن</p>
+          <h2 className="mt-1 text-xl font-black text-reader-text">النشاط</h2>
         </div>
         <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-reader-borderStrong bg-reader-accentSoft text-reader-accent">
           <Activity className="h-5 w-5" />
@@ -25,15 +25,15 @@ export function DashboardActivityRail({ memberStatuses = [], leaderboard = [] }:
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {recentMembers.length > 0 ? recentMembers.map((status) => {
           const pages = status.checkin?.pages_read ?? 0;
           const initial = status.user.name?.charAt(0).toUpperCase() || 'ق';
 
           return (
-            <article key={status.user.id} className="rounded-3xl border border-reader-border bg-reader-surface p-4 shadow-sm transition-colors hover:bg-reader-hover">
+            <article key={status.user.id} className="rounded-[30px] border border-reader-border bg-reader-surface p-5 shadow-lg transition-colors hover:bg-reader-hover">
               <div className="flex items-start gap-3">
-                <div className="h-10 w-10 shrink-0 overflow-hidden rounded-2xl border border-reader-borderStrong bg-reader-raised text-reader-accent flex items-center justify-center font-black">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-reader-borderStrong bg-reader-raised font-black text-reader-accent">
                   {status.user.avatar_url ? (
                     <img src={status.user.avatar_url} alt="" className="h-full w-full object-cover" />
                   ) : initial}
@@ -48,17 +48,21 @@ export function DashboardActivityRail({ memberStatuses = [], leaderboard = [] }:
                     </span>
                   </div>
 
-                  <p className="mt-1.5 text-xs leading-relaxed text-reader-muted">
+                  <p className="mt-2 text-sm font-medium leading-relaxed text-reader-muted">
                     {status.has_checked_in
                       ? `أنهى ورده وقرأ ${pages || 'عدة'} صفحة.`
                       : 'لم يسجل ورده بعد — أرسل له تذكيرًا لطيفًا.'}
                   </p>
 
                   {status.checkin?.note && (
-                    <p className="mt-2 line-clamp-2 rounded-xl bg-reader-subdued px-3 py-2 text-[11px] leading-relaxed text-reader-muted">
+                    <p className="mt-3 line-clamp-3 rounded-2xl bg-reader-subdued px-3 py-2.5 text-xs leading-relaxed text-reader-muted">
                       “{status.checkin.note}”
                     </p>
                   )}
+                  <NavLink to="/discussions" className="mt-3 inline-flex min-h-[36px] items-center gap-1.5 text-[11px] font-black text-reader-text hover:text-reader-accent">
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    رد
+                  </NavLink>
                 </div>
               </div>
             </article>
@@ -73,7 +77,7 @@ export function DashboardActivityRail({ memberStatuses = [], leaderboard = [] }:
       </div>
 
       {leaderboard.length > 0 && (
-        <section className="rounded-3xl border border-reader-borderStrong bg-reader-accentSoft p-4">
+        <section className="rounded-[30px] border border-reader-borderStrong bg-reader-accentSoft p-5">
           <div className="mb-3 flex items-center gap-2 text-reader-metric-goldText">
             <Trophy className="h-4 w-4" />
             <h3 className="text-xs font-black">الأكثر التزامًا</h3>

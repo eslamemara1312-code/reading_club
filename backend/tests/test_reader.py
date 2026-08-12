@@ -116,6 +116,60 @@ async def test_shared_reader_full_flow(client: AsyncClient):
     assert prog_get.status_code == 200
     assert prog_get.json()["current_page"] == 42
 
+    # 6b. Reader annotations are private to the member and bound to the shared asset.
+    bookmark_res = await client.post(
+        f"/api/v1/groups/{group_id}/books/{book_id}/bookmarks",
+        json={"page_number": 42}, headers=headers_b,
+    )
+    assert bookmark_res.status_code == 201
+    bookmark_id = bookmark_res.json()["id"]
+    duplicate_bookmark = await client.post(
+        f"/api/v1/groups/{group_id}/books/{book_id}/bookmarks",
+        json={"page_number": 42}, headers=headers_b,
+    )
+    assert duplicate_bookmark.status_code == 409
+    bookmarks_for_owner = await client.get(
+        f"/api/v1/groups/{group_id}/books/{book_id}/bookmarks", headers=headers_a,
+    )
+    assert bookmarks_for_owner.status_code == 200
+    assert bookmarks_for_owner.json() == []
+
+    note_res = await client.post(
+        f"/api/v1/groups/{group_id}/books/{book_id}/notes",
+        json={"page_number": 42, "note_text": "Useful explanation", "selected_text": "Clean code"}, headers=headers_b,
+    )
+    assert note_res.status_code == 201
+    note_id = note_res.json()["id"]
+    updated_note = await client.patch(
+        f"/api/v1/groups/{group_id}/books/{book_id}/notes/{note_id}",
+        json={"note_text": "Updated thought"}, headers=headers_b,
+    )
+    assert updated_note.status_code == 200
+    assert updated_note.json()["note_text"] == "Updated thought"
+
+    highlight_res = await client.post(
+        f"/api/v1/groups/{group_id}/books/{book_id}/highlights",
+        json={"page_number": 42, "selected_text": "Keep functions short", "color": "green"}, headers=headers_b,
+    )
+    assert highlight_res.status_code == 201
+    highlight_id = highlight_res.json()["id"]
+    outsider_annotation = await client.get(
+        f"/api/v1/groups/{group_id}/books/{book_id}/notes", headers=headers_c,
+    )
+    assert outsider_annotation.status_code == 403
+    delete_highlight = await client.delete(
+        f"/api/v1/groups/{group_id}/books/{book_id}/highlights/{highlight_id}", headers=headers_b,
+    )
+    assert delete_highlight.status_code == 204
+    delete_note = await client.delete(
+        f"/api/v1/groups/{group_id}/books/{book_id}/notes/{note_id}", headers=headers_b,
+    )
+    assert delete_note.status_code == 204
+    delete_bookmark = await client.delete(
+        f"/api/v1/groups/{group_id}/books/{book_id}/bookmarks/{bookmark_id}", headers=headers_b,
+    )
+    assert delete_bookmark.status_code == 204
+
     # 7. Member B replaces the shared PDF with an updated edition
     NEW_PDF_BYTES = SAMPLE_PDF_BYTES + b"% updated v2"
     replace_res = await client.post(

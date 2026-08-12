@@ -28,6 +28,8 @@ export default {
         // Reading Club Semantic Token System
         reader: {
           canvas: 'var(--rc-canvas)',
+          canvasElevated: 'var(--rc-canvas-elevated)',
+          shell: 'var(--rc-shell)',
           panel: 'var(--rc-panel)',
           surface: 'var(--rc-surface)',
           raised: 'var(--rc-surface-raised)',
@@ -50,6 +52,7 @@ export default {
           focus: 'var(--rc-focus)',
           readerPage: 'var(--rc-reader-page)',
           metric: {
+            ink: 'var(--rc-metric-ink)',
             goldBg: 'var(--rc-metric-gold-bg)',
             goldText: 'var(--rc-metric-gold-text)',
             coralBg: 'var(--rc-metric-coral-bg)',
