@@ -1,4 +1,5 @@
 import logging
+import re
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -45,18 +46,25 @@ _always_allowed = [
     "https://reading-club.vercel.app",
     "http://localhost:5173",
     "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
 ]
 if isinstance(origins, list):
     for o in _always_allowed:
         if o not in origins:
             origins.append(o)
 
-if isinstance(origins, list) and "*" in origins:
+_allow_any_origin = isinstance(origins, list) and "*" in origins
+_origin_pattern = re.compile(
+    r"^(?:https://.*\.vercel\.app|http://(?:localhost|127\.0\.0\.1):\d+)$"
+)
+
+if _allow_any_origin:
     cors_kwargs = {"allow_origins": ["*"], "allow_credentials": False}
 else:
     cors_kwargs = {
         "allow_origins": origins if isinstance(origins, list) else _always_allowed,
-        "allow_origin_regex": r"https://.*\.vercel\.app|http://localhost:\d+",
+        "allow_origin_regex": _origin_pattern.pattern,
         "allow_credentials": True,
     }
 
@@ -90,7 +98,24 @@ async def global_exception_handler(request: Request, exc: Exception):
     causing browsers to report a misleading CORS error instead of the real one.
     """
     logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
-    return JSONResponse(
+    response = JSONResponse(
         status_code=500,
         content={"detail": "Internal server error"},
     )
+
+    # Starlette's outer ServerErrorMiddleware can generate this response
+    # outside CORSMiddleware. Add the validated origin explicitly so the
+    # browser can expose the real JSON error instead of reporting fake CORS.
+    origin = request.headers.get("origin")
+    if origin:
+        if _allow_any_origin:
+            response.headers["Access-Control-Allow-Origin"] = "*"
+        elif (
+            isinstance(origins, list)
+            and origin in origins
+        ) or _origin_pattern.fullmatch(origin):
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Vary"] = "Origin"
+
+    return response
