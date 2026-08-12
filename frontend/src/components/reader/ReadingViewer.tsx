@@ -40,6 +40,9 @@ interface ReadingViewerProps {
   onPageChange?: (page: number, numPages: number) => void;
   onLoadSuccess?: (numPages: number) => void;
   isLocalFile?: boolean;
+  onSave?: () => void;
+  onSaveAndBack?: () => void;
+  saveState?: 'idle' | 'saving' | 'saved' | 'error';
 }
 
 type InitialDocument =
@@ -52,6 +55,9 @@ export const ReadingViewer: React.FC<ReadingViewerProps> = ({
   onPageChange,
   onLoadSuccess,
   isLocalFile = false,
+  onSave,
+  onSaveAndBack,
+  saveState = 'idle',
 }) => {
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(initialPage);
@@ -60,6 +66,7 @@ export const ReadingViewer: React.FC<ReadingViewerProps> = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [initialDocument, setInitialDocument] = useState<InitialDocument | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const pageReportTimerRef = useRef<number | null>(null);
   const { engine, isLoading: engineLoading } = usePdfiumEngine();
 
   useEffect(() => {
@@ -79,7 +86,15 @@ export const ReadingViewer: React.FC<ReadingViewerProps> = ({
   }, []);
 
   useEffect(() => {
-    if (totalPages > 0) onPageChange?.(currentPage, totalPages);
+    if (!onPageChange || totalPages <= 0) return;
+    if (pageReportTimerRef.current !== null) window.clearTimeout(pageReportTimerRef.current);
+    pageReportTimerRef.current = window.setTimeout(() => {
+      onPageChange(currentPage, totalPages);
+      pageReportTimerRef.current = null;
+    }, 180);
+    return () => {
+      if (pageReportTimerRef.current !== null) window.clearTimeout(pageReportTimerRef.current);
+    };
   }, [currentPage, totalPages, onPageChange]);
 
   useEffect(() => {
@@ -145,7 +160,7 @@ export const ReadingViewer: React.FC<ReadingViewerProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`flex flex-col overflow-hidden border border-reader-border bg-reader-panel text-reader-text shadow-2xl ${
+      className={`relative flex flex-col overflow-hidden border border-reader-border bg-reader-panel text-reader-text shadow-2xl ${
         isFullscreen
           ? 'fixed inset-0 z-[100] h-dvh rounded-none'
           : 'min-h-0 w-full flex-1 rounded-2xl'
@@ -169,6 +184,12 @@ export const ReadingViewer: React.FC<ReadingViewerProps> = ({
             sidebarOpen={sidebarOpen}
             setSidebarOpen={setSidebarOpen}
           />
+          {isFullscreen && (onSave || onSaveAndBack) && (
+            <div className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] right-3 z-[90] flex max-w-[calc(100%-1.5rem)] items-center gap-2 rounded-2xl border border-reader-border bg-reader-panel/95 p-2 shadow-2xl backdrop-blur-md sm:right-6">
+              {onSave && <button type="button" onClick={onSave} disabled={saveState === 'saving'} className={`min-h-[44px] rounded-xl px-4 text-xs font-bold text-white disabled:opacity-60 ${saveState === 'saved' ? 'bg-emerald-600' : saveState === 'error' ? 'bg-red-600' : 'bg-reader-accent'}`}>{saveState === 'saving' ? 'جارٍ الحفظ…' : saveState === 'saved' ? 'تم الحفظ' : 'حفظ'}</button>}
+              {onSaveAndBack && <button type="button" onClick={onSaveAndBack} className="min-h-[44px] rounded-xl bg-reader-surface px-4 text-xs font-bold text-reader-text">حفظ ورجوع</button>}
+            </div>
+          )}
         </EmbedPDF>
       ) : (
         <ReaderStatus message="جاري تجهيز ملف الكتاب..." />
@@ -517,7 +538,7 @@ const ReaderDocumentViewport: React.FC<ReadingViewerContentProps> = (props) => {
   }, [documentId, viewport, zoom.provides]);
 
   return (
-    <Viewport documentId={documentId} className="h-full min-h-0 overscroll-contain">
+    <Viewport documentId={documentId} className="reader-document-viewport h-full min-h-0 overscroll-contain">
       <ReadingViewerContent {...props} />
     </Viewport>
   );

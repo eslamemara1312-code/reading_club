@@ -431,6 +431,9 @@ export const ReaderPage: React.FC = () => {
               initialPage={initialPage}
               onPageChange={handlePageChange}
               isLocalFile
+              onSave={saveCurrentPage}
+              onSaveAndBack={saveAndGoBack}
+              saveState={saveState}
             />
           ) : readerUrl ? (
             <ReadingViewer
@@ -438,6 +441,9 @@ export const ReaderPage: React.FC = () => {
               initialPage={initialPage}
               onPageChange={handlePageChange}
               isLocalFile={false}
+              onSave={saveCurrentPage}
+              onSaveAndBack={saveAndGoBack}
+              saveState={saveState}
             />
           ) : null}
 

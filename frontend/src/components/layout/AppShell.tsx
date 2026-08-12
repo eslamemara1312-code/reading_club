@@ -51,7 +51,7 @@ export function AppShell({
 
   if (isReaderPage) {
     return (
-      <div className="h-dvh overflow-hidden bg-reader-canvas text-reader-text transition-colors">
+      <div className="h-[100svh] overflow-hidden bg-reader-canvas text-reader-text transition-colors">
         {children}
       </div>
     );
