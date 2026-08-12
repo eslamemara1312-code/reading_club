@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { API_BASE_URL, apiClient } from './client';
 
 export interface BookAsset {
   id: string;
@@ -76,7 +76,16 @@ export const getAuthorizedReaderUrl = async (
   const response = await apiClient.get<ReaderUrlResponse>(
     `/groups/${groupId}/books/${bookId}/reader-url`
   );
-  return response.data;
+  const result = response.data;
+
+  // Local-storage mode returns an API-relative stream path. Resolve it
+  // against the backend origin, not the Vercel frontend origin.
+  if (result.url.startsWith('/api/v1/')) {
+    const backendOrigin = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
+    result.url = `${backendOrigin}${result.url}`;
+  }
+
+  return result;
 };
 
 export const deleteSharedBookAsset = async (
