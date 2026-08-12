@@ -16,33 +16,37 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({ allBadges, userBadges,
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 bg-obsidian-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="badges-modal-title"
           initial={{ opacity: 0, scale: 0.9, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 15 }}
           transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          className="glass-panel p-6 rounded-3xl max-w-xl w-full border border-slate-700/80 shadow-2xl space-y-5 max-h-[85vh] overflow-y-auto"
+          className="bg-reader-panel p-6 rounded-3xl max-w-xl w-full border border-reader-border shadow-2xl space-y-5 max-h-[85vh] overflow-y-auto"
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
+          <div className="flex items-center justify-between border-b border-reader-border pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-glow-amber">
+              <div className="w-10 h-10 rounded-xl bg-reader-surface border border-reader-borderStrong flex items-center justify-center text-reader-accent shadow-sm">
                 <Award className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-extrabold text-lg text-white flex items-center gap-2">
+                <h3 id="badges-modal-title" className="font-extrabold text-lg text-reader-text flex items-center gap-2">
                   معرض الأوسمة والإنجازات
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-reader-accentSoft text-reader-accent font-semibold border border-reader-borderStrong">
                     {earnedCount} / {allBadges.length}
                   </span>
                 </h3>
-                <p className="text-xs text-slate-400">إنجازاتك ومكافآت نقاط الخبرة XP</p>
+                <p className="text-xs text-reader-muted">إنجازاتك ومكافآت نقاط الخبرة XP</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center text-reader-muted hover:text-reader-text hover:bg-reader-surface rounded-xl transition-colors"
+              aria-label="إغلاق نافذة الأوسمة"
             >
               <X className="w-5 h-5" />
             </button>
@@ -60,32 +64,29 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({ allBadges, userBadges,
                     transition={{ delay: index * 0.04 }}
                     className={`p-4 rounded-2xl border transition-all flex items-start gap-3.5 relative overflow-hidden h-full ${
                       isEarned
-                        ? 'bg-gradient-to-br from-amber-950/40 via-slate-900/60 to-slate-900/80 border-amber-500/40 shadow-lg shadow-amber-950/20'
-                        : 'bg-slate-900/40 border-slate-800/80 opacity-60'
+                        ? 'bg-reader-surface border-reader-borderStrong shadow-md'
+                        : 'bg-reader-disabled border-reader-border opacity-60'
                     }`}
                   >
-                    {isEarned && (
-                      <div className="absolute -top-10 -right-10 w-24 h-24 bg-amber-500/10 rounded-full blur-xl pointer-events-none" />
-                    )}
                     <div className={`p-2.5 rounded-xl border flex items-center justify-center shrink-0 ${
-                      isEarned ? 'bg-amber-500/15 border-amber-500/30 text-amber-300 shadow-sm' : 'bg-slate-900 border-slate-800 text-slate-600'
+                      isEarned ? 'bg-reader-raised border-reader-borderStrong text-reader-accent shadow-sm' : 'bg-reader-canvas border-reader-border text-reader-muted'
                     }`}>
                       <Award className="w-5 h-5" />
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1">
-                        <h4 className="font-bold text-sm text-white truncate">{b.name}</h4>
+                        <h4 className="font-bold text-sm text-reader-text truncate">{b.name}</h4>
                         {isEarned ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <CheckCircle2 className="w-4 h-4 text-reader-metric-limeText shrink-0" />
                         ) : (
-                          <Lock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                          <Lock className="w-3.5 h-3.5 text-reader-subtle shrink-0" />
                         )}
                       </div>
-                      <p className="text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2">{b.description}</p>
+                      <p className="text-xs text-reader-muted mt-1 leading-relaxed line-clamp-2">{b.description}</p>
                       <div className="mt-2.5 flex items-center gap-1.5">
-                        <span className="text-[11px] font-bold text-amber-300 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center gap-1">
-                          <Sparkles className="w-3 h-3 text-amber-400" />
+                        <span className="text-[11px] font-bold text-reader-accent px-2.5 py-0.5 rounded-full bg-reader-accentSoft border border-reader-borderStrong flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-reader-accent" />
                           +{b.xp_award} XP
                         </span>
                       </div>
@@ -100,4 +101,3 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({ allBadges, userBadges,
     </AnimatePresence>
   );
 };
-

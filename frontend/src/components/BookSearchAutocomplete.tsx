@@ -46,7 +46,7 @@ export function BookSearchAutocomplete({ onSelectBook }: BookSearchAutocompleteP
               const gTitle = info.title || query;
 
               // Construct reliable HTTPS cover URL
-              let rawCover = info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail;
+              const rawCover = info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail;
               let coverUrl: string | undefined;
 
               if (rawCover) {

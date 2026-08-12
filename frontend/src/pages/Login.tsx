@@ -6,6 +6,7 @@ import { loginUser } from '../api/auth';
 import { getMyGroups } from '../api/groups';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
+import { ThemeToggle } from '../components/layout/ThemeToggle';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
@@ -45,31 +46,35 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-apple-bg relative text-apple-text dir-rtl font-sans transition-colors duration-300">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-reader-canvas relative text-reader-text dir-rtl font-sans transition-colors duration-300">
+      <div className="absolute top-4 left-4 z-20">
+        <ThemeToggle />
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md p-8 rounded-3xl bg-apple-surface shadow-2xl border border-apple-border relative z-10 space-y-6"
+        className="w-full max-w-md p-8 rounded-3xl bg-reader-panel shadow-2xl border border-reader-border relative z-10 space-y-6"
       >
         <div className="flex flex-col items-center mb-6 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-apple-card border border-apple-gold/40 flex items-center justify-center mb-3 text-apple-gold shadow-sm">
-            <BookOpen className="w-7 h-7 text-apple-gold" />
+          <div className="w-14 h-14 rounded-2xl bg-reader-surface border border-reader-borderStrong flex items-center justify-center mb-3 text-reader-accent shadow-sm">
+            <BookOpen className="w-7 h-7 text-reader-accent" />
           </div>
 
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-apple-gold px-3 py-1 rounded-full bg-apple-gold/10 border border-apple-gold/20 mb-2">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-reader-accent px-3 py-1 rounded-full bg-reader-accentSoft border border-reader-borderStrong mb-2">
             <Sparkles className="w-3.5 h-3.5" />
             نادي القراءة
           </span>
 
-          <h1 className="text-2xl font-black text-apple-text tracking-tight">تسجيل الدخول</h1>
-          <p className="text-apple-muted text-xs mt-1 font-medium">متابعة التزامك وتحديات القراءة اليومية</p>
+          <h1 className="text-2xl font-black text-reader-text tracking-tight">تسجيل الدخول</h1>
+          <p className="text-reader-muted text-xs mt-1 font-medium">متابعة التزامك وتحديات القراءة اليومية</p>
         </div>
 
         {error && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-5 p-3.5 rounded-2xl bg-apple-red/15 border border-apple-red/30 text-apple-red text-xs font-bold text-center leading-relaxed"
+            className="mb-5 p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold text-center leading-relaxed"
           >
             {error}
           </motion.div>
@@ -77,8 +82,8 @@ export const Login = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-apple-secondary mb-1.5 flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5 text-apple-gold" />
+            <label className="block text-xs font-bold text-reader-muted mb-1.5 flex items-center gap-1.5">
+              <Mail className="w-3.5 h-3.5 text-reader-accent" />
               البريد الإلكتروني
             </label>
             <input
@@ -86,14 +91,14 @@ export const Login = () => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-apple-bg border border-apple-border text-apple-text text-xs font-medium focus:border-apple-gold outline-none"
+              className="w-full px-4 py-3 rounded-xl bg-reader-surface border border-reader-border text-reader-text text-xs font-medium focus:border-reader-accent outline-none"
               placeholder="name@example.com"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-apple-secondary mb-1.5 flex items-center gap-1.5">
-              <KeyRound className="w-3.5 h-3.5 text-apple-gold" />
+            <label className="block text-xs font-bold text-reader-muted mb-1.5 flex items-center gap-1.5">
+              <KeyRound className="w-3.5 h-3.5 text-reader-accent" />
               كلمة السر
             </label>
             <input
@@ -101,7 +106,7 @@ export const Login = () => {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-apple-bg border border-apple-border text-apple-text text-xs font-medium focus:border-apple-gold outline-none"
+              className="w-full px-4 py-3 rounded-xl bg-reader-surface border border-reader-border text-reader-text text-xs font-medium focus:border-reader-accent outline-none"
               placeholder="••••••••"
             />
           </div>
@@ -111,11 +116,11 @@ export const Login = () => {
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isLoading}
-            className="w-full py-3.5 px-4 bg-apple-gold hover:opacity-90 text-black font-black text-sm rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 border border-apple-gold/40 disabled:opacity-50 mt-6"
+            className="w-full py-3.5 px-4 bg-reader-accent hover:bg-reader-accentHover text-reader-accentForeground font-black text-sm rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 border border-reader-borderStrong disabled:opacity-50 mt-6"
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-black" />
+                <Loader2 className="w-4 h-4 animate-spin text-reader-accentForeground" />
                 جاري التحقق...
               </>
             ) : (
@@ -124,9 +129,9 @@ export const Login = () => {
           </motion.button>
         </form>
 
-        <div className="mt-6 pt-5 border-t border-apple-border text-center text-xs text-apple-muted font-medium">
+        <div className="mt-6 pt-5 border-t border-reader-border text-center text-xs text-reader-muted font-medium">
           ليس لديك حساب بعد؟{' '}
-          <Link to="/register" className="text-apple-gold font-bold hover:underline">
+          <Link to="/register" className="text-reader-accent font-bold hover:underline">
             إنشاء حساب جديد
           </Link>
         </div>
@@ -134,5 +139,3 @@ export const Login = () => {
     </div>
   );
 };
-
-

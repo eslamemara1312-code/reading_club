@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, Upload, FolderOpen, RefreshCw, Trash2 } from 'lucide-react';
 import { getBookAssetMetadata, deleteSharedBookAsset, BookAssetWithProgress } from '../../api/reader';
@@ -23,7 +23,7 @@ export const BookAssetActions: React.FC<BookAssetActionsProps> = ({
   const [isReplacing, setIsReplacing] = useState(false);
   const localFileInputRef = useRef<HTMLInputElement>(null);
 
-  const fetchMetadata = async () => {
+  const fetchMetadata = useCallback(async () => {
     try {
       setIsLoading(true);
       const res = await getBookAssetMetadata(groupId, bookId);
@@ -33,11 +33,11 @@ export const BookAssetActions: React.FC<BookAssetActionsProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [groupId, bookId]);
 
   useEffect(() => {
     fetchMetadata();
-  }, [groupId, bookId]);
+  }, [fetchMetadata]);
 
   const handleDelete = async () => {
     if (!window.confirm('هل أنت تأكد من حذف النسخة المشتركة لهذا الكتاب من المجموعة؟')) return;

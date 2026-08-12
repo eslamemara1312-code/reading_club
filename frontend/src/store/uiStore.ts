@@ -36,6 +36,10 @@ export const useUIStore = create<UIState>((set, get) => ({
     if (typeof document !== 'undefined') {
       document.documentElement.classList.remove('dark', 'light');
       document.documentElement.classList.add(theme);
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) {
+        meta.setAttribute('content', theme === 'dark' ? '#0b1213' : '#edf3f2');
+      }
     }
     set({ theme });
   },
@@ -49,6 +53,10 @@ export const useUIStore = create<UIState>((set, get) => ({
     if (typeof document !== 'undefined') {
       document.documentElement.classList.remove('dark', 'light');
       document.documentElement.classList.add(theme);
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) {
+        meta.setAttribute('content', theme === 'dark' ? '#0b1213' : '#edf3f2');
+      }
     }
   },
 }));

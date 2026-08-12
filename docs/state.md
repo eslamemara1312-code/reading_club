@@ -2,13 +2,13 @@
 
 > This file is updated continuously. If a new AI model starts working on the project, it should read this file right after `AGENTS.md`.
 
-**Last updated:** August 9, 2026
+**Last updated:** August 12, 2026
 
 ---
 
 ## Current phase
 
-**Phase 6 — Audit Gap Fixes, Verification & Refactoring (Completed).** Core backend and frontend implementations exist across all 6 phases and Discussions/Replies. Verified with 12 passing backend test suites (70% overall statement coverage, 100% pass rate) and zero-error Vite production build (`npm run build`). Fixed daily close non-idempotency, grace period check-in calculations, and repo structure.
+**Phase 6 — Audit Gap Fixes, Verification & Refactoring (Completed).** Core backend and frontend implementations exist across all 6 phases and Discussions/Replies. The Arabic RTL visual redesign remediation is implemented with paired dark and light themes; production build, ESLint, and whitespace checks pass. Authenticated dashboard, modal, and PDF-reader workflows still require final user acceptance and are not claimed as 100% manually verified.
 
 ---
 
@@ -16,6 +16,9 @@
 
 | Date | Decision | Reason |
 |---|---|---|
+| Aug 12, 2026 | Full high-fidelity Arabic RTL visual redesign executed across all pages | Upgrade UX to world-class dark/light aesthetic matching contract in `docs/visual-redesign-handoff.md` |
+| Aug 12, 2026 | Integrated 3-layer CSS design token system (`tokens.css`) mapped to Tailwind | Consistent semantic color tokens (`reader.*`), anti-flash paint script, and clean theme switching |
+| Aug 12, 2026 | Built 3-region responsive `AppShell` with standalone reader variant | Prevents fixed sidebar & mobile navigation bars from covering PDF reader controls in reader view |
 | Aug 7, 2026 | Database on Supabase (managed Postgres only, not Auth, not Edge Functions) | Managed backups/administration without hand-rolling infra |
 | Aug 7, 2026 | Backend stays FastAPI (Python), hosted separately on Railway (or Fly.io) | Supabase doesn't host Python; the logic (streak/freeze/fines) is branchy and better suited to Python with full control than RLS |
 | Aug 7, 2026 | Frontend hosted on Vercel, separate from the backend | Static build, automatic deploys, no need for a manual VPS/nginx setup |
@@ -39,7 +42,11 @@ See `GOVERNANCE.md` §3 for full context.
 
 ## Current work
 
-**Verification and Code Cleanup complete.** Codebase verified and fixed; ready for production environment setup and live testing.
+**Visual redesign remediation complete; final authenticated acceptance remains.**
+- Dark/light semantic tokens now include explicit glass, subdued, disabled, success, and danger states without unsupported Tailwind opacity modifiers.
+- Responsive shell follows the agreed thresholds: mobile bottom navigation below 768px, compact header below 1200px, desktop rail at 1200px, and dashboard activity rail at 1440px.
+- Notifications and badges are available centrally from every protected page; icon controls have accessible names and 44px touch targets.
+- `npm run build`, `npm run lint`, and `git diff --check` pass. Login was visually checked in both themes at 390×844 and 1440×900 with no browser-console errors.
 
 ---
 
@@ -60,6 +67,17 @@ See `GOVERNANCE.md` §3 for full context.
 ---
 
 ## Session log
+
+### Session — August 12, 2026 (Visual Redesign Review Remediation)
+
+- Fixed: Replaced unsupported opacity modifiers on raw CSS-variable colors with explicit semantic glass, subdued, and disabled tokens; confirmed the new utilities exist in production CSS.
+- Fixed: Added a real dashboard activity rail and aligned responsive behavior with the approved 768px, 1200px, and 1440px thresholds.
+- Fixed: Centralized badge and notification overlays in `AppShell`, so their controls work on every protected page rather than only on Dashboard.
+- Fixed: Migrated `NudgeButton` from hard-coded legacy colors to theme tokens and improved touch targets, labels, and modal dialog semantics.
+- Fixed: Added the missing ESLint toolchain/configuration and resolved all reported errors and warnings, including reader effect dependencies.
+- Restored: Reinstated all historical decisions and session-log entries removed by the earlier redesign update.
+- Verified: `npm run lint` passes with zero warnings; `npm run build` passes; `git diff --check` passes.
+- Visually checked: Login in light and dark themes at 1440×900 and 390×844; no browser-console errors. Authenticated workflows remain for final user acceptance.
 
 ### Session — August 9, 2026 (Part 2 — Junction Fix, Coverage & Idempotency, Real-World Walkthrough)
 - Done: Untracked duplicate `.agents/` files from Git index (`git rm -r --cached .agents`) and added `.agents` to `.gitignore`. Standardized on `.agent/` as single canonical source of truth while keeping local NT junction.

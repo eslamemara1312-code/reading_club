@@ -1,35 +1,4 @@
-/*
-===============================================================================
- خريطة الوظائف المحفوظة (Preserved Functionality Map) — BookPage.tsx
-===============================================================================
-1. State Store & Router:
-   - activeGroupId: useUIStore((state) => state.activeGroupId)
-   - user: useAuthStore((state) => state.user)
-   - navigate: useNavigate()
-   - queryClient: useQueryClient()
-   - showSetPlanModal, selectedBookId, targetDays
-   - searchTerm, selectedFilter ('all' | 'active' | 'upcoming' | 'completed')
-   - showCreateBookModal, newTitle, newAuthor, newPages, newCoverUrl
-
-2. Queries:
-   - group: getGroupDetails(activeGroupId!) [Key: 'group', activeGroupId]
-   - allGroupBooks: getAllGroupBooks(activeGroupId!) [Key: 'allGroupBooks', activeGroupId]
-   - catalogBooks: getBooksCatalog() [Key: 'booksCatalog']
-
-3. Computed Values & Permissions:
-   - isOwner: group?.owner_id === user?.id
-   - activeGroupBook: allGroupBooks?.find(b => b.status === 'active')
-   - filteredGroupBooks: filtered by selectedFilter and searchTerm
-
-4. Mutations:
-   - setPlanMutation: setGroupBookPlan(activeGroupId!, data)
-   - createBookMutation: createBookInCatalog(data)
-   - deleteGroupBookMutation: deleteGroupBook(activeGroupId!, groupBookId)
-   - deleteCatalogBookMutation: deleteBookFromCatalog(bookId)
-===============================================================================
-*/
-
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -51,10 +20,10 @@ import {
   Book,
 } from '../api/books';
 import { getGroupDetails, Group } from '../api/groups';
-import { Navbar } from '../components/Navbar';
 import { BookSearchAutocomplete, WikidataBookResult } from '../components/BookSearchAutocomplete';
 import { ThreeDBookCard } from '../components/3DBookCard';
 import { BookAssetActions } from '../components/reader/BookAssetActions';
+import { AppShell } from '../components/layout/AppShell';
 
 export const BookPage = () => {
   const activeGroupId = useUIStore((state) => state.activeGroupId);
@@ -186,13 +155,13 @@ export const BookPage = () => {
 
   if (!activeGroupId) {
     return (
-      <div className="min-h-screen bg-apple-bg text-apple-text flex items-center justify-center p-4">
-        <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4 bg-apple-surface rounded-2xl border border-apple-border shadow-xl">
-          <BookOpen className="w-10 h-10 text-apple-gold mx-auto" />
-          <h2 className="text-xl font-bold text-apple-text">يرجى الانضمام إلى مجموعة لتصفح رف الكتب</h2>
+      <div className="min-h-screen bg-reader-canvas text-reader-text flex items-center justify-center p-4">
+        <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4 bg-reader-panel rounded-3xl border border-reader-border shadow-xl">
+          <BookOpen className="w-10 h-10 text-reader-accent mx-auto" />
+          <h2 className="text-xl font-bold text-reader-text">يرجى الانضمام إلى مجموعة لتصفح رف الكتب</h2>
           <button
             onClick={() => navigate('/onboarding')}
-            className="w-full py-3 bg-apple-gold hover:opacity-90 text-black rounded-xl text-xs font-black transition-colors"
+            className="w-full py-3 bg-reader-accent hover:bg-reader-accentHover text-reader-accentForeground rounded-2xl text-xs font-black transition-colors"
           >
             الانتقال للمجموعات
           </button>
@@ -202,48 +171,42 @@ export const BookPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-apple-bg text-apple-text pb-32 relative dir-rtl font-sans transition-colors duration-300">
-      {/* Quiet Header Navbar */}
-      <Navbar />
-
-      <main className="max-w-6xl mx-auto px-4 sm:px-8 pt-8 space-y-12 relative z-10">
-        
+    <AppShell>
+      <div className="space-y-8 sm:space-y-12 max-w-6xl mx-auto">
         {/* HEADER GREETING & PRIMARY ACTION BUTTON */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-apple-border pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-reader-border pb-6">
           <div className="space-y-1">
-            <span className="text-xs text-apple-gold font-bold tracking-wider uppercase block">
+            <span className="text-xs text-reader-accent font-bold tracking-wider uppercase block">
               مكتبة النادي • Bookshelf 📚
             </span>
-            <h1 className="font-black text-3xl text-apple-text tracking-tight">
+            <h1 className="font-black text-2xl sm:text-3xl text-reader-text tracking-tight">
               أهلاً بك، {user?.name || 'القارئ'}
             </h1>
-            <p className="text-apple-muted text-xs font-medium">
+            <p className="text-reader-muted text-xs font-medium">
               تصفح كتب مجموعتك، واكتشف كتب الكتالوج المتاحة للقراءة.
             </p>
           </div>
 
-          {/* SINGLE SOLID ACCENT FILL BUTTON ON THIS PAGE */}
           <button
             onClick={() => setShowCreateBookModal(true)}
-            className="px-5 py-3 bg-apple-gold hover:opacity-90 text-black font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.97] shrink-0 shadow-lg"
+            className="px-5 py-3 bg-reader-accent hover:bg-reader-accentHover text-reader-accentForeground font-black text-xs rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.97] shrink-0 shadow-lg"
           >
             <Plus className="w-4 h-4" />
             إضافة كتاب للكتالوج
           </button>
         </div>
 
-        {/* 1. CURRENTLY READING HERO SPOTLIGHT (LARGE STANDALONE COVER, NO CARD FRAME) */}
+        {/* 1. CURRENTLY READING HERO SPOTLIGHT */}
         {activeGroupBook && (
           <section className="space-y-4">
-            <div className="flex items-center gap-2 text-xs font-bold text-apple-gold">
-              <Sparkles className="w-4 h-4 text-apple-gold" />
+            <div className="flex items-center gap-2 text-xs font-bold text-reader-accent">
+              <Sparkles className="w-4 h-4 text-reader-accent" />
               <span>تقرأ حالياً • Currently Reading</span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center border-b border-apple-border pb-8">
-              {/* Standalone Large Cover (No Card Frame Around It) */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center border-b border-reader-border pb-8">
               <div className="md:col-span-3 flex justify-center md:justify-start">
-                <div className="w-36 h-56 bg-apple-surface rounded-lg overflow-hidden shadow-2xl flex items-center justify-center border border-apple-border">
+                <div className="w-36 h-56 bg-reader-surface rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center border border-reader-border">
                   {activeGroupBook.book.cover_url ? (
                     <img
                       src={getProxiedCoverUrl(activeGroupBook.book.cover_url)}
@@ -252,33 +215,32 @@ export const BookPage = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <BookOpen className="w-12 h-12 text-apple-muted" />
+                    <BookOpen className="w-12 h-12 text-reader-muted" />
                   )}
                 </div>
               </div>
 
-              {/* Title & Metadata */}
               <div className="md:col-span-9 space-y-3 text-right">
-                <span className="text-[11px] font-mono text-apple-green font-bold">
+                <span className="text-[11px] font-mono text-reader-metric-limeText font-bold">
                   {activeGroupBook.book.category || 'كتاب رئيسي'}
                 </span>
 
-                <h2 className="text-3xl font-black text-apple-text leading-snug">
+                <h2 className="text-2xl sm:text-3xl font-black text-reader-text leading-snug">
                   {activeGroupBook.book.title}
                 </h2>
                 
-                <p className="text-xs text-apple-secondary font-medium">
+                <p className="text-xs text-reader-muted font-medium">
                   المؤلف: {activeGroupBook.book.author} • إجمالي {activeGroupBook.book.total_pages} صفحة
                 </p>
 
-                <div className="text-xs text-apple-gold font-mono font-bold pt-1">
+                <div className="text-xs text-reader-accent font-mono font-bold pt-1">
                   الهدف اليومي للمجموعة: {activeGroupBook.daily_target_pages} صفحة / يوم
                 </div>
 
-                <div className="pt-2 flex flex-col gap-2">
+                <div className="pt-2 flex flex-wrap gap-2">
                   <button
                     onClick={() => navigate('/dashboard')}
-                    className="px-5 py-2.5 bg-apple-card hover:bg-apple-elevated text-apple-gold border border-apple-gold/30 font-bold text-xs rounded-xl transition-colors inline-flex items-center gap-2 shadow-sm self-start"
+                    className="px-5 py-2.5 bg-reader-surface hover:bg-reader-hover text-reader-accent border border-reader-borderStrong font-bold text-xs rounded-xl transition-colors inline-flex items-center gap-2 shadow-sm"
                   >
                     <span>تكملة الورد اليومي 📖</span>
                     <ChevronLeft className="w-4 h-4" />
@@ -301,55 +263,52 @@ export const BookPage = () => {
         <section className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-apple-gold" />
-              <h2 className="text-lg font-bold text-apple-text">رف كتب المجموعة</h2>
+              <BookOpen className="w-5 h-5 text-reader-accent" />
+              <h2 className="text-lg font-bold text-reader-text">رف كتب المجموعة</h2>
             </div>
 
-            {/* Filter Tabs */}
-            <div className="flex items-center gap-2 bg-apple-surface p-1 rounded-xl border border-apple-border text-xs font-semibold shadow-sm">
+            <div className="flex items-center gap-2 bg-reader-panel p-1 rounded-2xl border border-reader-border text-xs font-semibold shadow-sm">
               <button
                 onClick={() => setSelectedFilter('all')}
-                className={`px-3 py-1.5 rounded-lg transition ${selectedFilter === 'all' ? 'bg-apple-card text-apple-gold border border-apple-gold/30 shadow-sm' : 'text-apple-secondary hover:text-apple-text'}`}
+                className={`px-3 py-1.5 rounded-xl transition ${selectedFilter === 'all' ? 'bg-reader-surface text-reader-accent border border-reader-borderStrong shadow-sm' : 'text-reader-muted hover:text-reader-text'}`}
               >
                 الكل
               </button>
               <button
                 onClick={() => setSelectedFilter('active')}
-                className={`px-3 py-1.5 rounded-lg transition ${selectedFilter === 'active' ? 'bg-apple-card text-apple-gold border border-apple-gold/30 shadow-sm' : 'text-apple-secondary hover:text-apple-text'}`}
+                className={`px-3 py-1.5 rounded-xl transition ${selectedFilter === 'active' ? 'bg-reader-surface text-reader-accent border border-reader-borderStrong shadow-sm' : 'text-reader-muted hover:text-reader-text'}`}
               >
                 حالي 🔥
               </button>
               <button
                 onClick={() => setSelectedFilter('upcoming')}
-                className={`px-3 py-1.5 rounded-lg transition ${selectedFilter === 'upcoming' ? 'bg-apple-card text-apple-gold border border-apple-gold/30 shadow-sm' : 'text-apple-secondary hover:text-apple-text'}`}
+                className={`px-3 py-1.5 rounded-xl transition ${selectedFilter === 'upcoming' ? 'bg-reader-surface text-reader-accent border border-reader-borderStrong shadow-sm' : 'text-reader-muted hover:text-reader-text'}`}
               >
                 قادم ⏳
               </button>
               <button
                 onClick={() => setSelectedFilter('completed')}
-                className={`px-3 py-1.5 rounded-lg transition ${selectedFilter === 'completed' ? 'bg-apple-card text-apple-gold border border-apple-gold/30 shadow-sm' : 'text-apple-secondary hover:text-apple-text'}`}
+                className={`px-3 py-1.5 rounded-xl transition ${selectedFilter === 'completed' ? 'bg-reader-surface text-reader-accent border border-reader-borderStrong shadow-sm' : 'text-reader-muted hover:text-reader-text'}`}
               >
                 مكتمل ✅
               </button>
             </div>
           </div>
 
-          {/* Search Input Bar */}
           <div className="relative">
-            <Search className="w-4 h-4 text-apple-muted absolute right-4 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-reader-muted absolute right-4 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="ابحث باسم الكتاب أو المؤلف..."
-              className="w-full pl-4 pr-11 py-3 bg-apple-surface border border-apple-border rounded-xl text-apple-text text-xs font-medium focus:border-apple-gold outline-none shadow-sm"
+              className="w-full pl-4 pr-11 py-3 bg-reader-panel border border-reader-border rounded-2xl text-reader-text text-xs font-medium focus:border-reader-accent outline-none shadow-sm"
             />
           </div>
 
-          {/* Group Books Horizontal Shelf */}
           {loadingGroupBooks ? (
-            <div className="text-center py-12 text-apple-muted text-xs flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-apple-gold" /> جاري تحميل رف الكتب...
+            <div className="text-center py-12 text-reader-muted text-xs flex items-center justify-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-reader-accent" /> جاري تحميل رف الكتب...
             </div>
           ) : filteredGroupBooks && filteredGroupBooks.length > 0 ? (
             <div className="overflow-x-auto pb-4 pt-1 no-scrollbar flex items-center gap-4 scroll-smooth">
@@ -367,13 +326,13 @@ export const BookPage = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-10 bg-apple-surface rounded-2xl border border-apple-border space-y-3 shadow-md">
-              <BookOpen className="w-8 h-8 text-apple-muted mx-auto" />
-              <h3 className="text-xs font-bold text-apple-text">لا توجد كتب مضافة لهذا الرف بعد</h3>
+            <div className="text-center py-10 bg-reader-panel rounded-3xl border border-reader-border space-y-3 shadow-md">
+              <BookOpen className="w-8 h-8 text-reader-muted mx-auto" />
+              <h3 className="text-xs font-bold text-reader-text">لا توجد كتب مضافة لهذا الرف بعد</h3>
               {isOwner && (
                 <button
                   onClick={() => setShowSetPlanModal(true)}
-                  className="px-4 py-2 bg-apple-card hover:bg-apple-elevated text-apple-gold border border-apple-gold/30 font-bold text-xs rounded-xl transition-colors shadow-sm"
+                  className="px-4 py-2 bg-reader-surface hover:bg-reader-hover text-reader-accent border border-reader-borderStrong font-bold text-xs rounded-xl transition-colors shadow-sm"
                 >
                   حدد كتاباً من الكتالوج للخطة
                 </button>
@@ -382,18 +341,18 @@ export const BookPage = () => {
           )}
         </section>
 
-        {/* 3. CATALOG GRID SECTION WITH HAIRLINE BORDERS */}
-        <section className="space-y-4 pt-4 border-t border-apple-border">
+        {/* 3. CATALOG GRID SECTION */}
+        <section className="space-y-4 pt-4 border-t border-reader-border">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Layers className="w-4 h-4 text-apple-gold" />
-              <h2 className="text-base font-bold text-apple-text">كتالوج الكتب المتاحة للمجموعة</h2>
+              <Layers className="w-4 h-4 text-reader-accent" />
+              <h2 className="text-base font-bold text-reader-text">كتالوج الكتب المتاحة للمجموعة</h2>
             </div>
 
             {isOwner && (
               <button
                 onClick={() => setShowSetPlanModal(true)}
-                className="px-3.5 py-2 bg-apple-card hover:bg-apple-elevated text-apple-gold border border-apple-gold/30 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-sm"
+                className="px-3.5 py-2 bg-reader-surface hover:bg-reader-hover text-reader-accent border border-reader-borderStrong font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-sm"
               >
                 <Bookmark className="w-3.5 h-3.5" />
                 تحديد كتاب كخطة
@@ -402,8 +361,8 @@ export const BookPage = () => {
           </div>
 
           {loadingCatalog ? (
-            <div className="text-center py-8 text-apple-muted text-xs flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-apple-gold" /> جاري تحميل الكتالوج...
+            <div className="text-center py-8 text-reader-muted text-xs flex items-center justify-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-reader-accent" /> جاري تحميل الكتالوج...
             </div>
           ) : catalogBooks && catalogBooks.length > 0 ? (
             <div className="overflow-x-auto pb-4 pt-1 no-scrollbar flex items-center gap-4 scroll-smooth">
@@ -422,34 +381,33 @@ export const BookPage = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-apple-muted text-xs font-medium">
+            <div className="text-center py-8 text-reader-muted text-xs font-medium">
               الكتالوج فارغ حالياً. يمكنك إضافة كتب جديدة عبر زر "إضافة كتاب للكتالوج".
             </div>
           )}
         </section>
-
-      </main>
+      </div>
 
       {/* Set Plan Modal */}
       <AnimatePresence>
         {showSetPlanModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-apple-surface p-6 rounded-2xl max-w-md w-full border border-apple-border space-y-4 shadow-2xl"
+              className="bg-reader-panel p-6 rounded-3xl max-w-md w-full border border-reader-border space-y-4 shadow-2xl"
             >
-              <h3 className="text-base font-bold text-apple-text text-center">تحديد خطة كتاب للمجموعة 📖</h3>
+              <h3 className="text-base font-bold text-reader-text text-center">تحديد خطة كتاب للمجموعة 📖</h3>
 
               <form onSubmit={handleSetPlanSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-apple-secondary mb-1.5">اختر كتاباً من الكتالوج</label>
+                  <label className="block text-xs font-semibold text-reader-muted mb-1.5">اختر كتاباً من الكتالوج</label>
                   <select
                     value={selectedBookId}
                     onChange={(e) => setSelectedBookId(e.target.value)}
                     required
-                    className="w-full px-4 py-3 bg-apple-bg border border-apple-border rounded-xl text-apple-text text-xs font-medium outline-none focus:border-apple-gold"
+                    className="w-full px-4 py-3 bg-reader-surface border border-reader-border rounded-xl text-reader-text text-xs font-medium outline-none focus:border-reader-accent"
                   >
                     <option value="">-- اختر الكتاب --</option>
                     {catalogBooks?.map((b) => (
@@ -461,14 +419,14 @@ export const BookPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-apple-secondary mb-1.5">مدّة القراءة بالـ (أيام)</label>
+                  <label className="block text-xs font-semibold text-reader-muted mb-1.5">مدّة القراءة بالـ (أيام)</label>
                   <input
                     type="number"
                     min="1"
                     value={targetDays}
                     onChange={(e) => setTargetDays(e.target.value)}
                     required
-                    className="w-full px-4 py-3 bg-apple-bg border border-apple-border rounded-xl text-apple-text text-xs font-mono outline-none focus:border-apple-gold text-center"
+                    className="w-full px-4 py-3 bg-reader-surface border border-reader-border rounded-xl text-reader-text text-xs font-mono outline-none focus:border-reader-accent text-center"
                   />
                 </div>
 
@@ -476,16 +434,16 @@ export const BookPage = () => {
                   <button
                     type="button"
                     onClick={() => setShowSetPlanModal(false)}
-                    className="w-1/2 py-2.5 bg-apple-card text-apple-secondary font-semibold rounded-xl text-xs"
+                    className="w-1/2 py-2.5 bg-reader-surface text-reader-muted font-semibold rounded-xl text-xs border border-reader-border"
                   >
                     إلغاء
                   </button>
                   <button
                     type="submit"
                     disabled={setPlanMutation.isPending}
-                    className="w-1/2 py-2.5 bg-apple-gold hover:opacity-90 text-black font-black rounded-xl text-xs flex items-center justify-center gap-1"
+                    className="w-1/2 py-2.5 bg-reader-accent hover:bg-reader-accentHover text-reader-accentForeground font-black rounded-xl text-xs flex items-center justify-center gap-1"
                   >
-                    {setPlanMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin text-black" /> : 'تأكيد الخطة'}
+                    {setPlanMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'تأكيد الخطة'}
                   </button>
                 </div>
               </form>
@@ -497,65 +455,64 @@ export const BookPage = () => {
       {/* Create Book Modal */}
       <AnimatePresence>
         {showCreateBookModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-apple-surface p-6 rounded-2xl max-w-md w-full border border-apple-border space-y-4 shadow-2xl max-h-[85vh] overflow-y-auto"
+              className="bg-reader-panel p-6 rounded-3xl max-w-md w-full border border-reader-border space-y-4 shadow-2xl max-h-[85vh] overflow-y-auto"
             >
-              <h3 className="text-base font-bold text-apple-text text-center">إضافة كتاب جديد للكتالوج 📚</h3>
+              <h3 className="text-base font-bold text-reader-text text-center">إضافة كتاب جديد للكتالوج 📚</h3>
 
-              {/* Wikidata Smart Search */}
               <div className="space-y-1">
-                <label className="block text-[11px] font-semibold text-apple-gold">البحث الذكي عن كتاب أوتوماتيكياً</label>
+                <label className="block text-[11px] font-semibold text-reader-accent">البحث الذكي عن كتاب أوتوماتيكياً</label>
                 <BookSearchAutocomplete onSelectBook={handleSelectWikidataBook} />
               </div>
 
               <form onSubmit={handleCreateBookSubmit} className="space-y-3.5 pt-2">
                 <div>
-                  <label className="block text-xs font-semibold text-apple-secondary mb-1">عنوان الكتاب</label>
+                  <label className="block text-xs font-semibold text-reader-muted mb-1">عنوان الكتاب</label>
                   <input
                     type="text"
                     required
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-apple-bg border border-apple-border rounded-xl text-apple-text text-xs font-medium outline-none focus:border-apple-gold"
+                    className="w-full px-3.5 py-2.5 bg-reader-surface border border-reader-border rounded-xl text-reader-text text-xs font-medium outline-none focus:border-reader-accent"
                     placeholder="مثال: مقدمة ابن خلدون"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-apple-secondary mb-1">اسم المؤلف</label>
+                  <label className="block text-xs font-semibold text-reader-muted mb-1">اسم المؤلف</label>
                   <input
                     type="text"
                     required
                     value={newAuthor}
                     onChange={(e) => setNewAuthor(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-apple-bg border border-apple-border rounded-xl text-apple-text text-xs font-medium outline-none focus:border-apple-gold"
+                    className="w-full px-3.5 py-2.5 bg-reader-surface border border-reader-border rounded-xl text-reader-text text-xs font-medium outline-none focus:border-reader-accent"
                     placeholder="مثال: ابن خلدون"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-apple-secondary mb-1">إجمالي عدد الصفحات</label>
+                  <label className="block text-xs font-semibold text-reader-muted mb-1">إجمالي عدد الصفحات</label>
                   <input
                     type="number"
                     min="1"
                     required
                     value={newPages}
                     onChange={(e) => setNewPages(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-apple-bg border border-apple-border rounded-xl text-apple-text text-xs font-mono outline-none focus:border-apple-gold"
+                    className="w-full px-3.5 py-2.5 bg-reader-surface border border-reader-border rounded-xl text-reader-text text-xs font-mono outline-none focus:border-reader-accent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-apple-secondary mb-1">رابط صورة الغلاف (اختياري)</label>
+                  <label className="block text-xs font-semibold text-reader-muted mb-1">رابط صورة الغلاف (اختياري)</label>
                   <input
                     type="url"
                     value={newCoverUrl}
                     onChange={(e) => setNewCoverUrl(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-apple-bg border border-apple-border rounded-xl text-apple-text text-xs font-mono outline-none focus:border-apple-gold"
+                    className="w-full px-3.5 py-2.5 bg-reader-surface border border-reader-border rounded-xl text-reader-text text-xs font-mono outline-none focus:border-reader-accent"
                     placeholder="https://..."
                   />
                 </div>
@@ -564,16 +521,16 @@ export const BookPage = () => {
                   <button
                     type="button"
                     onClick={() => setShowCreateBookModal(false)}
-                    className="w-1/2 py-2.5 bg-apple-card text-apple-secondary font-semibold rounded-xl text-xs"
+                    className="w-1/2 py-2.5 bg-reader-surface text-reader-muted font-semibold rounded-xl text-xs border border-reader-border"
                   >
                     إلغاء
                   </button>
                   <button
                     type="submit"
                     disabled={createBookMutation.isPending}
-                    className="w-1/2 py-2.5 bg-[#FFD60A] hover:bg-[#E5C000] text-[#000000] font-black rounded-xl text-xs flex items-center justify-center gap-1"
+                    className="w-1/2 py-2.5 bg-reader-accent hover:bg-reader-accentHover text-reader-accentForeground font-black rounded-xl text-xs flex items-center justify-center gap-1"
                   >
-                    {createBookMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin text-[#000000]" /> : 'حفظ الكتاب'}
+                    {createBookMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'حفظ الكتاب'}
                   </button>
                 </div>
               </form>
@@ -581,6 +538,6 @@ export const BookPage = () => {
           </div>
         )}
       </AnimatePresence>
-    </div>
+    </AppShell>
   );
 };

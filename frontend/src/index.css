@@ -1,49 +1,49 @@
+@import './styles/tokens.css';
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Reading Club — High-Contrast Warm Obsidian Dark Mode */
+/* Legacy Apple aliases mapped to new Semantic tokens */
 :root, .dark {
-  --apple-bg: #121110;             /* Deep Charcoal Obsidian Canvas */
-  --apple-surface: #1C1A17;        /* Rich Warm Surface Card */
-  --apple-card: #262420;           /* Elevated Subcard Container */
-  --apple-card-elevated: #332F2A;  /* Active Hover Surface */
-  --apple-border: rgba(255, 255, 255, 0.12); /* Hairline Border */
+  --apple-bg: var(--rc-canvas);
+  --apple-surface: var(--rc-panel);
+  --apple-card: var(--rc-surface);
+  --apple-card-elevated: var(--rc-surface-raised);
+  --apple-border: var(--rc-border);
   
-  --apple-text: #F8F6F0;           /* High-Contrast Crisp Cream White (16:1) */
-  --apple-text-secondary: #D8D2C5; /* Clear High-Readability Secondary Text (10:1) */
-  --apple-muted: #A8A092;          /* Crisp Muted Subtitle (6:1) */
+  --apple-text: var(--rc-text);
+  --apple-text-secondary: var(--rc-text-muted);
+  --apple-muted: var(--rc-text-subtle);
 
-  --apple-gold: #E5B24A;          /* Vibrant Rich Gold Accent */
-  --apple-amber: #D9774F;         /* Terracotta Flame Accent */
-  --apple-green: #4ADE80;         /* Bright High-Contrast Green */
-  --apple-red: #F87171;           /* Vivid High-Contrast Red */
-  --apple-blue: #60A5FA;          /* Clear Soft Blue */
+  --apple-gold: var(--rc-gold-400);
+  --apple-amber: var(--rc-coral-400);
+  --apple-green: var(--rc-green-400);
+  --apple-red: var(--rc-red-400);
+  --apple-blue: var(--rc-cyan-400);
 
-  --apple-header-bg: rgba(18, 17, 16, 0.92); /* Translucent Header */
+  --apple-header-bg: var(--rc-panel);
 }
 
-/* Reading Club — High-Contrast Parchment Warm Light Mode */
 .light {
-  --apple-bg: #F7F5F0;             /* Warm Parchment Cream Canvas */
-  --apple-surface: #FFFFFF;        /* Crisp Pure White Surface Card */
-  --apple-card: #FFFFFF;           /* White Card with Soft Shadow */
-  --apple-card-elevated: #EFECE6;  /* Subtle Elevated Hover State */
-  --apple-border: rgba(0, 0, 0, 0.12); /* Crisp Warm Divider Line */
+  --apple-bg: var(--rc-canvas);
+  --apple-surface: var(--rc-panel);
+  --apple-card: var(--rc-surface);
+  --apple-card-elevated: var(--rc-surface-raised);
+  --apple-border: var(--rc-border);
   
-  --apple-text: #1C1917;           /* High-Contrast Charcoal Ink (16:1) */
-  --apple-text-secondary: #44403C; /* Deep Taupe Secondary Text (8.5:1) */
-  --apple-muted: #6B655F;          /* Clear Muted Label (5.2:1) */
+  --apple-text: var(--rc-text);
+  --apple-text-secondary: var(--rc-text-muted);
+  --apple-muted: var(--rc-text-subtle);
 
-  --apple-gold: #B88222;          /* Deep High-Contrast Gold Accent */
-  --apple-amber: #C25E38;         /* Deep Terracotta Accent */
-  --apple-green: #15803D;         /* High-Contrast Deep Forest Green */
-  --apple-red: #DC2626;           /* High-Contrast Vivid Red */
-  --apple-blue: #1D4ED8;          /* High-Contrast Deep Blue */
+  --apple-gold: var(--rc-gold-500);
+  --apple-amber: var(--rc-coral-400);
+  --apple-green: var(--rc-green-400);
+  --apple-red: var(--rc-red-400);
+  --apple-blue: var(--rc-cyan-700);
 
-  --apple-header-bg: rgba(247, 245, 240, 0.92); /* Translucent Header */
+  --apple-header-bg: var(--rc-panel);
 }
 
 html {
@@ -62,13 +62,13 @@ body {
   max-width: 100vw;
   min-height: 100vh;
   overflow-x: hidden;
-  background-color: var(--apple-bg);
-  color: var(--apple-text);
+  background-color: var(--rc-canvas);
+  color: var(--rc-text);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", "Cairo", "IBM Plex Sans Arabic", sans-serif;
   direction: rtl;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.24s ease, color 0.24s ease;
 }
 
 #root {

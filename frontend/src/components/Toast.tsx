@@ -47,12 +47,12 @@ export function ToastContainer() {
               exit={{ opacity: 0, y: 10, scale: 0.9 }}
               transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               onClick={() => removeToast(toast.id)}
-              className={`pointer-events-auto flex items-center gap-3 p-4 rounded-xl glass-panel shadow-2xl border text-xs font-semibold backdrop-blur-xl cursor-pointer ${
+              className={`pointer-events-auto flex items-center gap-3 p-4 rounded-2xl shadow-2xl border text-xs font-semibold backdrop-blur-xl cursor-pointer ${
                 toast.type === 'success'
-                  ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40 shadow-emerald-500/10'
+                  ? 'bg-reader-panel text-reader-metric-limeText border-reader-borderStrong shadow-lg'
                   : toast.type === 'error'
-                  ? 'bg-rose-950/80 text-rose-300 border-rose-500/40 shadow-rose-500/10'
-                  : 'bg-slate-900/90 text-slate-200 border-slate-700 shadow-slate-900/50'
+                  ? 'bg-reader-panel text-red-400 border-red-500/30 shadow-lg'
+                  : 'bg-reader-panel text-reader-text border-reader-border shadow-lg'
               }`}
             >
               <Icon className="w-5 h-5 shrink-0" />
@@ -69,4 +69,3 @@ export function ToastContainer() {
 export function showToast(text: string, type: ToastType = 'info') {
   useToastStore.getState().addToast(text, type);
 }
-

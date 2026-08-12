@@ -1,0 +1,114 @@
+/* Reading Club — Token Design System */
+/* Layer 1: Primitives */
+:root {
+  --rc-ink-950: #0b1213;
+  --rc-ink-925: #10191a;
+  --rc-ink-900: #141f20;
+  --rc-ink-850: #182526;
+  --rc-ink-800: #1e2c2d;
+  --rc-ink-700: #2a393a;
+  --rc-white: #f7fbfa;
+  --rc-slate-300: #b4c0be;
+  --rc-slate-400: #899897;
+  --rc-slate-600: #53605f;
+  --rc-cyan-300: #79d2eb;
+  --rc-cyan-400: #58bddb;
+  --rc-cyan-500: #36a8cb;
+  --rc-cyan-700: #1c7189;
+  --rc-gold-400: #ffe46f;
+  --rc-gold-500: #f5c94d;
+  --rc-violet-400: #c19aff;
+  --rc-lime-400: #aff06b;
+  --rc-sky-400: #7ed2ef;
+  --rc-coral-400: #ff9b70;
+  --rc-red-400: #fa7e7e;
+  --rc-green-400: #69d49a;
+  --rc-radius-sm: 12px;
+  --rc-radius-md: 18px;
+  --rc-radius-lg: 24px;
+  --rc-radius-xl: 32px;
+  --rc-shadow-dark: 0 20px 52px rgb(0 0 0 / 0.28);
+  --rc-shadow-light: 0 16px 40px rgb(26 49 50 / 0.12);
+  --rc-duration-fast: 160ms;
+  --rc-duration-normal: 240ms;
+}
+
+/* Layer 2 & 3: Semantic Theme Aliases — Dark is Default */
+:root,
+html.dark {
+  --rc-canvas: var(--rc-ink-950);
+  --rc-canvas-elevated: #101a1b;
+  --rc-panel: var(--rc-ink-925);
+  --rc-surface: var(--rc-ink-900);
+  --rc-surface-raised: var(--rc-ink-850);
+  --rc-surface-hover: var(--rc-ink-800);
+  --rc-glass-panel: rgb(16 25 26 / 0.94);
+  --rc-surface-subdued: rgb(20 31 32 / 0.62);
+  --rc-surface-disabled: rgb(20 31 32 / 0.42);
+  --rc-text: var(--rc-white);
+  --rc-text-muted: var(--rc-slate-300);
+  --rc-text-subtle: var(--rc-slate-400);
+  --rc-border: rgb(255 255 255 / 0.09);
+  --rc-border-strong: rgb(121 210 235 / 0.34);
+  --rc-accent: var(--rc-cyan-400);
+  --rc-accent-hover: var(--rc-cyan-300);
+  --rc-accent-foreground: #071416;
+  --rc-accent-soft: rgb(88 189 219 / 0.14);
+  --rc-success: var(--rc-green-400);
+  --rc-danger: var(--rc-red-400);
+  --rc-danger-soft: rgb(250 126 126 / 0.12);
+  --rc-focus: rgb(121 210 235 / 0.70);
+  --rc-shadow: var(--rc-shadow-dark);
+  --rc-reader-page: #eef1e9;
+
+  /* Metric Tokens */
+  --rc-metric-gold-bg: rgb(255 228 111 / 0.12);
+  --rc-metric-gold-text: var(--rc-gold-400);
+  --rc-metric-coral-bg: rgb(255 155 112 / 0.12);
+  --rc-metric-coral-text: var(--rc-coral-400);
+  --rc-metric-violet-bg: rgb(193 154 255 / 0.12);
+  --rc-metric-violet-text: var(--rc-violet-400);
+  --rc-metric-lime-bg: rgb(175 240 107 / 0.12);
+  --rc-metric-lime-text: var(--rc-lime-400);
+  --rc-metric-sky-bg: rgb(126 210 239 / 0.12);
+  --rc-metric-sky-text: var(--rc-sky-400);
+}
+
+html.light {
+  --rc-canvas: #edf3f2;
+  --rc-canvas-elevated: #e6eeee;
+  --rc-panel: #f8fbfa;
+  --rc-surface: #ffffff;
+  --rc-surface-raised: #f2f7f6;
+  --rc-surface-hover: #e8f1f0;
+  --rc-glass-panel: rgb(248 251 250 / 0.94);
+  --rc-surface-subdued: rgb(255 255 255 / 0.72);
+  --rc-surface-disabled: rgb(242 247 246 / 0.78);
+  --rc-text: #102021;
+  --rc-text-muted: #405352;
+  --rc-text-subtle: #6c7d7b;
+  --rc-border: rgb(16 32 33 / 0.11);
+  --rc-border-strong: rgb(28 113 137 / 0.38);
+  --rc-accent: var(--rc-cyan-700);
+  --rc-accent-hover: #155d71;
+  --rc-accent-foreground: #ffffff;
+  --rc-accent-soft: rgb(28 113 137 / 0.10);
+  --rc-success: #287a4d;
+  --rc-danger: #b42318;
+  --rc-danger-soft: rgb(180 35 24 / 0.09);
+  --rc-focus: rgb(28 113 137 / 0.65);
+  --rc-shadow: var(--rc-shadow-light);
+  --rc-reader-page: #fffdf7;
+
+  /* Metric Tokens */
+  --rc-metric-gold-bg: rgb(245 201 77 / 0.16);
+  --rc-metric-gold-text: #8f6c0a;
+  --rc-metric-coral-bg: rgb(255 155 112 / 0.16);
+  --rc-metric-coral-text: #b84a1d;
+  --rc-metric-violet-bg: rgb(193 154 255 / 0.16);
+  --rc-metric-violet-text: #6b3ba7;
+  --rc-metric-lime-bg: rgb(175 240 107 / 0.20);
+  --rc-metric-lime-text: #3d6e0a;
+  --rc-metric-sky-bg: rgb(126 210 239 / 0.18);
+  --rc-metric-sky-text: #166a85;
+}

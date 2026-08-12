@@ -33,7 +33,12 @@ const queryClient = new QueryClient({
 
 export function App() {
   const { isAuthenticated, setUser } = useAuthStore();
-  const { activeGroupId, setActiveGroupId } = useUIStore();
+  const { activeGroupId, setActiveGroupId, initTheme } = useUIStore();
+
+  // Root theme initialization
+  useEffect(() => {
+    initTheme();
+  }, [initTheme]);
 
   // Smooth Scroll Initialization with Lenis (Desktop only to preserve mobile native touch inertia scroll)
   useEffect(() => {
