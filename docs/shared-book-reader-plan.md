@@ -106,14 +106,14 @@ The frontend must not communicate directly with Supabase. FastAPI remains respon
 
 ### 5.1 PDF viewer
 
-Use a maintained PDF rendering library based on PDF.js, wrapped in a React component. The viewer must render pages on demand rather than loading every page at once. This is important for 50 MB files and lower-powered mobile devices.
+Use EmbedPDF (`@embedpdf/react-pdf-viewer`), an open-source React PDF viewer powered by Google Chrome's PDFium engine compiled to WebAssembly. EmbedPDF provides a complete responsive toolbar, thumbnail navigation, search, dark theme, and virtualized vertical scrolling out of the box. Page rendering occurs on demand, maintaining low memory usage and smooth scrolling for 50 MB files on mobile devices.
 
-The reader component should accept either:
+The reader component accepts either:
 
 - a protected, short-lived remote URL for a shared PDF; or
 - a browser object URL for a local PDF.
 
-It should expose callbacks for the current page, total page count, and load/error states so the page route can persist shared-file progress without coupling the renderer to the API layer.
+It integrates via EmbedPDF's plugin registry (specifically the Scroll plugin) to control initial page jumps and report page change events so `ReaderPage.tsx` can persist reading progress without coupling the renderer to the API layer.
 
 ### 5.2 Object storage
 
@@ -250,7 +250,7 @@ Add these focused pieces:
 
 - `BookAssetActions`: availability badge, upload, replace, remove, local-open, and reader-launch actions.
 - `BookUploadDialog`: accessible file selection, validation, replacement confirmation, progress, and errors.
-- `PdfReader`: reusable PDF renderer and control bar.
+- `PdfReader`: PDF renderer wrapping EmbedPDF (`@embedpdf/react-pdf-viewer`) with built-in toolbar, dark styling, local/shared file indicator, and scroll integration.
 - `ReaderPage`: protected route that coordinates asset retrieval, progress restoration, and viewer state.
 
 Suggested route:

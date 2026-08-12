@@ -36,6 +36,9 @@ export default defineConfig({
           },
         ],
       },
+      workbox: {
+        maximumFileSizeToCacheInBytes: 15 * 1024 * 1024, // Allow caching EmbedPDF PDFium WASM binary (7.7 MB)
+      },
     }),
   ],
   resolve: {
