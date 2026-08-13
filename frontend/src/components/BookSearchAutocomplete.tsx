@@ -152,6 +152,8 @@ export function BookSearchAutocomplete({ onSelectBook }: BookSearchAutocompleteP
                   <img
                     src={item.cover_url}
                     alt={item.title}
+                    loading="lazy"
+                    decoding="async"
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover"
                     onError={(e) => {

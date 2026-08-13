@@ -1,5 +1,6 @@
 import pytest
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.mark.asyncio
@@ -59,3 +60,40 @@ async def test_group_create_join_flow(client: AsyncClient):
     }, headers=headers)
     assert owner_update.status_code == 200
     assert owner_update.json()["name"] == "Reading Group Premium"
+
+
+@pytest.mark.asyncio
+async def test_my_groups_query_count_does_not_grow_per_group(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    owner = await client.post("/api/v1/auth/register", json={
+        "name": "Many Groups Owner",
+        "email": "many-groups-owner@example.com",
+        "password": "password123",
+    })
+    headers = {"Authorization": f"Bearer {owner.json()['access_token']}"}
+
+    for index in range(3):
+        response = await client.post(
+            "/api/v1/groups",
+            json={"name": f"Reading Group {index}"},
+            headers=headers,
+        )
+        assert response.status_code == 201
+
+    original_execute = AsyncSession.execute
+    query_count = 0
+
+    async def counted_execute(self, *args, **kwargs):
+        nonlocal query_count
+        query_count += 1
+        return await original_execute(self, *args, **kwargs)
+
+    monkeypatch.setattr(AsyncSession, "execute", counted_execute)
+
+    response = await client.get("/api/v1/groups/me", headers=headers)
+
+    assert response.status_code == 200
+    assert len(response.json()) == 3
+    assert query_count <= 3

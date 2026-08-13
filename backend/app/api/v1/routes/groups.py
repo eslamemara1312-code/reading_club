@@ -23,22 +23,8 @@ def generate_invite_code(length: int = 6) -> str:
     return "".join(random.choice(chars) for _ in range(length))
 
 
-async def fetch_group_with_members(db: AsyncSession, group_id: str) -> GroupRead:
-    """Helper to fetch group with all active members preloaded into Pydantic schema."""
-    res = await db.execute(
-        select(Group).where(Group.id == group_id)
-    )
-    group = res.scalar_one_or_none()
-    if not group:
-        raise HTTPException(status_code=404, detail="Group not found")
-
-    members_res = await db.execute(
-        select(GroupMember)
-        .options(joinedload(GroupMember.user))
-        .where(GroupMember.group_id == group_id, GroupMember.status == "active")
-    )
-    members = members_res.scalars().all()
-
+def build_group_read(group: Group, members: List[GroupMember]) -> GroupRead:
+    """Build the public group schema from already-loaded model data."""
     member_schemas = [
         GroupMemberRead(
             id=m.id,
@@ -67,6 +53,25 @@ async def fetch_group_with_members(db: AsyncSession, group_id: str) -> GroupRead
         members_count=len(member_schemas),
         members=member_schemas
     )
+
+
+async def fetch_group_with_members(db: AsyncSession, group_id: str) -> GroupRead:
+    """Helper to fetch group with all active members preloaded into Pydantic schema."""
+    res = await db.execute(
+        select(Group).where(Group.id == group_id)
+    )
+    group = res.scalar_one_or_none()
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+
+    members_res = await db.execute(
+        select(GroupMember)
+        .options(joinedload(GroupMember.user))
+        .where(GroupMember.group_id == group_id, GroupMember.status == "active")
+    )
+    members = members_res.scalars().all()
+
+    return build_group_read(group, list(members))
 
 
 @router.post("", response_model=GroupRead, status_code=status.HTTP_201_CREATED)
@@ -158,23 +163,24 @@ async def get_my_groups(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    mem_res = await db.execute(
-        select(GroupMember).where(
+    groups_res = await db.execute(
+        select(Group)
+        .join(GroupMember, GroupMember.group_id == Group.id)
+        .options(selectinload(Group.members).joinedload(GroupMember.user))
+        .where(
             GroupMember.user_id == current_user.id,
             GroupMember.status == "active"
         )
     )
-    memberships = mem_res.scalars().all()
-    group_ids = [m.group_id for m in memberships]
-    
-    result = []
-    for g_id in group_ids:
-        try:
-            g = await fetch_group_with_members(db, g_id)
-            result.append(g)
-        except HTTPException:
-            pass
-    return result
+    groups = groups_res.scalars().unique().all()
+
+    return [
+        build_group_read(
+            group,
+            [member for member in group.members if member.status == "active"]
+        )
+        for group in groups
+    ]
 
 
 @router.get("/{group_id}", response_model=GroupRead)

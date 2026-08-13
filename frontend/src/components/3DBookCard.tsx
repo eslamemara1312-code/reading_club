@@ -46,6 +46,8 @@ export function ThreeDBookCard({
               <img
                 src={getProxiedCoverUrl(book.cover_url)}
                 alt={book.title}
+                loading="lazy"
+                decoding="async"
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 onError={() => setImgError(true)}

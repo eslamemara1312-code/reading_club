@@ -9,13 +9,13 @@ import { AppShell } from '../components/layout/AppShell';
 
 export function GroupSettingsPage() {
   const queryClient = useQueryClient();
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   const activeGroupId = useUIStore((state) => state.activeGroupId);
   const groupId = activeGroupId || '';
 
   const { data: group, isLoading } = useQuery({
-    queryKey: ['groupDetails', groupId],
+    queryKey: ['group', groupId],
     queryFn: () => getGroupDetails(groupId),
     enabled: !!groupId,
   });
@@ -42,7 +42,7 @@ export function GroupSettingsPage() {
     mutationFn: (data: Parameters<typeof updateGroupSettings>[1]) =>
       updateGroupSettings(groupId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['groupDetails', groupId] });
+      queryClient.invalidateQueries({ queryKey: ['group', groupId] });
       setSuccessMsg('تم حفظ قواعد وإعدادات المجموعة بنجاح!');
       setErrorMsg('');
       setTimeout(() => setSuccessMsg(''), 4000);

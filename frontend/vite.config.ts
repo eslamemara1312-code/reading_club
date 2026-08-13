@@ -37,7 +37,30 @@ export default defineConfig({
         ],
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 15 * 1024 * 1024, // Allow caching EmbedPDF PDFium WASM binary (7.7 MB)
+        // The PDF engine is only needed on the reader route. Cache it after the
+        // first reader visit instead of downloading several megabytes when the
+        // service worker is installed.
+        globIgnores: [
+          '**/*.wasm',
+          '**/assets/pdf-reader-*.js',
+          '**/assets/direct-engine-*.js',
+          '**/assets/worker-engine-*.js',
+          '**/assets/browser-*.js',
+        ],
+        runtimeCaching: [
+          {
+            urlPattern: /\/assets\/(?:pdf-reader-|direct-engine-|worker-engine-|browser-|pdfium-)/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'pdf-reader-assets',
+              expiration: {
+                maxEntries: 12,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
     }),
   ],
@@ -50,5 +73,15 @@ export default defineConfig({
     port: 5173,
     host: true,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('@embedpdf/') || id.includes('pdfjs-dist') || id.includes('react-pdf')) {
+            return 'pdf-reader';
+          }
+        },
+      },
+    },
+  },
 });
-

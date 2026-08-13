@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 export type ToastType = 'success' | 'error' | 'info';
@@ -35,33 +34,27 @@ export function ToastContainer() {
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2.5 w-full max-w-sm px-4 pointer-events-none">
-      <AnimatePresence>
-        {toasts.map((toast) => {
-          const Icon = toast.type === 'success' ? CheckCircle2 : toast.type === 'error' ? AlertCircle : Info;
+      {toasts.map((toast) => {
+        const Icon = toast.type === 'success' ? CheckCircle2 : toast.type === 'error' ? AlertCircle : Info;
 
-          return (
-            <motion.div
-              key={toast.id}
-              initial={{ opacity: 0, y: 20, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.9 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-              onClick={() => removeToast(toast.id)}
-              className={`pointer-events-auto flex items-center gap-3 p-4 rounded-2xl shadow-2xl border text-xs font-semibold backdrop-blur-xl cursor-pointer ${
-                toast.type === 'success'
-                  ? 'bg-reader-panel text-reader-metric-limeText border-reader-borderStrong shadow-lg'
-                  : toast.type === 'error'
-                  ? 'bg-reader-panel text-red-400 border-red-500/30 shadow-lg'
-                  : 'bg-reader-panel text-reader-text border-reader-border shadow-lg'
-              }`}
-            >
-              <Icon className="w-5 h-5 shrink-0" />
-              <span className="flex-1 leading-snug">{toast.text}</span>
-              <X className="w-4 h-4 opacity-50 hover:opacity-100 transition-opacity shrink-0" />
-            </motion.div>
-          );
-        })}
-      </AnimatePresence>
+        return (
+          <div
+            key={toast.id}
+            onClick={() => removeToast(toast.id)}
+            className={`rc-toast-enter pointer-events-auto flex items-center gap-3 p-4 rounded-2xl shadow-2xl border text-xs font-semibold backdrop-blur-xl cursor-pointer ${
+              toast.type === 'success'
+                ? 'bg-reader-panel text-reader-metric-limeText border-reader-borderStrong shadow-lg'
+                : toast.type === 'error'
+                ? 'bg-reader-panel text-red-400 border-red-500/30 shadow-lg'
+                : 'bg-reader-panel text-reader-text border-reader-border shadow-lg'
+            }`}
+          >
+            <Icon className="w-5 h-5 shrink-0" />
+            <span className="flex-1 leading-snug">{toast.text}</span>
+            <X className="w-4 h-4 opacity-50 hover:opacity-100 transition-opacity shrink-0" />
+          </div>
+        );
+      })}
     </div>
   );
 }

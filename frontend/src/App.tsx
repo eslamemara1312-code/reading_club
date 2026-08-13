@@ -1,26 +1,24 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Login } from './pages/Login';
-import { Register } from './pages/Register';
-import { Onboarding } from './pages/Onboarding';
-import { Dashboard } from './pages/Dashboard';
 import { ProtectedRoute } from './components/ProtectedRoute';
-
-import { VaultPage } from './pages/Vault';
-import { CalendarPage } from './pages/CalendarPage';
-import { BookPage } from './pages/BookPage';
-import { ReaderPage } from './pages/ReaderPage';
-import { DiscussionPage } from './pages/DiscussionPage';
-import ProfilePage from './pages/ProfilePage';
-import { GroupSettingsPage } from './pages/GroupSettingsPage';
 import { ToastContainer } from './components/Toast';
 import { useAuthStore } from './store/authStore';
 import { useUIStore } from './store/uiStore';
 import { getCurrentUser } from './api/auth';
 import { getMyGroups } from './api/groups';
 
-import Lenis from 'lenis';
+const Login = lazy(() => import('./pages/Login').then((module) => ({ default: module.Login })));
+const Register = lazy(() => import('./pages/Register').then((module) => ({ default: module.Register })));
+const Onboarding = lazy(() => import('./pages/Onboarding').then((module) => ({ default: module.Onboarding })));
+const Dashboard = lazy(() => import('./pages/Dashboard').then((module) => ({ default: module.Dashboard })));
+const VaultPage = lazy(() => import('./pages/Vault').then((module) => ({ default: module.VaultPage })));
+const CalendarPage = lazy(() => import('./pages/CalendarPage').then((module) => ({ default: module.CalendarPage })));
+const BookPage = lazy(() => import('./pages/BookPage').then((module) => ({ default: module.BookPage })));
+const ReaderPage = lazy(() => import('./pages/ReaderPage').then((module) => ({ default: module.ReaderPage })));
+const DiscussionPage = lazy(() => import('./pages/DiscussionPage').then((module) => ({ default: module.DiscussionPage })));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const GroupSettingsPage = lazy(() => import('./pages/GroupSettingsPage').then((module) => ({ default: module.GroupSettingsPage })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,63 +29,61 @@ const queryClient = new QueryClient({
   },
 });
 
+function RouteFallback() {
+  return (
+    <div className="min-h-screen bg-reader-canvas text-reader-text flex items-center justify-center" role="status" aria-label="جارٍ تحميل الصفحة">
+      <div className="h-10 w-10 animate-spin rounded-full border-2 border-reader-border border-t-reader-accent" />
+    </div>
+  );
+}
+
 export function App() {
-  const { isAuthenticated, setUser } = useAuthStore();
-  const { activeGroupId, setActiveGroupId, initTheme } = useUIStore();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const setUser = useAuthStore((state) => state.setUser);
+  const setActiveGroupId = useUIStore((state) => state.setActiveGroupId);
+  const initTheme = useUIStore((state) => state.initTheme);
 
   // Root theme initialization
   useEffect(() => {
     initTheme();
   }, [initTheme]);
 
-  // Smooth Scroll Initialization with Lenis (Desktop only to preserve mobile native touch inertia scroll)
   useEffect(() => {
-    const isDesktop = window.innerWidth >= 1024 && window.matchMedia('(pointer: fine)').matches;
-    if (!isDesktop) return;
+    if (!isAuthenticated) return;
 
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    });
+    let cancelled = false;
 
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
+    getCurrentUser()
+      .then((user) => {
+        if (!cancelled) setUser(user);
+      })
+      .catch(() => {});
 
-    requestAnimationFrame(raf);
+    getMyGroups()
+      .then((groups) => {
+        if (cancelled) return;
+
+        if (groups && groups.length > 0) {
+          const activeGroupId = useUIStore.getState().activeGroupId;
+          const hasGroup = groups.some((group) => group.id === activeGroupId);
+          if (!hasGroup) setActiveGroupId(groups[0].id);
+        } else {
+          setActiveGroupId(null);
+        }
+      })
+      .catch(() => {});
 
     return () => {
-      lenis.destroy();
+      cancelled = true;
     };
-  }, []);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      getCurrentUser()
-        .then((u) => setUser(u))
-        .catch(() => {});
-
-      getMyGroups()
-        .then((groups) => {
-          if (groups && groups.length > 0) {
-            const hasGroup = groups.some((g) => g.id === activeGroupId);
-            if (!hasGroup || !activeGroupId) {
-              setActiveGroupId(groups[0].id);
-            }
-          } else {
-            setActiveGroupId(null);
-          }
-        })
-        .catch(() => {});
-    }
-  }, [isAuthenticated, setUser, setActiveGroupId, activeGroupId]);
+  }, [isAuthenticated, setUser, setActiveGroupId]);
 
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ToastContainer />
-        <Routes>
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route
@@ -164,7 +160,8 @@ export function App() {
           />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </QueryClientProvider>
   );

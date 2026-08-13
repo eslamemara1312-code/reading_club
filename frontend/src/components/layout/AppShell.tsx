@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DesktopSidebar } from './DesktopSidebar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { Navbar } from '../Navbar';
-import { BadgesModal } from '../BadgesModal';
-import { NotificationCenterModal } from '../NotificationCenterModal';
 import { getAllBadges, getUserBadges } from '../../api/gamification';
 import { getMyNotifications } from '../../api/notifications';
 import { useAuthStore } from '../../store/authStore';
+
+const BadgesModal = lazy(() => import('../BadgesModal').then((module) => ({ default: module.BadgesModal })));
+const NotificationCenterModal = lazy(() => import('../NotificationCenterModal').then((module) => ({ default: module.NotificationCenterModal })));
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -27,23 +28,44 @@ export function AppShell({
   const user = useAuthStore((state) => state.user);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showBadges, setShowBadges] = useState(false);
+  const [showDesktopSidebar, setShowDesktopSidebar] = useState(
+    () => window.matchMedia('(min-width: 1200px)').matches,
+  );
+  const [showActivityRail, setShowActivityRail] = useState(
+    () => window.matchMedia('(min-width: 1440px)').matches,
+  );
+
+  useEffect(() => {
+    const desktopSidebarQuery = window.matchMedia('(min-width: 1200px)');
+    const activityRailQuery = window.matchMedia('(min-width: 1440px)');
+    const syncDesktopSidebar = (event: MediaQueryListEvent) => setShowDesktopSidebar(event.matches);
+    const syncActivityRail = (event: MediaQueryListEvent) => setShowActivityRail(event.matches);
+
+    desktopSidebarQuery.addEventListener('change', syncDesktopSidebar);
+    activityRailQuery.addEventListener('change', syncActivityRail);
+
+    return () => {
+      desktopSidebarQuery.removeEventListener('change', syncDesktopSidebar);
+      activityRailQuery.removeEventListener('change', syncActivityRail);
+    };
+  }, []);
 
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications'],
     queryFn: getMyNotifications,
-    enabled: !isReaderPage,
+    enabled: !isReaderPage && showNotifications,
   });
 
   const { data: allBadges = [] } = useQuery({
     queryKey: ['allBadges'],
     queryFn: getAllBadges,
-    enabled: !isReaderPage,
+    enabled: !isReaderPage && showBadges,
   });
 
   const { data: userBadges = [] } = useQuery({
     queryKey: ['userBadges', user?.id],
     queryFn: () => getUserBadges(user!.id),
-    enabled: !isReaderPage && !!user?.id,
+    enabled: !isReaderPage && showBadges && !!user?.id,
   });
 
   const openNotifications = onOpenNotifications ?? (() => setShowNotifications(true));
@@ -65,46 +87,54 @@ export function AppShell({
 
       <div className="rc-app-frame">
         {/* RTL Right Sidebar (Desktop) */}
-        <DesktopSidebar
-          onOpenNotifications={openNotifications}
-          onOpenBadges={openBadges}
-        />
+        {showDesktopSidebar && (
+          <DesktopSidebar
+            onOpenNotifications={openNotifications}
+            onOpenBadges={openBadges}
+          />
+        )}
 
         {/* Central Content Area */}
         <main id="main-content" className="rc-column-scroll h-full flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-7 py-5 sm:py-7 pb-24 md:pb-8">
-          <div className="mb-6 block min-[1200px]:hidden">
-            <Navbar
-              onOpenNotifications={openNotifications}
-              onOpenBadges={openBadges}
-            />
-          </div>
+          {!showDesktopSidebar && (
+            <div className="mb-6">
+              <Navbar
+                onOpenNotifications={openNotifications}
+                onOpenBadges={openBadges}
+              />
+            </div>
+          )}
           {children}
         </main>
 
         {/* Optional Left Activity Rail (Wide Desktop Only) */}
-        {leftRail && (
-          <aside className="rc-column-scroll h-full w-[320px] min-[1536px]:w-[360px] shrink-0 py-7 px-5 hidden min-[1440px]:block border-r border-reader-border bg-reader-panel transition-colors overflow-y-auto">
+        {leftRail && showActivityRail && (
+          <aside className="rc-column-scroll h-full w-[320px] min-[1536px]:w-[360px] shrink-0 py-7 px-5 border-r border-reader-border bg-reader-panel transition-colors overflow-y-auto">
             {leftRail}
           </aside>
         )}
       </div>
 
       {/* Fixed Mobile Bottom Navigation */}
-      <MobileBottomNav />
+      {!showDesktopSidebar && <MobileBottomNav />}
 
       {showBadges && (
-        <BadgesModal
-          allBadges={allBadges}
-          userBadges={userBadges}
-          onClose={() => setShowBadges(false)}
-        />
+        <Suspense fallback={null}>
+          <BadgesModal
+            allBadges={allBadges}
+            userBadges={userBadges}
+            onClose={() => setShowBadges(false)}
+          />
+        </Suspense>
       )}
 
       {showNotifications && (
-        <NotificationCenterModal
-          notifications={notifications}
-          onClose={() => setShowNotifications(false)}
-        />
+        <Suspense fallback={null}>
+          <NotificationCenterModal
+            notifications={notifications}
+            onClose={() => setShowNotifications(false)}
+          />
+        </Suspense>
       )}
     </div>
   );

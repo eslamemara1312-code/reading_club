@@ -28,14 +28,14 @@ interface NavbarProps {
 export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
-  const { activeGroupId } = useUIStore();
+  const activeGroupId = useUIStore((state) => state.activeGroupId);
   const navigate = useNavigate();
 
   const [groupDropdownOpen, setGroupDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   const { data: activeGroup } = useQuery<Group>({
-    queryKey: ['groupDetails', activeGroupId],
+    queryKey: ['group', activeGroupId],
     queryFn: () => getGroupDetails(activeGroupId!),
     enabled: !!activeGroupId,
   });
