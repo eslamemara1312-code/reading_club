@@ -46,31 +46,36 @@ async def get_group_leaderboard(
     
     today = date.today()
     entries = []
+
+    checkins_res = await db.execute(
+        select(
+            Checkin.user_id,
+            func.count(Checkin.id).label("days_present"),
+            func.coalesce(func.sum(Checkin.pages_read), 0).label("total_pages"),
+        )
+        .where(Checkin.group_id == group_id)
+        .group_by(Checkin.user_id)
+    )
+    checkins_by_user = {
+        row.user_id: (row.days_present, int(row.total_pages))
+        for row in checkins_res.all()
+    }
+
+    streaks_res = await db.execute(
+        select(Streak).where(Streak.group_id == group_id)
+    )
+    streaks_by_user = {
+        streak.user_id: streak
+        for streak in streaks_res.scalars().all()
+    }
     
     for member in members:
         days_total = max(1, (today - member.joined_at.date()).days + 1)
-        
-        # Checkins count & total pages
-        checkins_res = await db.execute(
-            select(
-                func.count(Checkin.id),
-                func.coalesce(func.sum(Checkin.pages_read), 0)
-            ).where(
-                Checkin.group_id == group_id,
-                Checkin.user_id == member.user_id
-            )
-        )
-        row = checkins_res.one()
-        days_present = row[0]
-        total_pages = int(row[1])
+        days_present, total_pages = checkins_by_user.get(member.user_id, (0, 0))
         
         commitment_rate = round((days_present / days_total) * 100, 1)
         
-        # Streak
-        streak_res = await db.execute(
-            select(Streak).where(Streak.group_id == group_id, Streak.user_id == member.user_id)
-        )
-        streak_obj = streak_res.scalar_one_or_none()
+        streak_obj = streaks_by_user.get(member.user_id)
         c_streak = streak_obj.current_streak if streak_obj else 0
         l_streak = streak_obj.longest_streak if streak_obj else 0
         

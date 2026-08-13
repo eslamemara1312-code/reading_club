@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { lazy, Suspense, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   BookOpen, CheckCircle2, RotateCcw, Edit3, Loader2, ChevronLeft,
   Flame, Trophy, Zap, ShieldAlert, Users
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
@@ -24,14 +23,15 @@ import { ReadingProgress } from '../components/reading/ReadingProgress';
 import { MetricCard } from '../components/reading/MetricCard';
 import { SectionHeading } from '../components/reading/SectionHeading';
 import { NudgeButton } from '../components/NudgeButton';
-import { BadgesModal } from '../components/BadgesModal';
-import { NotificationCenterModal } from '../components/NotificationCenterModal';
-import { WrappedModal } from '../components/WrappedModal';
 import { WeeklyTitlesBanner } from '../components/WeeklyTitlesBanner';
 import { DashboardActivityRail } from '../components/layout/DashboardActivityRail';
 
+const BadgesModal = lazy(() => import('../components/BadgesModal').then((module) => ({ default: module.BadgesModal })));
+const NotificationCenterModal = lazy(() => import('../components/NotificationCenterModal').then((module) => ({ default: module.NotificationCenterModal })));
+const WrappedModal = lazy(() => import('../components/WrappedModal').then((module) => ({ default: module.WrappedModal })));
+
 export const Dashboard = () => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const activeGroupId = useUIStore((state) => state.activeGroupId);
   const navigate = useNavigate();
 
@@ -70,12 +70,13 @@ export const Dashboard = () => {
   const { data: allBadges } = useQuery<Badge[]>({
     queryKey: ['allBadges'],
     queryFn: getAllBadges,
+    enabled: showBadgesModal,
   });
 
   const { data: userBadges } = useQuery<UserBadge[]>({
     queryKey: ['userBadges', user?.id],
     queryFn: () => getUserBadges(user!.id),
-    enabled: !!user?.id,
+    enabled: showBadgesModal && !!user?.id,
   });
 
   const { data: groupTitles } = useQuery<WeeklyTitle[]>({
@@ -87,11 +88,13 @@ export const Dashboard = () => {
   const { data: notifications } = useQuery<AppNotification[]>({
     queryKey: ['notifications'],
     queryFn: getMyNotifications,
+    enabled: showNotifModal,
   });
 
   const { data: monthlySummary } = useQuery<MonthlySummary | null>({
     queryKey: ['monthlySummary'],
     queryFn: () => getMonthlySummary(),
+    enabled: showWrappedModal,
   });
 
   // Live Today Status & Leaderboard
@@ -127,12 +130,16 @@ export const Dashboard = () => {
           setPagesRead('');
           setNote('');
 
-          confetti({
-            particleCount: 100,
-            spread: 80,
-            origin: { y: 0.6 },
-            colors: ['#58bddb', '#ffe46f', '#aff06b'],
-          });
+          void import('canvas-confetti')
+            .then(({ default: confetti }) => {
+              confetti({
+                particleCount: 100,
+                spread: 80,
+                origin: { y: 0.6 },
+                colors: ['#58bddb', '#ffe46f', '#aff06b'],
+              });
+            })
+            .catch(() => {});
         },
       }
     );
@@ -378,7 +385,7 @@ export const Dashboard = () => {
 
         {/* 4. LEADERBOARD PODIUM & SPOTLIGHT */}
         {leaderboard && leaderboard.length > 0 && (
-          <section className="space-y-4">
+          <section className="rc-deferred-content space-y-4">
             <SectionHeading
               title="صدارة التزام المجموعة"
               subtitle="المتنافسون الأوائل في نسبة الاستمرارية هذا الشهر"
@@ -437,7 +444,7 @@ export const Dashboard = () => {
         )}
 
         {/* 5. MEMBER STATUS FEED ("من قرأ اليوم؟") */}
-        <section className="space-y-4 bg-reader-panel border border-reader-border p-6 rounded-3xl shadow-xl">
+        <section className="rc-deferred-content space-y-4 bg-reader-panel border border-reader-border p-6 rounded-3xl shadow-xl">
           <SectionHeading
             title="من قرأ اليوم؟"
             subtitle="متابعة شرف اليوم وتنبيه الأصدقاء"
@@ -662,28 +669,34 @@ export const Dashboard = () => {
 
       {/* Badges Modal */}
       {showBadgesModal && allBadges && userBadges && (
-        <BadgesModal
-          allBadges={allBadges}
-          userBadges={userBadges}
-          onClose={() => setShowBadgesModal(false)}
-        />
+        <Suspense fallback={null}>
+          <BadgesModal
+            allBadges={allBadges}
+            userBadges={userBadges}
+            onClose={() => setShowBadgesModal(false)}
+          />
+        </Suspense>
       )}
 
       {/* Notification Center Modal */}
       {showNotifModal && notifications && (
-        <NotificationCenterModal
-          notifications={notifications}
-          onClose={() => setShowNotifModal(false)}
-        />
+        <Suspense fallback={null}>
+          <NotificationCenterModal
+            notifications={notifications}
+            onClose={() => setShowNotifModal(false)}
+          />
+        </Suspense>
       )}
 
       {/* Wrapped Summary Modal */}
       {showWrappedModal && monthlySummary && user && (
-        <WrappedModal
-          summary={monthlySummary}
-          userName={user.name}
-          onClose={() => setShowWrappedModal(false)}
-        />
+        <Suspense fallback={null}>
+          <WrappedModal
+            summary={monthlySummary}
+            userName={user.name}
+            onClose={() => setShowWrappedModal(false)}
+          />
+        </Suspense>
       )}
     </AppShell>
   );
