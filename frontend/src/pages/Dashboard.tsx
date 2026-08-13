@@ -2,7 +2,7 @@ import React, { lazy, Suspense, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   BookOpen, CheckCircle2, RotateCcw, Edit3, Loader2, ChevronLeft,
-  Flame, Trophy, Zap, ShieldAlert, Users
+  Flame, Trophy, Zap, ShieldAlert, Users, Copy, Check
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
@@ -47,6 +47,7 @@ export const Dashboard = () => {
   const [showBadgesModal, setShowBadgesModal] = useState(false);
   const [showNotifModal, setShowNotifModal] = useState(false);
   const [showWrappedModal, setShowWrappedModal] = useState(false);
+  const [inviteCodeCopied, setInviteCodeCopied] = useState(false);
 
   // Queries
   const { data: group } = useQuery<Group>({
@@ -175,6 +176,26 @@ export const Dashboard = () => {
     return 'مساء الخير';
   };
 
+  const handleCopyInviteCode = async () => {
+    if (!group?.invite_code) return;
+
+    try {
+      await navigator.clipboard.writeText(group.invite_code);
+    } catch {
+      const textArea = document.createElement('textarea');
+      textArea.value = group.invite_code;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      textArea.remove();
+    }
+
+    setInviteCodeCopied(true);
+    window.setTimeout(() => setInviteCodeCopied(false), 2000);
+  };
+
   if (!activeGroupId) {
     return (
       <div className="min-h-screen bg-reader-canvas text-reader-text flex flex-col items-center justify-center p-6 text-center">
@@ -207,6 +228,32 @@ export const Dashboard = () => {
       )}
     >
       <div className="mx-auto max-w-6xl space-y-7">
+        {group?.invite_code && (
+          <section className="flex flex-col gap-3 rounded-2xl border border-reader-borderStrong bg-reader-panel px-4 py-3 shadow-lg sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 text-center sm:text-right">
+              <p className="text-xs font-black text-reader-text">ادعُ أصحابك للمجموعة</p>
+              <p className="mt-1 text-[11px] font-medium text-reader-muted">
+                ابعت لهم كود الدعوة للانضمام إلى {group.name}
+              </p>
+            </div>
+
+            <div className="flex items-stretch gap-2" dir="ltr">
+              <code className="flex min-w-0 flex-1 items-center justify-center rounded-xl border border-reader-border bg-reader-surface px-4 py-2.5 text-base font-black tracking-[0.2em] text-reader-accent sm:min-w-36">
+                {group.invite_code}
+              </code>
+              <button
+                type="button"
+                onClick={handleCopyInviteCode}
+                className="inline-flex min-w-24 items-center justify-center gap-2 rounded-xl bg-reader-accent px-4 py-2.5 text-xs font-black text-reader-accentForeground transition-colors hover:bg-reader-accentHover"
+                aria-label="نسخ كود الدعوة"
+              >
+                {inviteCodeCopied ? <Check size={16} /> : <Copy size={16} />}
+                <span>{inviteCodeCopied ? 'تم النسخ' : 'نسخ الكود'}</span>
+              </button>
+            </div>
+          </section>
+        )}
+
         {/* Weekly Titles Banner */}
         {groupTitles && <WeeklyTitlesBanner titles={groupTitles} />}
 
