@@ -32,16 +32,16 @@ export function ThreeDBookCard({
   const [imgError, setImgError] = useState(false);
 
   return (
-    <div className="perspective-1000 w-32 sm:w-44 lg:w-48 shrink-0 py-2">
+    <div className="perspective-1000 w-36 sm:w-48 lg:w-52 shrink-0 py-2">
       <motion.div
         animate={{ rotateY: isFlipped ? 180 : 0 }}
         transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-        className="w-full h-64 sm:h-72 rounded-2xl relative style-preserve-3d cursor-pointer"
+        className="w-full h-72 sm:h-80 rounded-2xl relative style-preserve-3d cursor-pointer"
         onClick={() => setIsFlipped(!isFlipped)}
       >
         {/* Front Face */}
         <div className="absolute inset-0 backface-hidden rounded-2xl bg-reader-panel border border-reader-border p-2.5 sm:p-3 flex flex-col justify-between overflow-hidden group shadow-lg">
-          <div className="w-full h-40 sm:h-44 rounded-xl overflow-hidden bg-reader-surface border border-reader-border relative flex items-center justify-center">
+          <div className="w-full h-44 sm:h-52 rounded-xl overflow-hidden bg-reader-surface border border-reader-border relative flex items-center justify-center">
             {!imgError && book.cover_url ? (
               <img
                 src={getProxiedCoverUrl(book.cover_url)}
@@ -63,8 +63,8 @@ export function ThreeDBookCard({
             {/* Status Badge */}
             {status && (
               <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-bold border ${
-                status === 'active' ? 'bg-reader-metric-limeBg text-reader-metric-limeText border-reader-border' :
-                status === 'completed' ? 'bg-reader-metric-goldBg text-reader-metric-goldText border-reader-border' :
+                status === 'active' ? 'bg-reader-metric-limeBg text-reader-metric-ink border-reader-border' :
+                status === 'completed' ? 'bg-reader-metric-goldBg text-reader-metric-ink border-reader-border' :
                 'bg-reader-surface text-reader-muted border-reader-border'
               }`}>
                 {status === 'active' ? 'أقرأ الآن' : status === 'completed' ? 'مكتمل' : 'قادم'}
@@ -88,9 +88,9 @@ export function ThreeDBookCard({
         </div>
 
         {/* Back Face */}
-        <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl bg-reader-raised border border-reader-border p-4 flex flex-col justify-between overflow-hidden shadow-lg">
-          <div className="space-y-3 text-right">
-            <div className="flex items-center justify-between border-b border-reader-border pb-2">
+        <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl bg-reader-raised border border-reader-border p-3 sm:p-3.5 flex flex-col justify-between overflow-y-auto custom-scrollbar shadow-lg">
+          <div className="space-y-2.5 text-right">
+            <div className="flex items-center justify-between border-b border-reader-border pb-1.5">
               <span className="text-[10px] font-bold text-reader-accent">تفاصيل الكتاب</span>
               <span className="text-[10px] font-mono text-reader-text font-bold">{book.total_pages} صفحة</span>
             </div>
@@ -101,7 +101,7 @@ export function ThreeDBookCard({
             </div>
 
             {dailyTargetPages && (
-              <div className="bg-reader-metric-limeBg border border-reader-border p-2 rounded-xl text-[11px] text-reader-metric-limeText font-bold flex items-center gap-1.5">
+              <div className="bg-emerald-500/20 border border-emerald-500/40 p-1.5 rounded-xl text-[10px] sm:text-[11px] text-reader-metric-limeText font-bold flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-reader-metric-limeText shrink-0" />
                 <span>الهدف: {dailyTargetPages} ص/يوم</span>
               </div>
@@ -114,12 +114,12 @@ export function ThreeDBookCard({
             )}
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-reader-border" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center justify-between pt-2 border-t border-reader-border mt-2" onClick={(e) => e.stopPropagation()}>
             {onSelectForPlan && (
               <motion.button
                 {...buttonPressAnimation}
                 onClick={() => onSelectForPlan(book.id)}
-                className="px-3 py-1.5 bg-reader-surface hover:bg-reader-hover text-reader-accent border border-reader-borderStrong rounded-xl text-[10px] font-bold flex items-center gap-1 shadow-sm"
+                className="px-2.5 py-1.5 bg-reader-surface hover:bg-reader-hover text-reader-accent border border-reader-borderStrong rounded-xl text-[10px] font-bold flex items-center gap-1 shadow-sm"
               >
                 <Bookmark className="w-3 h-3" />
                 تحديد كخطة

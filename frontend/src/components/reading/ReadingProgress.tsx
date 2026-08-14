@@ -24,9 +24,9 @@ export function ReadingProgress({
     <div className={`space-y-1.5 ${className}`}>
       {(label || showPercent) && (
         <div className="flex items-center justify-between text-xs font-bold">
-          {label && <span className="text-reader-muted">{label}</span>}
+          {label && <span className="text-reader-muted font-bold">{label}</span>}
           <div className="flex items-center gap-2 font-mono">
-            <span className="text-reader-text">
+            <span className="text-reader-text font-bold">
               {current} / {total} {unit}
             </span>
             {showPercent && (

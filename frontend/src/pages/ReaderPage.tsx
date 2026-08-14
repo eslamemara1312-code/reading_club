@@ -263,8 +263,21 @@ export const ReaderPage: React.FC = () => {
     }
   }, [groupId, bookId, localMode, currentPage, totalPages]);
 
+  const handleBackNavigation = useCallback(async () => {
+    try {
+      await saveCurrentPage();
+    } catch {
+      // Progress saving is best-effort and should never block navigation
+    }
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/books');
+    }
+  }, [saveCurrentPage, navigate]);
+
   const saveAndGoBack = async () => {
-    if (await saveCurrentPage()) setShowSessionSummary(true);
+    await handleBackNavigation();
   };
 
   const toggleBookmark = async () => {

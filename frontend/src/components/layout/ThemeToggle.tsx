@@ -14,7 +14,7 @@ export function ThemeToggle({ className = '' }: ThemeToggleProps) {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={toggleTheme}
-      className={`min-w-[44px] min-h-[44px] p-2.5 rounded-xl bg-reader-surface hover:bg-reader-hover border border-reader-border text-reader-text transition-colors flex items-center justify-center ${className}`}
+      className={`min-w-[36px] min-h-[36px] sm:min-w-[44px] sm:min-h-[44px] p-1.5 sm:p-2.5 rounded-xl bg-reader-surface hover:bg-reader-hover border border-reader-border text-reader-text transition-colors flex items-center justify-center ${className}`}
       title={theme === 'dark' ? 'التبديل إلى الوضع الفاتح (Light Mode)' : 'التبديل إلى الوضع الداكن (Dark Mode)'}
       aria-label="تبديل مظهر التطبيق"
     >

@@ -52,7 +52,7 @@ export function MetricCard({
       <div className="flex items-center justify-between">
         <span className="text-xs font-black uppercase tracking-wide text-reader-metric-ink">{title}</span>
         <div
-          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-black/10 bg-white/25 ${style.accent}`}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-black/10 bg-white/30 text-reader-metric-ink shadow-sm"
         >
           {icon}
         </div>
@@ -63,7 +63,7 @@ export function MetricCard({
           {value}
         </p>
         {subtitle && (
-          <p className="mt-2 line-clamp-2 text-[11px] font-bold leading-relaxed text-reader-metric-ink opacity-70">
+          <p className="mt-2 line-clamp-2 text-[11px] font-bold leading-relaxed text-reader-metric-ink/90">
             {subtitle}
           </p>
         )}

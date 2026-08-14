@@ -25,7 +25,7 @@ export const WeeklyTitlesBanner: React.FC<WeeklyTitlesBannerProps> = ({ titles }
             <Crown className="w-4 h-4 text-amber-400" />
             ألقاب وتكريمات الأسبوع
           </h3>
-          <p className="text-xs text-slate-400">تكريم تميز وتصدر الأعضاء لهذا الأسبوع</p>
+          <p className="text-xs text-reader-muted font-medium">تكريم تميز وتصدر الأعضاء لهذا الأسبوع</p>
         </div>
       </div>
 
@@ -40,11 +40,10 @@ export const WeeklyTitlesBanner: React.FC<WeeklyTitlesBannerProps> = ({ titles }
             className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-amber-500/35 text-xs shadow-md"
           >
             <span className="font-extrabold text-amber-300">{t.title_name}</span>
-            <span className="text-slate-300 font-medium">({t.user.name})</span>
+            <span className="text-reader-text font-bold">({t.user.name})</span>
           </motion.div>
         ))}
       </div>
     </motion.div>
   );
 };
-
