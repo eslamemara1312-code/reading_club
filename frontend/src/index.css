@@ -220,10 +220,11 @@ body {
    repeatedly resizing the PDF viewport while the reader is in use. */
 .reader-document-viewport {
   overscroll-behavior: contain;
+  overflow-anchor: none;
+  scrollbar-gutter: stable;
   touch-action: pan-x pan-y pinch-zoom;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: auto;
-  contain: layout paint style;
 }
 
 /* Apple Translucent & Card Panels */

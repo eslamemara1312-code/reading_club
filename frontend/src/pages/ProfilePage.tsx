@@ -201,11 +201,11 @@ export default function ProfilePage() {
                     className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${
                       earned
                         ? 'bg-reader-panel border-reader-borderStrong shadow-md'
-                        : 'bg-reader-disabled border-reader-border opacity-60'
+                        : 'bg-reader-disabled border-reader-border opacity-75'
                     }`}
                   >
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                      earned ? 'bg-reader-surface border border-reader-borderStrong text-reader-accent' : 'bg-reader-canvas text-reader-muted'
+                      earned ? 'bg-reader-surface border border-reader-borderStrong text-reader-accent' : 'bg-reader-canvas text-reader-subtle'
                     }`}>
                       <Award size={20} />
                     </div>
@@ -216,7 +216,7 @@ export default function ProfilePage() {
                         </p>
                         {earned && <Sparkles size={13} className="text-reader-accent" />}
                       </div>
-                      <p className="text-[11px] text-reader-muted truncate mt-0.5 font-medium">{badge.description}</p>
+                      <p className={`text-[11px] truncate mt-0.5 font-medium ${earned ? 'text-reader-text' : 'text-reader-muted'}`}>{badge.description}</p>
                       {earned && earnedInfo && (
                         <p className="text-[10px] text-reader-metric-limeText font-medium mt-1 font-mono">
                           تم الحصول عليه بتاريخ {new Date(earnedInfo.earned_at).toLocaleDateString('ar-EG')}
@@ -224,7 +224,7 @@ export default function ProfilePage() {
                       )}
                     </div>
                     <div className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border shrink-0 font-mono ${
-                      earned ? 'bg-reader-surface text-reader-accent border-reader-borderStrong' : 'bg-reader-canvas border-reader-border text-reader-muted'
+                      earned ? 'bg-reader-surface text-reader-accent border-reader-borderStrong' : 'bg-reader-canvas border-reader-border text-reader-subtle'
                     }`}>
                       +{badge.xp_award} XP
                     </div>

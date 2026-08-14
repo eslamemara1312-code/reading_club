@@ -7,19 +7,27 @@
   --rc-ink-850: #182526;
   --rc-ink-800: #1e2c2d;
   --rc-ink-700: #2a393a;
-  --rc-white: #f7fbfa;
-  --rc-slate-300: #b4c0be;
-  --rc-slate-400: #899897;
-  --rc-slate-600: #53605f;
+  --rc-white: #f8fafc;
+  --rc-slate-100: #f1f5f9;
+  --rc-slate-200: #e2e8f0;
+  --rc-slate-300: #cbd5e1;
+  --rc-slate-400: #94a3b8;
+  --rc-slate-500: #64748b;
+  --rc-slate-600: #475569;
   --rc-cyan-300: #79d2eb;
   --rc-cyan-400: #58bddb;
   --rc-cyan-500: #36a8cb;
   --rc-cyan-700: #1c7189;
+  --rc-gold-300: #fef08a;
   --rc-gold-400: #ffe46f;
   --rc-gold-500: #f5c94d;
+  --rc-violet-300: #d8b4fe;
   --rc-violet-400: #c19aff;
+  --rc-lime-300: #bef264;
   --rc-lime-400: #aff06b;
+  --rc-sky-300: #93c5fd;
   --rc-sky-400: #7ed2ef;
+  --rc-coral-300: #fdba74;
   --rc-coral-400: #ff9b70;
   --rc-red-400: #fa7e7e;
   --rc-green-400: #69d49a;
@@ -47,9 +55,9 @@ html.dark {
   --rc-glass-panel: rgb(17 23 28 / 0.86);
   --rc-surface-subdued: rgb(255 255 255 / 0.045);
   --rc-surface-disabled: rgb(255 255 255 / 0.025);
-  --rc-text: var(--rc-white);
-  --rc-text-muted: var(--rc-slate-300);
-  --rc-text-subtle: var(--rc-slate-400);
+  --rc-text: #f8fafc;
+  --rc-text-muted: #cbd5e1;
+  --rc-text-subtle: #94a3b8;
   --rc-border: rgb(255 255 255 / 0.10);
   --rc-border-strong: rgb(255 255 255 / 0.22);
   --rc-accent: var(--rc-cyan-400);
@@ -63,18 +71,18 @@ html.dark {
   --rc-shadow: 0 36px 90px rgb(0 0 0 / 0.46);
   --rc-reader-page: #eef1e9;
 
-  /* Metric Tokens */
+  /* Metric Tokens (High-contrast accessible vibrant colors for dark mode) */
   --rc-metric-ink: #10171a;
   --rc-metric-gold-bg: #ffe16b;
-  --rc-metric-gold-text: #5f4900;
+  --rc-metric-gold-text: #fde047;
   --rc-metric-coral-bg: #ff986b;
-  --rc-metric-coral-text: #5f2107;
+  --rc-metric-coral-text: #fb923c;
   --rc-metric-violet-bg: #c69aff;
-  --rc-metric-violet-text: #3e186f;
+  --rc-metric-violet-text: #d8b4fe;
   --rc-metric-lime-bg: #adf064;
-  --rc-metric-lime-text: #284f00;
+  --rc-metric-lime-text: #86efac;
   --rc-metric-sky-bg: #82d5f1;
-  --rc-metric-sky-text: #074f69;
+  --rc-metric-sky-text: #93c5fd;
 }
 
 html.light {
@@ -89,18 +97,18 @@ html.light {
   --rc-glass-panel: rgb(238 243 244 / 0.88);
   --rc-surface-subdued: rgb(255 255 255 / 0.46);
   --rc-surface-disabled: rgb(224 232 233 / 0.72);
-  --rc-text: #102021;
-  --rc-text-muted: #405352;
-  --rc-text-subtle: #6c7d7b;
+  --rc-text: #0f172a;
+  --rc-text-muted: #334155;
+  --rc-text-subtle: #475569;
   --rc-border: rgb(20 36 41 / 0.12);
   --rc-border-strong: rgb(255 255 255 / 0.82);
   --rc-accent: var(--rc-cyan-700);
   --rc-accent-hover: #155d71;
   --rc-accent-foreground: #ffffff;
   --rc-accent-soft: rgb(28 113 137 / 0.10);
-  --rc-success: #287a4d;
-  --rc-danger: #b42318;
-  --rc-danger-soft: rgb(180 35 24 / 0.09);
+  --rc-success: #16a34a;
+  --rc-danger: #dc2626;
+  --rc-danger-soft: rgb(220 38 38 / 0.09);
   --rc-focus: rgb(28 113 137 / 0.65);
   --rc-shadow: 0 36px 90px rgb(32 53 58 / 0.22);
   --rc-reader-page: #fffdf7;
@@ -108,13 +116,13 @@ html.light {
   /* Metric Tokens */
   --rc-metric-ink: #10171a;
   --rc-metric-gold-bg: #f8d966;
-  --rc-metric-gold-text: #8f6c0a;
+  --rc-metric-gold-text: #854d0e;
   --rc-metric-coral-bg: #f79a70;
-  --rc-metric-coral-text: #b84a1d;
+  --rc-metric-coral-text: #9a3412;
   --rc-metric-violet-bg: #c69aff;
-  --rc-metric-violet-text: #6b3ba7;
+  --rc-metric-violet-text: #6b21a8;
   --rc-metric-lime-bg: #adeb68;
-  --rc-metric-lime-text: #3d6e0a;
+  --rc-metric-lime-text: #166534;
   --rc-metric-sky-bg: #83d0eb;
-  --rc-metric-sky-text: #166a85;
+  --rc-metric-sky-text: #0369a1;
 }

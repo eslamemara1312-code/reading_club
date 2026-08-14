@@ -42,20 +42,20 @@ export function DashboardActivityRail({ memberStatuses = [], leaderboard = [] }:
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="truncate text-sm font-black text-reader-text">{status.user.name}</h3>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-reader-subtle">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-reader-muted">
                       {status.has_checked_in ? <CheckCircle2 className="h-3.5 w-3.5 text-reader-success" /> : <Clock3 className="h-3.5 w-3.5" />}
                       اليوم
                     </span>
                   </div>
 
-                  <p className="mt-2 text-sm font-medium leading-relaxed text-reader-muted">
+                  <p className="mt-2 text-sm font-medium leading-relaxed text-reader-text">
                     {status.has_checked_in
                       ? `أنهى ورده وقرأ ${pages || 'عدة'} صفحة.`
                       : 'لم يسجل ورده بعد — أرسل له تذكيرًا لطيفًا.'}
                   </p>
 
                   {status.checkin?.note && (
-                    <p className="mt-3 line-clamp-3 rounded-2xl bg-reader-subdued px-3 py-2.5 text-xs leading-relaxed text-reader-muted">
+                    <p className="mt-3 line-clamp-3 rounded-2xl bg-reader-subdued px-3 py-2.5 text-xs leading-relaxed text-reader-text">
                       “{status.checkin.note}”
                     </p>
                   )}

@@ -107,7 +107,7 @@ export const VaultPage = () => {
           )}
 
           {vault?.status === 'settled' && vault.settlement_note && (
-            <div className="p-4 bg-reader-surface rounded-2xl border border-reader-border text-xs text-reader-muted max-w-sm mx-auto leading-relaxed font-medium">
+            <div className="p-4 bg-reader-surface rounded-2xl border border-reader-border text-xs text-reader-text max-w-sm mx-auto leading-relaxed font-medium">
               <strong className="text-reader-accent block mb-1">ملاحظة التسوية:</strong> "{vault.settlement_note}"
             </div>
           )}

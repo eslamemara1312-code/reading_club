@@ -122,7 +122,7 @@ export const DiscussionPage = () => {
                   className="py-3 flex items-center justify-between text-xs"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-reader-subtle w-6 text-sm">#{entry.rank}</span>
+                    <span className="font-mono text-reader-muted font-bold w-6 text-sm">#{entry.rank}</span>
                     <span className="font-bold text-reader-text">{entry.user.name}</span>
                     <span className="text-reader-muted font-mono">🔥 {entry.current_streak} يوم</span>
                   </div>

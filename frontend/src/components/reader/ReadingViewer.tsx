@@ -5,9 +5,8 @@ import { usePdfiumEngine } from '@embedpdf/engines/react';
 import {
   Viewport,
   ViewportPluginPackage,
-  useViewportCapability,
 } from '@embedpdf/plugin-viewport/react';
-import { Scroller, ScrollPluginPackage, ScrollStrategy, useScroll, useScrollCapability } from '@embedpdf/plugin-scroll/react';
+import { Scroller, ScrollPluginPackage, ScrollStrategy, useScrollCapability } from '@embedpdf/plugin-scroll/react';
 import {
   DocumentContent,
   DocumentManagerPluginPackage,
@@ -513,36 +512,16 @@ const ReaderChrome: React.FC<ReaderChromeProps> = ({
   );
 };
 
-const ReaderDocumentViewport: React.FC<ReadingViewerContentProps> = (props) => {
+const ReaderDocumentViewport: React.FC<ReadingViewerContentProps> = React.memo((props) => {
   const { documentId } = props;
-  const zoom = useZoom(documentId);
-  const { provides: viewport } = useViewportCapability();
-
-  useEffect(() => {
-    let timeoutId: number | undefined;
-    let attempts = 0;
-
-    const initializeZoom = () => {
-      zoom.provides?.requestZoom(ZoomMode.FitWidth);
-      attempts += 1;
-
-      if (viewport?.isGated(documentId) && attempts < 20) {
-        timeoutId = window.setTimeout(initializeZoom, 50);
-      }
-    };
-
-    timeoutId = window.setTimeout(initializeZoom, 0);
-    return () => {
-      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
-    };
-  }, [documentId, viewport, zoom.provides]);
-
   return (
     <Viewport documentId={documentId} className="reader-document-viewport h-full min-h-0 overscroll-contain">
       <ReadingViewerContent {...props} />
     </Viewport>
   );
-};
+});
+
+ReaderDocumentViewport.displayName = 'ReaderDocumentViewport';
 
 interface ReadingViewerContentProps {
   documentId: string;
@@ -552,18 +531,13 @@ interface ReadingViewerContentProps {
 }
 
 const ReadingViewerContent: React.FC<ReadingViewerContentProps> = ({ documentId, initialPage, onPageChange, onLoadSuccess }) => {
-  const scroll = useScroll(documentId);
   const { provides: scrollCapability } = useScrollCapability();
   const restoredInitialPageRef = useRef(false);
   const notifiedLoadRef = useRef(false);
-  const restoreTargetRef = useRef<number | null>(null);
-  const [restoreTarget, setRestoreTarget] = useState<number | null>(null);
 
   useEffect(() => {
     restoredInitialPageRef.current = false;
     notifiedLoadRef.current = false;
-    restoreTargetRef.current = null;
-    setRestoreTarget(null);
   }, [documentId, initialPage]);
 
   useEffect(() => {
@@ -577,28 +551,27 @@ const ReadingViewerContent: React.FC<ReadingViewerContentProps> = ({ documentId,
         onLoadSuccess(event.totalPages);
       }
 
-      if (restoredInitialPageRef.current || restoreTargetRef.current !== null) return;
+      if (restoredInitialPageRef.current) return;
 
       const safeInitialPage = Math.min(Math.max(1, initialPage), event.totalPages);
-      restoreTargetRef.current = safeInitialPage;
-      setRestoreTarget(safeInitialPage);
+      restoredInitialPageRef.current = true;
       scrollCapability.forDocument(documentId).scrollToPage({
         pageNumber: safeInitialPage,
         behavior: 'instant',
       });
+      onPageChange(safeInitialPage);
     });
-  }, [scrollCapability, documentId, initialPage, onLoadSuccess]);
+  }, [scrollCapability, documentId, initialPage, onLoadSuccess, onPageChange]);
 
   useEffect(() => {
-    if (restoreTarget === null || scroll.state.currentPage !== restoreTarget) return;
-    restoredInitialPageRef.current = true;
-    onPageChange(restoreTarget);
-  }, [restoreTarget, scroll.state.currentPage, onPageChange]);
+    if (!scrollCapability) return;
 
-  useEffect(() => {
-    if (!restoredInitialPageRef.current) return;
-    onPageChange(scroll.state.currentPage);
-  }, [scroll.state.currentPage, onPageChange]);
+    return scrollCapability.onPageChange((event) => {
+      if (event.documentId !== documentId) return;
+      if (!restoredInitialPageRef.current) return;
+      onPageChange(event.pageNumber);
+    });
+  }, [scrollCapability, documentId, onPageChange]);
 
   return <Scroller documentId={documentId} renderPage={(pageLayout: any) => <><RenderLayer documentId={documentId} pageIndex={pageLayout.pageIndex} /><SearchLayer documentId={documentId} pageIndex={pageLayout.pageIndex} /></>} />;
 };

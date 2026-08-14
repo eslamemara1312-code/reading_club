@@ -312,7 +312,7 @@ export const BookPage = () => {
               <Loader2 className="w-4 h-4 animate-spin text-reader-accent" /> جاري تحميل رف الكتب...
             </div>
           ) : filteredGroupBooks && filteredGroupBooks.length > 0 ? (
-            <div className="overflow-x-auto pb-4 pt-1 no-scrollbar flex items-center gap-4 scroll-smooth">
+            <div className="overflow-x-auto pb-6 pt-2 px-1 no-scrollbar flex items-center gap-4 scroll-smooth">
               {filteredGroupBooks.map((gb) => (
                 <ThreeDBookCard
                   key={gb.id}
@@ -366,7 +366,7 @@ export const BookPage = () => {
               <Loader2 className="w-4 h-4 animate-spin text-reader-accent" /> جاري تحميل الكتالوج...
             </div>
           ) : catalogBooks && catalogBooks.length > 0 ? (
-            <div className="overflow-x-auto pb-4 pt-1 no-scrollbar flex items-center gap-4 scroll-smooth">
+            <div className="overflow-x-auto pb-6 pt-2 px-1 no-scrollbar flex items-center gap-4 scroll-smooth">
               {catalogBooks.map((b) => (
                 <ThreeDBookCard
                   key={b.id}

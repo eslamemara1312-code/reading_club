@@ -365,7 +365,7 @@ export const Dashboard = () => {
           {currentUserStatus?.has_checked_in ? (
             <div className="p-5 sm:p-6 rounded-3xl bg-reader-panel border border-reader-borderStrong flex flex-col sm:flex-row items-center justify-between gap-4 text-xs shadow-lg">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-reader-metric-limeBg border border-reader-border flex items-center justify-center text-reader-metric-limeText shrink-0 shadow-md">
+                <div className="w-12 h-12 rounded-2xl bg-reader-metric-limeBg border border-reader-border flex items-center justify-center text-reader-metric-ink shrink-0 shadow-md">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <div>

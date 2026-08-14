@@ -59,7 +59,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ calendarData }) => {
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-reader-muted font-mono pt-1">
           {memberRankings.map((r, idx) => (
             <div key={r.id} className="flex items-center gap-1.5">
-              <span className="text-reader-subtle font-bold">#{idx + 1}</span>
+              <span className="text-reader-muted font-bold">#{idx + 1}</span>
               <span className="text-reader-text font-sans font-bold">{r.name}</span>
               <span className="text-reader-metric-limeText font-bold">({r.rate}% استمرارية)</span>
               {idx < memberRankings.length - 1 && <span className="text-reader-subtle mr-2">•</span>}
@@ -77,18 +77,18 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ calendarData }) => {
               {hoveredCell.memberName} • يوم {hoveredCell.day}: {getStatusLabel(hoveredCell.status)}
             </span>
           ) : (
-            <span className="text-[11px] font-mono hidden sm:inline">مرر الماوس على أي يوم للتفاصيل</span>
+            <span className="text-[11px] font-mono text-reader-muted hidden sm:inline">مرر الماوس على أي يوم للتفاصيل</span>
           )}
         </div>
 
         <div className="overflow-x-auto touch-pan-x pb-2 no-scrollbar">
           <div className="min-w-[700px] border border-reader-border rounded-3xl bg-reader-panel p-5 space-y-4 shadow-xl">
             {/* Days Header */}
-            <div className="flex items-center gap-2 border-b border-reader-border pb-3 text-xs text-reader-muted font-mono">
+            <div className="flex items-center gap-2 border-b border-reader-border pb-3 text-xs text-reader-text font-mono">
               <div className="w-36 font-sans font-bold text-reader-text text-right shrink-0">العضو</div>
               <div className="flex-1 grid gap-1.5 text-center" style={{ gridTemplateColumns: `repeat(${numDays}, minmax(0, 1fr))` }}>
                 {daysHeader.map((d) => (
-                  <span key={d} className="text-[11px] font-bold">
+                  <span key={d} className="text-[11px] font-bold text-reader-muted">
                     {d}
                   </span>
                 ))}
@@ -105,11 +105,11 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ calendarData }) => {
                       let cellStyle = 'bg-reader-surface border border-reader-border';
 
                       if (d.status === 'present') {
-                        cellStyle = 'bg-reader-metric-limeBg border border-reader-border text-reader-metric-limeText';
+                        cellStyle = 'bg-emerald-500/20 border border-emerald-500/40 text-reader-metric-limeText';
                       } else if (d.status === 'absent') {
                         cellStyle = 'bg-red-500/20 border border-red-500/30 text-red-400';
                       } else if (d.status === 'freeze') {
-                        cellStyle = 'bg-reader-metric-goldBg border border-reader-border text-reader-metric-goldText';
+                        cellStyle = 'bg-amber-500/20 border border-amber-500/40 text-reader-metric-goldText';
                       }
 
                       return (
@@ -134,24 +134,24 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ calendarData }) => {
       <div className="space-y-3 pt-4 border-t border-reader-border">
         <div className="flex flex-wrap items-center gap-6 text-xs text-reader-muted font-medium">
           <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-md bg-reader-metric-limeBg border border-reader-border" />
-            <span>تمت القراءة</span>
+            <span className="w-3 h-3 rounded-md bg-emerald-500/25 border border-emerald-500/40" />
+            <span className="text-reader-text">تمت القراءة</span>
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded-md bg-red-500/20 border border-red-500/30" />
-            <span>غياب (غرامة)</span>
+            <span className="text-reader-text">غياب (غرامة)</span>
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-md bg-reader-metric-goldBg border border-reader-border" />
-            <span>تجميد رصيد</span>
+            <span className="w-3 h-3 rounded-md bg-amber-500/25 border border-amber-500/40" />
+            <span className="text-reader-text">تجميد رصيد</span>
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded-md bg-reader-surface border border-reader-border" />
-            <span>قادم / لم يحل</span>
+            <span className="text-reader-text">قادم / لم يحل</span>
           </span>
         </div>
 
-        <div className="flex items-start gap-2 text-xs text-reader-muted bg-reader-panel p-4 rounded-2xl border border-reader-border leading-relaxed shadow-sm">
+        <div className="flex items-start gap-2 text-xs text-reader-text bg-reader-panel p-4 rounded-2xl border border-reader-border leading-relaxed shadow-sm">
           <Info className="w-4 h-4 text-reader-accent shrink-0 mt-0.5" />
           <p>
             <strong className="text-reader-text">خاصية تجميد السلسلة (Streak Freeze):</strong> تحمي استمراريتك وستريك القراءة عند الاضطرار لأخذ استراحة طارئة دون احتساب غرامة ماليّة على الصندوق.

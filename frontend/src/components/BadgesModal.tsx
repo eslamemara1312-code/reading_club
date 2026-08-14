@@ -34,9 +34,9 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({ allBadges, userBadges,
                 <Award className="w-6 h-6" />
               </div>
               <div>
-                <h3 id="badges-modal-title" className="font-extrabold text-lg text-reader-text flex items-center gap-2">
-                  معرض الأوسمة والإنجازات
-                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-reader-accentSoft text-reader-accent font-semibold border border-reader-borderStrong">
+                <h3 id="badges-modal-title" className="font-extrabold text-lg text-reader-text flex items-center flex-wrap gap-2">
+                  <span>معرض الأوسمة والإنجازات</span>
+                  <span className="inline-flex items-center justify-center font-mono whitespace-nowrap dir-ltr text-xs px-2.5 py-0.5 rounded-full bg-reader-accentSoft text-reader-accent font-bold border border-reader-borderStrong shrink-0">
                     {earnedCount} / {allBadges.length}
                   </span>
                 </h3>
@@ -65,11 +65,11 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({ allBadges, userBadges,
                     className={`p-4 rounded-2xl border transition-all flex items-start gap-3.5 relative overflow-hidden h-full ${
                       isEarned
                         ? 'bg-reader-surface border-reader-borderStrong shadow-md'
-                        : 'bg-reader-disabled border-reader-border opacity-60'
+                        : 'bg-reader-disabled border-reader-border opacity-80'
                     }`}
                   >
                     <div className={`p-2.5 rounded-xl border flex items-center justify-center shrink-0 ${
-                      isEarned ? 'bg-reader-raised border-reader-borderStrong text-reader-accent shadow-sm' : 'bg-reader-canvas border-reader-border text-reader-muted'
+                      isEarned ? 'bg-reader-raised border-reader-borderStrong text-reader-accent shadow-sm' : 'bg-reader-canvas border-reader-border text-reader-subtle'
                     }`}>
                       <Award className="w-5 h-5" />
                     </div>
@@ -83,7 +83,7 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({ allBadges, userBadges,
                           <Lock className="w-3.5 h-3.5 text-reader-subtle shrink-0" />
                         )}
                       </div>
-                      <p className="text-xs text-reader-muted mt-1 leading-relaxed line-clamp-2">{b.description}</p>
+                      <p className={`text-xs mt-1 leading-relaxed line-clamp-2 ${isEarned ? 'text-reader-text' : 'text-reader-muted'}`}>{b.description}</p>
                       <div className="mt-2.5 flex items-center gap-1.5">
                         <span className="text-[11px] font-bold text-reader-accent px-2.5 py-0.5 rounded-full bg-reader-accentSoft border border-reader-borderStrong flex items-center gap-1">
                           <Sparkles className="w-3 h-3 text-reader-accent" />
