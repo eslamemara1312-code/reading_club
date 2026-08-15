@@ -25,6 +25,7 @@ import { SectionHeading } from '../components/reading/SectionHeading';
 import { NudgeButton } from '../components/NudgeButton';
 import { WeeklyTitlesBanner } from '../components/WeeklyTitlesBanner';
 import { DashboardActivityRail } from '../components/layout/DashboardActivityRail';
+import { calculateLevelProgression } from '../utils/progression';
 
 const BadgesModal = lazy(() => import('../components/BadgesModal').then((module) => ({ default: module.BadgesModal })));
 const NotificationCenterModal = lazy(() => import('../components/NotificationCenterModal').then((module) => ({ default: module.NotificationCenterModal })));
@@ -34,6 +35,7 @@ export const Dashboard = () => {
   const user = useAuthStore((state) => state.user);
   const activeGroupId = useUIStore((state) => state.activeGroupId);
   const navigate = useNavigate();
+  const progression = calculateLevelProgression(user?.xp_points);
 
   // Modals & form states
   const [showCheckinModal, setShowCheckinModal] = useState(false);
@@ -339,8 +341,8 @@ export const Dashboard = () => {
           />
           <MetricCard
             title="المستوى الحرفي"
-            value={`مـ${user?.level || 1}`}
-            subtitle={`${user?.xp_points || 0} XP`}
+            value={`مـ${progression.currentLevel}`}
+            subtitle={`${progression.totalXP} XP`}
             icon={<Zap className="w-4 h-4" />}
             variant="violet"
           />

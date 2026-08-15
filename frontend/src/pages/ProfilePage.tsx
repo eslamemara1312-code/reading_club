@@ -10,18 +10,7 @@ import { getMonthlySummary } from '../api/stats';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import { AppShell } from '../components/layout/AppShell';
 
-const LEVEL_TITLES: Record<number, string> = {
-  1: 'مبتدئ القراءة 📖',
-  2: 'قارئ شغوف 🚀',
-  3: 'مثابر على الورد 💪',
-  4: 'ملتزم يوماً بيوم ✨',
-  5: 'بطل القراءة الجماعية 🏆',
-  6: 'أسطورة الكتب 👑',
-  7: 'خارق الالتزام ⚡',
-  8: 'عبقري المعرفة 🧠',
-  9: 'أيقونة النادي 💎',
-  10: 'فيلسوف القراءة 🌟',
-};
+import { calculateLevelProgression } from '../utils/progression';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -50,9 +39,7 @@ export default function ProfilePage() {
   if (!user) return null;
 
   const earnedBadgeIds = new Set(userBadges?.map(ub => ub.badge_id) || []);
-  const xpForNextLevel = user.level * 100;
-  const xpProgress = Math.min((user.xp_points / xpForNextLevel) * 100, 100);
-  const levelTitle = LEVEL_TITLES[user.level] || LEVEL_TITLES[10];
+  const progression = calculateLevelProgression(user.xp_points);
 
   const userRankInGroup = leaderboard?.find((l) => l.user.id === user?.id);
 
@@ -96,29 +83,37 @@ export default function ProfilePage() {
                 )}
               </div>
               <div className="absolute -bottom-1 -right-1 bg-reader-surface border border-reader-borderStrong rounded-full px-2.5 py-0.5 text-[11px] font-mono font-bold text-reader-accent shadow-sm">
-                مستوى {user.level}
+                مستوى {progression.currentLevel}
               </div>
             </div>
 
             <h2 className="text-2xl font-black text-reader-text mb-0.5">{user.name}</h2>
-            <p className="text-reader-accent text-xs font-bold mb-1 tracking-wide">{levelTitle}</p>
+            <p className="text-reader-accent text-xs font-bold mb-1 tracking-wide">{progression.levelTitle}</p>
 
             {/* XP Progress Bar */}
             <div className="w-full max-w-xs mt-4">
               <div className="flex items-center justify-between text-xs text-reader-muted font-semibold mb-1.5">
                 <span className="flex items-center gap-1 text-reader-accent">
-                  <Zap size={13} className="text-reader-accent fill-reader-accent" /> {user.xp_points} XP
+                  <Zap size={13} className="text-reader-accent fill-reader-accent" /> {progression.totalXP} XP
                 </span>
-                <span className="font-mono">{xpForNextLevel} XP</span>
+                <span className="font-mono">
+                  {progression.isMaxLevel ? `${progression.totalXP} XP` : `${progression.nextLevelXP} XP`}
+                </span>
               </div>
               <div className="h-2 bg-reader-surface rounded-full overflow-hidden border border-reader-border">
                 <div
                   className="h-full bg-reader-accent rounded-full transition-all duration-500"
-                  style={{ width: `${xpProgress}%` }}
+                  style={{ width: `${progression.progressPercentage}%` }}
                 />
               </div>
               <p className="text-center text-[11px] text-reader-subtle font-medium mt-1.5">
-                متبقي <span className="text-reader-accent font-bold font-mono">{Math.round(xpForNextLevel - user.xp_points)} XP</span> للمستوى التالي
+                {progression.isMaxLevel ? (
+                  <span className="text-reader-accent font-bold">وصلت إلى أقصى مستوى! 🌟</span>
+                ) : (
+                  <>
+                    متبقي <span className="text-reader-accent font-bold font-mono">{progression.remainingXP} XP</span> للمستوى التالي
+                  </>
+                )}
               </p>
             </div>
           </div>
