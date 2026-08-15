@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -15,14 +15,15 @@ import {
   Trophy,
   User as UserIcon,
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
 import { getGroupDetails, Group } from '../../api/groups';
-import { getMyNotifications } from '../../api/notifications';
+import { getMyNotifications, markNotificationRead, AppNotification } from '../../api/notifications';
 import { getActiveGroupBook, getProxiedCoverUrl, GroupBook } from '../../api/books';
 import { getTodayStatus, MemberTodayStatus } from '../../api/checkins';
 import { ThemeToggle } from './ThemeToggle';
+import { calculateLevelProgression } from '../../utils/progression';
 
 interface DesktopSidebarProps {
   onOpenNotifications?: () => void;
@@ -34,7 +35,10 @@ export function DesktopSidebar({ onOpenNotifications, onOpenBadges }: DesktopSid
   const logout = useAuthStore((state) => state.logout);
   const activeGroupId = useUIStore((state) => state.activeGroupId);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   const [groupDropdownOpen, setGroupDropdownOpen] = useState(false);
+  const groupRef = useRef<HTMLDivElement>(null);
 
   const { data: activeGroup } = useQuery<Group>({
     queryKey: ['group', activeGroupId],
@@ -54,16 +58,62 @@ export function DesktopSidebar({ onOpenNotifications, onOpenBadges }: DesktopSid
     enabled: !!activeGroupId,
   });
 
-  const { data: notifications = [] } = useQuery({
+  const { data: notifications = [] } = useQuery<AppNotification[]>({
     queryKey: ['notifications'],
     queryFn: getMyNotifications,
   });
 
   const unreadCount = notifications.filter((notification) => !notification.is_read).length;
-  const userLevel = user?.level || 1;
-  const userXp = user?.xp_points || 0;
+  const progression = calculateLevelProgression(user?.xp_points);
+
+  useEffect(() => {
+    if (!groupDropdownOpen) return;
+
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node;
+      if (groupRef.current && !groupRef.current.contains(target)) {
+        setGroupDropdownOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setGroupDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [groupDropdownOpen]);
+
+  const handleOpenNotifications = () => {
+    setGroupDropdownOpen(false);
+
+    const cachedNotifs = queryClient.getQueryData<AppNotification[]>(['notifications']) || notifications;
+    const unread = cachedNotifs.filter((n) => !n.is_read);
+
+    if (unread.length > 0) {
+      queryClient.setQueryData<AppNotification[]>(['notifications'], (prev) =>
+        (prev || cachedNotifs).map((n) => ({ ...n, is_read: true }))
+      );
+
+      Promise.allSettled(unread.map((n) => markNotificationRead(n.id))).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['notifications'], exact: true });
+      }).catch(() => {});
+    }
+
+    onOpenNotifications?.();
+  };
 
   const handleLogout = () => {
+    setGroupDropdownOpen(false);
     logout();
     navigate('/login');
   };
@@ -97,7 +147,7 @@ export function DesktopSidebar({ onOpenNotifications, onOpenBadges }: DesktopSid
           <ThemeToggle className="!min-h-[42px] !min-w-[42px] !rounded-full !bg-reader-subdued" />
         </div>
 
-        <div className="relative">
+        <div ref={groupRef} className="relative">
           <button
             onClick={() => setGroupDropdownOpen((open) => !open)}
             aria-expanded={groupDropdownOpen}
@@ -116,7 +166,7 @@ export function DesktopSidebar({ onOpenNotifications, onOpenBadges }: DesktopSid
                 initial={{ opacity: 0, y: 8, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 8, scale: 0.98 }}
-                className="absolute right-0 top-full z-50 mt-2 w-full space-y-1 rounded-2xl border border-reader-border bg-reader-glass p-2 shadow-2xl backdrop-blur-2xl"
+                className="absolute right-0 top-full z-50 mt-2 w-full space-y-1 rounded-2xl border border-reader-borderStrong bg-reader-canvasElevated p-2 shadow-2xl backdrop-blur-xl"
               >
                 <div className="flex items-center gap-2 rounded-xl bg-reader-raised px-3 py-2 text-xs font-bold">
                   <Sparkles className="h-4 w-4 text-reader-metric-goldText" />
@@ -199,9 +249,9 @@ export function DesktopSidebar({ onOpenNotifications, onOpenBadges }: DesktopSid
       <div className="mt-auto space-y-3 border-t border-reader-border pt-5">
         <div className="flex items-center gap-2">
           <button onClick={onOpenBadges} className="flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-xl bg-reader-surface text-xs font-black text-reader-metric-goldText hover:bg-reader-hover" aria-label="فتح الأوسمة">
-            <Trophy className="h-4 w-4" /> م {userLevel}
+            <Trophy className="h-4 w-4" /> م {progression.currentLevel}
           </button>
-          <button onClick={onOpenNotifications} className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-reader-surface text-reader-text hover:bg-reader-hover" aria-label="فتح الإشعارات">
+          <button onClick={handleOpenNotifications} className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-reader-surface text-reader-text hover:bg-reader-hover" aria-label="فتح الإشعارات">
             <Bell className="h-4 w-4" />
             {unreadCount > 0 && <span className="absolute -left-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-reader-danger text-[9px] font-black text-white">{unreadCount}</span>}
           </button>
@@ -212,7 +262,7 @@ export function DesktopSidebar({ onOpenNotifications, onOpenBadges }: DesktopSid
             <LogOut className="h-4 w-4" />
           </button>
         </div>
-        <p className="text-center text-[9px] font-bold text-reader-subtle">{userXp} XP • قارئ في المستوى {userLevel}</p>
+        <p className="text-center text-[9px] font-bold text-reader-subtle">{progression.totalXP} XP • قارئ في المستوى {progression.currentLevel}</p>
       </div>
     </aside>
   );

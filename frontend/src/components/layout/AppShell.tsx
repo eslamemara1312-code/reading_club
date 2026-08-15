@@ -1,10 +1,10 @@
 import React, { lazy, Suspense, useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DesktopSidebar } from './DesktopSidebar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { Navbar } from '../Navbar';
 import { getAllBadges, getUserBadges } from '../../api/gamification';
-import { getMyNotifications } from '../../api/notifications';
+import { getMyNotifications, markNotificationRead, AppNotification } from '../../api/notifications';
 import { useAuthStore } from '../../store/authStore';
 
 const BadgesModal = lazy(() => import('../BadgesModal').then((module) => ({ default: module.BadgesModal })));
@@ -26,6 +26,7 @@ export function AppShell({
   onOpenBadges,
 }: AppShellProps) {
   const user = useAuthStore((state) => state.user);
+  const queryClient = useQueryClient();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showBadges, setShowBadges] = useState(false);
   const [showDesktopSidebar, setShowDesktopSidebar] = useState(
@@ -50,10 +51,9 @@ export function AppShell({
     };
   }, []);
 
-  const { data: notifications = [] } = useQuery({
+  const { data: notifications = [] } = useQuery<AppNotification[]>({
     queryKey: ['notifications'],
     queryFn: getMyNotifications,
-    enabled: !isReaderPage && showNotifications,
   });
 
   const { data: allBadges = [] } = useQuery({
@@ -68,7 +68,28 @@ export function AppShell({
     enabled: !isReaderPage && showBadges && !!user?.id,
   });
 
-  const openNotifications = onOpenNotifications ?? (() => setShowNotifications(true));
+  const handleOpenNotifications = () => {
+    const cachedNotifs = queryClient.getQueryData<AppNotification[]>(['notifications']) || notifications;
+    const unread = cachedNotifs.filter((n) => !n.is_read);
+
+    if (unread.length > 0) {
+      queryClient.setQueryData<AppNotification[]>(['notifications'], (prev) =>
+        (prev || cachedNotifs).map((n) => ({ ...n, is_read: true }))
+      );
+
+      Promise.allSettled(unread.map((n) => markNotificationRead(n.id))).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['notifications'], exact: true });
+      }).catch(() => {});
+    }
+
+    if (onOpenNotifications) {
+      onOpenNotifications();
+    } else {
+      setShowNotifications(true);
+    }
+  };
+
+  const openNotifications = handleOpenNotifications;
   const openBadges = onOpenBadges ?? (() => setShowBadges(true));
 
   if (isReaderPage) {

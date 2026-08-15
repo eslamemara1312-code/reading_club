@@ -76,6 +76,6 @@ async def evaluate_and_award_badges(
         if user:
             total_new_xp = sum(b.xp_award for b in newly_earned)
             user.xp_points += total_new_xp
-            user.level = (user.xp_points // 200) + 1
+            user.level = min(10, (user.xp_points // 200) + 1)
 
     return newly_earned

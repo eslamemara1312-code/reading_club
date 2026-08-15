@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -15,24 +15,29 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getGroupDetails, Group } from '../api/groups';
-import { getMyNotifications } from '../api/notifications';
+import { getMyNotifications, markNotificationRead, AppNotification } from '../api/notifications';
 import { ThemeToggle } from './layout/ThemeToggle';
+import { calculateLevelProgression } from '../utils/progression';
 
 interface NavbarProps {
   onOpenNotifications?: () => void;
   onOpenBadges?: () => void;
 }
 
+type ActiveDropdown = 'group' | 'profile' | null;
+
 export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const activeGroupId = useUIStore((state) => state.activeGroupId);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const [groupDropdownOpen, setGroupDropdownOpen] = useState(false);
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<ActiveDropdown>(null);
+  const groupRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   const { data: activeGroup } = useQuery<Group>({
     queryKey: ['group', activeGroupId],
@@ -40,17 +45,80 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
     enabled: !!activeGroupId,
   });
 
-  const { data: notifications } = useQuery({
+  const { data: notifications = [] } = useQuery<AppNotification[]>({
     queryKey: ['notifications'],
     queryFn: getMyNotifications,
   });
 
-  const unreadCount = notifications?.filter((n) => !n.is_read).length || 0;
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
+  const progression = calculateLevelProgression(user?.xp_points);
 
-  const userLevel = user?.level || 1;
-  const userXp = user?.xp_points || 0;
+  // Click outside and Escape key handler for mutual exclusion & dismissal
+  useEffect(() => {
+    if (!activeDropdown) return;
+
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node;
+      if (
+        activeDropdown === 'group' &&
+        groupRef.current &&
+        !groupRef.current.contains(target)
+      ) {
+        setActiveDropdown(null);
+      } else if (
+        activeDropdown === 'profile' &&
+        profileRef.current &&
+        !profileRef.current.contains(target)
+      ) {
+        setActiveDropdown(null);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setActiveDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [activeDropdown]);
+
+  const handleOpenNotifications = () => {
+    setActiveDropdown(null);
+
+    const cachedNotifs = queryClient.getQueryData<AppNotification[]>(['notifications']) || notifications;
+    const unread = cachedNotifs.filter((n) => !n.is_read);
+
+    if (unread.length > 0) {
+      // Optimistically mark all as read in cache immediately to eliminate badge
+      queryClient.setQueryData<AppNotification[]>(['notifications'], (prev) =>
+        (prev || cachedNotifs).map((n) => ({ ...n, is_read: true }))
+      );
+
+      // Persist to backend without blocking or crashing
+      Promise.allSettled(unread.map((n) => markNotificationRead(n.id))).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['notifications'], exact: true });
+      }).catch(() => {});
+    }
+
+    onOpenNotifications?.();
+  };
+
+  const handleOpenBadges = () => {
+    setActiveDropdown(null);
+    onOpenBadges?.();
+  };
 
   const handleLogout = () => {
+    setActiveDropdown(null);
     logout();
     navigate('/login');
   };
@@ -81,26 +149,27 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
           </NavLink>
 
           {/* Active Group Selector */}
-          <div className="relative">
+          <div ref={groupRef} className="relative">
             <motion.button
               whileTap={{ scale: 0.96 }}
-              onClick={() => setGroupDropdownOpen(!groupDropdownOpen)}
+              onClick={() => setActiveDropdown((prev) => (prev === 'group' ? null : 'group'))}
+              aria-expanded={activeDropdown === 'group'}
               className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-reader-surface hover:bg-reader-hover border border-reader-border text-xs font-semibold text-reader-text transition-colors"
             >
               <span className="w-2 h-2 rounded-full bg-reader-accent shrink-0" />
               <span className="max-w-[70px] xs:max-w-[110px] sm:max-w-[160px] truncate text-[11px] sm:text-xs font-bold">
                 {activeGroup?.name || 'اختر مجموعة'}
               </span>
-              <ChevronDown className="w-3.5 h-3.5 text-reader-muted shrink-0" />
+              <ChevronDown className={`w-3.5 h-3.5 text-reader-muted shrink-0 transition-transform ${activeDropdown === 'group' ? 'rotate-180' : ''}`} />
             </motion.button>
 
             <AnimatePresence>
-              {groupDropdownOpen && (
+              {activeDropdown === 'group' && (
                 <motion.div
                   initial={{ opacity: 0, y: 8, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                  className="absolute right-0 mt-2 w-56 p-2 rounded-2xl bg-reader-surface border border-reader-border shadow-2xl z-[60] space-y-1"
+                  className="absolute right-0 mt-2 w-56 p-2 rounded-2xl bg-reader-canvasElevated border border-reader-borderStrong shadow-2xl z-[60] space-y-1 backdrop-blur-xl"
                 >
                   <div className="px-3 py-2 border-b border-reader-border text-[11px] font-medium text-reader-muted">
                     المجموعة الحالية
@@ -111,7 +180,7 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
                   </div>
                   <NavLink
                     to="/onboarding"
-                    onClick={() => setGroupDropdownOpen(false)}
+                    onClick={() => setActiveDropdown(null)}
                     className="flex items-center gap-2 w-full px-3 py-2 text-xs font-semibold text-reader-accent hover:bg-reader-hover rounded-xl transition-colors"
                   >
                     + تبديل أو إنضمام لمجموعة
@@ -161,12 +230,12 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.96 }}
-              onClick={onOpenBadges}
+              onClick={handleOpenBadges}
               className="min-h-[36px] sm:min-h-[44px] flex items-center gap-1 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-xl bg-reader-surface border border-reader-border text-reader-metric-goldText text-[10px] sm:text-xs font-extrabold hover:bg-reader-hover transition-all shrink-0"
               aria-label="فتح الأوسمة والإنجازات"
             >
-              <span>م {userLevel}</span>
-              <span className="text-[10px] text-reader-muted font-normal hidden sm:inline">({userXp} XP)</span>
+              <span>م {progression.currentLevel}</span>
+              <span className="text-[10px] text-reader-muted font-normal hidden sm:inline">({progression.totalXP} XP)</span>
             </motion.button>
           </div>
 
@@ -177,7 +246,7 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.96 }}
-            onClick={onOpenNotifications}
+            onClick={handleOpenNotifications}
             className="relative p-1.5 sm:p-2 rounded-xl bg-reader-surface hover:bg-reader-hover border border-reader-border text-reader-text transition-colors shrink-0 min-w-[36px] min-h-[36px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center"
             aria-label="التنبيهات"
           >
@@ -190,10 +259,11 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
           </motion.button>
 
           {/* User Profile Dropdown Menu */}
-          <div className="relative shrink-0">
+          <div ref={profileRef} className="relative shrink-0">
             <motion.button
               whileTap={{ scale: 0.95 }}
-              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+              onClick={() => setActiveDropdown((prev) => (prev === 'profile' ? null : 'profile'))}
+              aria-expanded={activeDropdown === 'profile'}
               className="min-w-[36px] min-h-[36px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center gap-1.5 p-0.5 sm:p-1 rounded-xl bg-reader-surface hover:bg-reader-hover border border-reader-border text-reader-text transition-colors"
               aria-label="فتح قائمة الحساب"
             >
@@ -208,22 +278,22 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
             </motion.button>
 
             <AnimatePresence>
-              {profileDropdownOpen && (
+              {activeDropdown === 'profile' && (
                 <motion.div
                   initial={{ opacity: 0, y: 8, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.96 }}
                   transition={{ type: 'spring', stiffness: 450, damping: 30 }}
-                  className="absolute left-0 mt-2 w-56 rounded-2xl bg-reader-surface backdrop-blur-xl shadow-2xl border border-reader-border overflow-hidden z-[60] py-1.5"
+                  className="absolute left-0 mt-2 w-56 rounded-2xl bg-reader-canvasElevated backdrop-blur-xl shadow-2xl border border-reader-borderStrong overflow-hidden z-[60] py-1.5"
                 >
                   <div className="px-3.5 py-2.5 border-b border-reader-border">
                     <p className="text-xs font-black text-reader-text truncate">{user?.name}</p>
-                    <p className="text-[10px] text-reader-metric-goldText font-bold mt-0.5">مستوى {userLevel} • {userXp} XP</p>
+                    <p className="text-[10px] text-reader-metric-goldText font-bold mt-0.5">مستوى {progression.currentLevel} • {progression.totalXP} XP</p>
                   </div>
 
                   <button
                     onClick={() => {
-                      setProfileDropdownOpen(false);
+                      setActiveDropdown(null);
                       navigate('/profile');
                     }}
                     className="w-full text-right px-3.5 py-2.5 text-xs text-reader-muted hover:bg-reader-hover hover:text-reader-text flex items-center gap-2 font-bold transition-colors"
@@ -234,7 +304,7 @@ export function Navbar({ onOpenNotifications, onOpenBadges }: NavbarProps) {
 
                   <button
                     onClick={() => {
-                      setProfileDropdownOpen(false);
+                      setActiveDropdown(null);
                       navigate('/settings');
                     }}
                     className="w-full text-right px-3.5 py-2.5 text-xs text-reader-muted hover:bg-reader-hover hover:text-reader-text flex items-center gap-2 font-bold transition-colors"
