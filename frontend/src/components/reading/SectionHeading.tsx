@@ -1,4 +1,5 @@
 import React from 'react';
+import '../../styles/dashboard-fixes.css';
 
 interface SectionHeadingProps {
   title: string;
@@ -17,6 +18,11 @@ export function SectionHeading({
   badge,
   className = '',
 }: SectionHeadingProps) {
+  const resolvedSubtitle =
+    title === 'صدارة التزام المجموعة' && subtitle === 'المتنافسون الأوائل في نسبة الاستمرارية هذا الشهر'
+      ? 'المتنافسون الأوائل في الستريك وإجمالي الصفحات هذا الشهر'
+      : subtitle;
+
   return (
     <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 ${className}`}>
       <div className="space-y-1">
@@ -27,9 +33,9 @@ export function SectionHeading({
           </h2>
           {badge}
         </div>
-        {subtitle && (
+        {resolvedSubtitle && (
           <p className="text-xs font-semibold text-reader-muted">
-            {subtitle}
+            {resolvedSubtitle}
           </p>
         )}
       </div>
