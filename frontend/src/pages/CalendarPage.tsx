@@ -1,21 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
 import { Calendar, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import { getGroupCalendar, MonthCalendarResponse } from '../api/calendar';
-import { getGroupDetails, Group } from '../api/groups';
 import { CalendarGrid } from '../components/CalendarGrid';
 import { AppShell } from '../components/layout/AppShell';
 
 export const CalendarPage = () => {
+  const user = useAuthStore((state) => state.user);
   const activeGroupId = useUIStore((state) => state.activeGroupId);
   const navigate = useNavigate();
-
-  const { data: group } = useQuery<Group>({
-    queryKey: ['group', activeGroupId],
-    queryFn: () => getGroupDetails(activeGroupId!),
-    enabled: !!activeGroupId,
-  });
 
   const { data: calendarData, isLoading } = useQuery<MonthCalendarResponse>({
     queryKey: ['calendar', activeGroupId],
@@ -42,32 +37,25 @@ export const CalendarPage = () => {
 
   return (
     <AppShell>
-      <div className="space-y-8 sm:space-y-12 max-w-6xl mx-auto">
-        {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-reader-border pb-6">
-          <div>
-            <span className="text-xs text-reader-accent font-bold tracking-wider uppercase block mb-1">
-              إيقاع القراءة الشهرية 📅
-            </span>
-            <h1 className="font-black text-2xl sm:text-3xl text-reader-text tracking-tight">
-              تقويم الالتزام والحضور
-            </h1>
-            <p className="text-reader-muted text-xs mt-1 font-medium">
-              خريطة حرارية تفصيلية لاستمرارية أعضاء {group?.name || 'المجموعة'}
-            </p>
-          </div>
-          <span className="text-xs text-reader-muted font-mono font-medium px-3.5 py-1.5 bg-reader-panel rounded-xl border border-reader-border shrink-0 self-start sm:self-auto">
-            {group?.members_count || 1} أعضاء
+      <div className="space-y-8 sm:space-y-12 max-w-4xl mx-auto">
+        <div className="border-b border-reader-border pb-6">
+          <span className="text-xs text-reader-accent font-bold tracking-wider uppercase block mb-1">
+            إيقاع قراءتك الشهرية 📅
           </span>
+          <h1 className="font-black text-2xl sm:text-3xl text-reader-text tracking-tight">
+            تقويم الالتزام الشخصي
+          </h1>
+          <p className="text-reader-muted text-xs mt-1 font-medium">
+            تابع أيام قراءتك وغيابك وتجميد الستريك خلال الشهر الحالي.
+          </p>
         </div>
 
-        {/* Calendar Content */}
         {isLoading ? (
           <div className="text-center py-16 text-reader-muted text-xs flex items-center justify-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin text-reader-accent" /> جاري تحميل خريطة إيقاع القراءة...
+            <Loader2 className="w-4 h-4 animate-spin text-reader-accent" /> جاري تحميل خريطة الالتزام...
           </div>
         ) : calendarData ? (
-          <CalendarGrid calendarData={calendarData} />
+          <CalendarGrid calendarData={calendarData} currentUserId={user?.id} />
         ) : (
           <div className="text-center py-12 text-reader-muted text-xs font-medium">
             لا توجد بيانات تقويم متاحة حالياً
