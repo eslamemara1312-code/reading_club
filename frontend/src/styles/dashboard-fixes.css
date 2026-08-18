@@ -1,0 +1,75 @@
+/* Scoped dashboard-only presentation fixes.
+   Keep business logic and leaderboard data contracts unchanged. */
+
+/* Leaderboard: remove the consistency percentage row and promote streak/pages. */
+section.rc-deferred-content > .grid.grid-cols-1.sm\:grid-cols-3 > div > .space-y-1.pt-1 > .flex.items-center.justify-between {
+  display: none;
+}
+
+section.rc-deferred-content > .grid.grid-cols-1.sm\:grid-cols-3 > div > .flex.items-center.justify-between.text-xs.text-reader-subtle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding-top: 0;
+  border-top: 0;
+}
+
+section.rc-deferred-content > .grid.grid-cols-1.sm\:grid-cols-3 > div > .flex.items-center.justify-between.text-xs.text-reader-subtle > span {
+  display: flex;
+  min-width: 0;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--rc-border);
+  border-radius: 0.9rem;
+  background: var(--rc-surface);
+  color: var(--rc-text);
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+/* "من قرأ اليوم؟": stable identity + status/action columns. */
+section.rc-deferred-content.bg-reader-panel > .divide-y.divide-reader-border > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(9rem, 12rem);
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+}
+
+section.rc-deferred-content.bg-reader-panel > .divide-y.divide-reader-border > div > div:first-child {
+  min-width: 0;
+}
+
+section.rc-deferred-content.bg-reader-panel > .divide-y.divide-reader-border > div > div:first-child > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+section.rc-deferred-content.bg-reader-panel > .divide-y.divide-reader-border > div > div:last-child {
+  width: 100%;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+section.rc-deferred-content.bg-reader-panel > .divide-y.divide-reader-border > div > div:last-child > span,
+section.rc-deferred-content.bg-reader-panel > .divide-y.divide-reader-border > div > div:last-child > div > span {
+  min-width: 7rem;
+  justify-content: center;
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  section.rc-deferred-content.bg-reader-panel > .divide-y.divide-reader-border > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  section.rc-deferred-content.bg-reader-panel > .divide-y.divide-reader-border > div > div:last-child {
+    justify-content: space-between;
+  }
+}

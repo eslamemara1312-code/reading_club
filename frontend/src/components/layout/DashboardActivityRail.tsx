@@ -89,7 +89,10 @@ export function DashboardActivityRail({ memberStatuses = [], leaderboard = [] }:
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-reader-surface font-mono font-black text-reader-accent">{index + 1}</span>
                   <span className="truncate font-bold text-reader-text">{entry.user.name}</span>
                 </div>
-                <span className="shrink-0 font-mono font-black text-reader-success">{entry.commitment_rate}%</span>
+                <div className="shrink-0 text-left font-mono text-[10px] font-black leading-4">
+                  <span className="block text-reader-metric-coralText">🔥 {entry.current_streak} ي</span>
+                  <span className="block text-reader-metric-goldText">📚 {entry.total_pages_read} ص</span>
+                </div>
               </div>
             ))}
           </div>
